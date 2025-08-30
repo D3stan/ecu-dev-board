@@ -2,7 +2,7 @@
 	(version 20250114)
 	(generator "eeschema")
 	(generator_version "9.0")
-	(uuid "040c74d3-5977-4ae5-8592-f4f2364c2342")
+	(uuid "0ebc8fa1-9abd-4817-ad1e-ee5578c7f340")
 	(paper "A4")
 	(lib_symbols
 		(symbol "MCU_Custom:WeMos_S2_mini"
@@ -825,7 +825,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Module:WEMOS_S2_mini"
+		(property "Footprint" "MCU_Custom:WEMOS_S2_mini"
 			(at 160.02 127 0)
 			(effects
 				(font
