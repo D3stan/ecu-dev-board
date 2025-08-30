@@ -2,7 +2,7 @@
 	(version 20250114)
 	(generator "eeschema")
 	(generator_version "9.0")
-	(uuid "0ebc8fa1-9abd-4817-ad1e-ee5578c7f340")
+	(uuid "95431225-884a-49b6-91f9-61eeda789f3b")
 	(paper "A4")
 	(lib_symbols
 		(symbol "MCU_Custom:WeMos_S2_mini"
