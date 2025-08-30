@@ -1,1 +1,4 @@
-**/ecu-dev-board-backups
+pbc/*backups*
+pcb/*auto_saved*
+pcb/*cache*
+*.lck
