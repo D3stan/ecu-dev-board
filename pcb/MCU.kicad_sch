@@ -1,0 +1,960 @@
+(kicad_sch
+	(version 20250114)
+	(generator "eeschema")
+	(generator_version "9.0")
+	(uuid "040c74d3-5977-4ae5-8592-f4f2364c2342")
+	(paper "A4")
+	(lib_symbols
+		(symbol "MCU_Custom:WeMos_S2_mini"
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "U"
+				(at 2.54 -30.48 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Value" "WeMos_S2_mini"
+				(at 2.54 -33.02 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Footprint" "Module:WEMOS_S2_mini"
+				(at 0 -45.72 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "https://www.wemos.cc/en/latest/s2/s2_mini.html"
+				(at 0 -43.18 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "32-bit microcontroller module with WiFi"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "ESP32 WiFi microcontroller ESP32-S2FN4R2"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_fp_filters" "WEMOS*S2*mini*"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "WeMos_S2_mini_1_1"
+				(rectangle
+					(start -12.7 27.94)
+					(end 12.7 -27.94)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type background)
+					)
+				)
+				(pin input line
+					(at -15.24 20.32 0)
+					(length 2.54)
+					(name "EN"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(alternate "~{RST}" input line)
+				)
+				(pin input line
+					(at -15.24 15.24 0)
+					(length 2.54)
+					(name "XTAL_32K_N"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "11"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(alternate "ADC2_CH5" input line)
+					(alternate "GPIO16" bidirectional line)
+					(alternate "U0CTS" input line)
+				)
+				(pin output line
+					(at -15.24 12.7 0)
+					(length 2.54)
+					(name "XTAL_32K_P"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "25"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(alternate "ADC2_CH4" input line)
+					(alternate "GPIO15" bidirectional line)
+					(alternate "U0RTS" output line)
+				)
+				(pin output line
+					(at -15.24 7.62 0)
+					(length 2.54)
+					(name "DAC_1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "27"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(alternate "ADC2_CH6" input line)
+					(alternate "GPIO17" bidirectional line)
+					(alternate "U1TXD" output line)
+				)
+				(pin output line
+					(at -15.24 5.08 0)
+					(length 2.54)
+					(name "DAC_2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "12"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(alternate "ADC2_CH7" input line)
+					(alternate "CLK_OUT3" tri_state line)
+					(alternate "GPIO18" bidirectional line)
+					(alternate "U1RXD" input line)
+				)
+				(pin bidirectional line
+					(at -15.24 0 0)
+					(length 2.54)
+					(name "GPIO21"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "28"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin bidirectional line
+					(at -15.24 -2.54 0)
+					(length 2.54)
+					(name "GPIO33"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "13"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(alternate "FSPIHD" bidirectional line)
+					(alternate "SPIIO4" bidirectional line)
+				)
+				(pin bidirectional line
+					(at -15.24 -5.08 0)
+					(length 2.54)
+					(name "GPIO34"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "29"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(alternate "FSPICS0" bidirectional line)
+					(alternate "SPIIO5" bidirectional line)
+				)
+				(pin bidirectional line
+					(at -15.24 -7.62 0)
+					(length 2.54)
+					(name "GPIO35"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "14"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(alternate "FSPID" bidirectional line)
+					(alternate "SPIIO6" bidirectional line)
+				)
+				(pin bidirectional line
+					(at -15.24 -10.16 0)
+					(length 2.54)
+					(name "GPIO36"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "30"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(alternate "FSPICLK" bidirectional line)
+					(alternate "FSPIIO7" bidirectional line)
+				)
+				(pin bidirectional line
+					(at -15.24 -12.7 0)
+					(length 2.54)
+					(name "GPIO37"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "15"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(alternate "FSPIQ" bidirectional line)
+					(alternate "SPIDQS" bidirectional line)
+				)
+				(pin bidirectional line
+					(at -15.24 -15.24 0)
+					(length 2.54)
+					(name "GPIO38"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "31"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(alternate "FSPIWP" bidirectional line)
+				)
+				(pin bidirectional line
+					(at -15.24 -17.78 0)
+					(length 2.54)
+					(name "GPIO39"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "16"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(alternate "CLK_OUT3" tri_state line)
+					(alternate "MTCK" output line)
+				)
+				(pin bidirectional line
+					(at -15.24 -20.32 0)
+					(length 2.54)
+					(name "GPIO40"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "32"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(alternate "CLK_OUT2" tri_state line)
+					(alternate "MTDO" output line)
+				)
+				(pin power_out line
+					(at -5.08 30.48 270)
+					(length 2.54)
+					(name "VBUS"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "9"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin power_in line
+					(at 0 -30.48 90)
+					(length 2.54)
+					(name "GND"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "10"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 0 -30.48 90)
+					(length 2.54)
+					(hide yes)
+					(name "GND"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "26"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin power_out line
+					(at 5.08 30.48 270)
+					(length 2.54)
+					(name "3V3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "8"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin bidirectional line
+					(at 15.24 15.24 180)
+					(length 2.54)
+					(name "GPIO1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "17"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(alternate "ADC1_CH0" input line)
+					(alternate "TOUCH1" input line)
+				)
+				(pin bidirectional line
+					(at 15.24 12.7 180)
+					(length 2.54)
+					(name "GPIO2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "18"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(alternate "ADC1_CH1" input line)
+					(alternate "TOUCH2" input line)
+				)
+				(pin bidirectional line
+					(at 15.24 10.16 180)
+					(length 2.54)
+					(name "GPIO3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(alternate "ADC1_CH2" input line)
+					(alternate "TOUCH3" input line)
+				)
+				(pin bidirectional line
+					(at 15.24 7.62 180)
+					(length 2.54)
+					(name "GPIO4"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "19"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(alternate "ADC1_CH3" input line)
+					(alternate "TOUCH4" input line)
+				)
+				(pin bidirectional line
+					(at 15.24 5.08 180)
+					(length 2.54)
+					(name "GPIO5"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(alternate "ADC1_CH4" input line)
+					(alternate "TOUCH5" input line)
+				)
+				(pin bidirectional line
+					(at 15.24 2.54 180)
+					(length 2.54)
+					(name "GPIO6"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "20"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(alternate "ADC1_CH5" input line)
+					(alternate "TOUCH6" input line)
+				)
+				(pin bidirectional line
+					(at 15.24 0 180)
+					(length 2.54)
+					(name "GPIO7"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "4"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(alternate "ADC1_CH6" input line)
+					(alternate "TOUCH7" input line)
+				)
+				(pin bidirectional line
+					(at 15.24 -2.54 180)
+					(length 2.54)
+					(name "GPIO8"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "21"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(alternate "ADC1_CH7" input line)
+					(alternate "TOUCH8" input line)
+				)
+				(pin bidirectional line
+					(at 15.24 -5.08 180)
+					(length 2.54)
+					(name "GPIO9"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "5"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(alternate "ADC1_CH8" input line)
+					(alternate "FSPIHD" bidirectional line)
+					(alternate "TOUCH9" input line)
+				)
+				(pin bidirectional line
+					(at 15.24 -7.62 180)
+					(length 2.54)
+					(name "GPIO10"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "22"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(alternate "ADC1_CH9" input line)
+					(alternate "FSPICS0" bidirectional line)
+					(alternate "FSPIIO4" bidirectional line)
+					(alternate "TOUCH10" input line)
+				)
+				(pin bidirectional line
+					(at 15.24 -10.16 180)
+					(length 2.54)
+					(name "GPIO11"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "6"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(alternate "ADC2_CH0" input line)
+					(alternate "FSPID" bidirectional line)
+					(alternate "FSPIIO5" bidirectional line)
+					(alternate "TOUCH11" input line)
+				)
+				(pin bidirectional line
+					(at 15.24 -12.7 180)
+					(length 2.54)
+					(name "GPIO12"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "7"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(alternate "ADC2_CH1" input line)
+					(alternate "FSPICLK" bidirectional line)
+					(alternate "FSPIIO6" bidirectional line)
+					(alternate "TOUCH12" input line)
+				)
+				(pin bidirectional line
+					(at 15.24 -15.24 180)
+					(length 2.54)
+					(name "GPIO13"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "23"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(alternate "ADC2_CH2" input line)
+					(alternate "FSPIIO7" bidirectional line)
+					(alternate "FSPIQ" bidirectional line)
+					(alternate "TOUCH13" input line)
+				)
+				(pin bidirectional line
+					(at 15.24 -17.78 180)
+					(length 2.54)
+					(name "GPIO14"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "24"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(alternate "ADC2_CH3" input line)
+					(alternate "FSPIDQS" bidirectional line)
+					(alternate "FSPIWP" bidirectional line)
+					(alternate "TOUCH14" input line)
+				)
+			)
+			(embedded_fonts no)
+		)
+	)
+	(wire
+		(pts
+			(xy 177.8 96.52) (xy 175.26 96.52)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "ce1696cb-fc45-4229-a6c1-de3eb4c00c27")
+	)
+	(wire
+		(pts
+			(xy 177.8 93.98) (xy 175.26 93.98)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "dc0c1ab3-e60e-4444-816f-d10888b9a642")
+	)
+	(global_label "PICKUP_SIM_IN+"
+		(shape input)
+		(at 177.8 93.98 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "2c46e889-bc70-4b8c-873d-c91d8167b183")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 196.5091 93.98 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "PICKUP_SIM_IN-"
+		(shape input)
+		(at 177.8 96.52 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "42730e92-9c25-4007-b1bc-610099eddb59")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 196.5091 96.52 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(symbol
+		(lib_id "MCU_Custom:WeMos_S2_mini")
+		(at 160.02 81.28 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "7ddba12b-6340-4c3f-9dbd-319c2e3e99ac")
+		(property "Reference" "U1"
+			(at 162.1633 111.76 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "WeMos_S2_mini"
+			(at 162.1633 114.3 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Module:WEMOS_S2_mini"
+			(at 160.02 127 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "https://www.wemos.cc/en/latest/s2/s2_mini.html"
+			(at 160.02 124.46 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "32-bit microcontroller module with WiFi"
+			(at 160.02 81.28 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "26"
+			(uuid "a021b1f9-b89a-43e6-a7c9-192bac336153")
+		)
+		(pin "13"
+			(uuid "2a4474f1-c929-422c-a689-d01bb524d2e8")
+		)
+		(pin "18"
+			(uuid "4f1edad4-22a2-4677-9346-dd6a9e17f2e0")
+		)
+		(pin "25"
+			(uuid "2e1c5171-aeb3-4365-aaed-10bd2cc3feb9")
+		)
+		(pin "12"
+			(uuid "d33fe28a-08fe-4259-a2ed-ed1c5033b62e")
+		)
+		(pin "28"
+			(uuid "4a5c1535-fad7-4276-8e33-b1783244765e")
+		)
+		(pin "14"
+			(uuid "3f379179-bc27-4600-b8f3-dc59d9541b26")
+		)
+		(pin "30"
+			(uuid "569cfa8e-f0f2-43f3-80c0-47e19aecb9eb")
+		)
+		(pin "15"
+			(uuid "017a7b78-22ba-42c2-81b1-1f758d90acab")
+		)
+		(pin "31"
+			(uuid "f12f7b1e-ddf4-429e-85e6-6fc02d568a8a")
+		)
+		(pin "11"
+			(uuid "c8828225-b715-4b03-b827-1bc04fd65d41")
+		)
+		(pin "32"
+			(uuid "5eed086a-1909-4172-8002-55f58b644129")
+		)
+		(pin "27"
+			(uuid "465da209-d6ac-47dd-a95f-18cfad77b9c5")
+		)
+		(pin "9"
+			(uuid "5cade5e9-3225-4061-a70c-94c0b5a273b6")
+		)
+		(pin "1"
+			(uuid "2c76d057-eef0-4b9d-a05e-6956bef61b5d")
+		)
+		(pin "29"
+			(uuid "5ed56d7a-1fd5-45ab-9c82-3f66f47de466")
+		)
+		(pin "16"
+			(uuid "5b4068ce-3530-43b4-84be-70e74b2e0e26")
+		)
+		(pin "10"
+			(uuid "89cbfb6c-6371-4157-9543-0d9731f96990")
+		)
+		(pin "8"
+			(uuid "508d86d1-a088-496e-a9e1-4b76235621de")
+		)
+		(pin "17"
+			(uuid "0a1214f3-26c9-4c24-8cf3-b91e74732657")
+		)
+		(pin "21"
+			(uuid "a120582b-3e13-44bf-8b3e-d7e43ea3d1cb")
+		)
+		(pin "3"
+			(uuid "0e3ce6f2-868e-473a-b5a7-98750b92f595")
+		)
+		(pin "24"
+			(uuid "8e0d7fe7-75d9-482f-8f46-96139c9fd2b6")
+		)
+		(pin "6"
+			(uuid "5a7c4d74-7b3c-4247-a62b-b578c6b82007")
+		)
+		(pin "5"
+			(uuid "418b663c-7dee-4ee4-bef6-3e17048b9cfd")
+		)
+		(pin "19"
+			(uuid "5f8efe7c-3a22-41c2-ba1a-fabf3d2c68bf")
+		)
+		(pin "23"
+			(uuid "138649a7-e720-46da-9eaa-a592e168af50")
+		)
+		(pin "20"
+			(uuid "1dd10b7e-d7eb-4c57-b6c1-6588f4a19e54")
+		)
+		(pin "2"
+			(uuid "139d2541-399c-4ed8-9744-3b0ff4cb7350")
+		)
+		(pin "7"
+			(uuid "a06a2194-f807-4296-8d89-3d270ab0c1d1")
+		)
+		(pin "4"
+			(uuid "4d6d8736-2069-4100-b329-a1d71a07e1b0")
+		)
+		(pin "22"
+			(uuid "e70a22ec-825a-4983-ab02-a3a1cb12d781")
+		)
+		(instances
+			(project ""
+				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/5baacb37-d82a-49c1-a6be-f8a839583d33"
+					(reference "U1")
+					(unit 1)
+				)
+			)
+		)
+	)
+)
