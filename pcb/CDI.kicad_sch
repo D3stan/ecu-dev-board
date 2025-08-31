@@ -2,7 +2,7 @@
 	(version 20250114)
 	(generator "eeschema")
 	(generator_version "9.0")
-	(uuid "c945fad9-0f1b-40c0-bba7-9b5b5bdc20a8")
+	(uuid "633ae41b-13dd-457d-959c-958c34cfafef")
 	(paper "A4")
 	(lib_symbols
 		(symbol "Connector:TestPoint"
@@ -3135,7 +3135,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Capacitor_THT:CP_Axial_L18.0mm_D8.0mm_P25.00mm_Horizontal"
+		(property "Footprint" "Capacitor_THT:C_Axial_L12.0mm_D7.5mm_P20.00mm_Horizontal"
 			(at 224.79 51.1048 0)
 			(effects
 				(font

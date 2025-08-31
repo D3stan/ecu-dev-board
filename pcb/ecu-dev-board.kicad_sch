@@ -48,7 +48,7 @@
 		)
 	)
 	(sheet
-		(at 36.83 110.49)
+		(at 38.1 107.95)
 		(size 88.9 63.5)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -64,7 +64,7 @@
 		)
 		(uuid "4580a192-f0d7-44eb-b345-2965a93c3023")
 		(property "Sheetname" "Sensor"
-			(at 36.83 109.7784 0)
+			(at 38.1 107.2384 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -73,7 +73,7 @@
 			)
 		)
 		(property "Sheetfile" "Sensor.kicad_sch"
-			(at 36.83 174.5746 0)
+			(at 38.1 172.0346 0)
 			(effects
 				(font
 					(size 1.27 1.27)
