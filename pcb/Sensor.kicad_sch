@@ -1,0 +1,18 @@
+(kicad_sch
+	(version 20250114)
+	(generator "eeschema")
+	(generator_version "9.0")
+	(uuid "da89991c-2d42-4efd-8d15-35bf8f61d948")
+	(paper "A4")
+	(lib_symbols)
+	(text "https://docs.espressif.com/projects/esp-hardware-design-guidelines/en/latest/esp32s2/schematic-checklist.html?utm_source=chatgpt.com#adc"
+		(exclude_from_sim no)
+		(at 104.394 31.496 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "67f002b7-66de-439a-a55c-c26fd0001e61")
+	)
+)

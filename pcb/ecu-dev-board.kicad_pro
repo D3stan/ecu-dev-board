@@ -620,6 +620,10 @@
     [
       "5baacb37-d82a-49c1-a6be-f8a839583d33",
       "MCU"
+    ],
+    [
+      "4580a192-f0d7-44eb-b345-2965a93c3023",
+      "Sensor"
     ]
   ],
   "text_variables": {}

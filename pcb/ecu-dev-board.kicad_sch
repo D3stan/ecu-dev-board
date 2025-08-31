@@ -48,6 +48,48 @@
 		)
 	)
 	(sheet
+		(at 36.83 110.49)
+		(size 88.9 63.5)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0000)
+		)
+		(uuid "4580a192-f0d7-44eb-b345-2965a93c3023")
+		(property "Sheetname" "Sensor"
+			(at 36.83 109.7784 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "Sensor.kicad_sch"
+			(at 36.83 174.5746 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "ecu-dev-board"
+				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b"
+					(page "4")
+				)
+			)
+		)
+	)
+	(sheet
 		(at 177.8 27.94)
 		(size 80.01 58.42)
 		(exclude_from_sim no)
