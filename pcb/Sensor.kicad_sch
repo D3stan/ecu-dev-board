@@ -2,7 +2,7 @@
 	(version 20250114)
 	(generator "eeschema")
 	(generator_version "9.0")
-	(uuid "da89991c-2d42-4efd-8d15-35bf8f61d948")
+	(uuid "4f8fb6e7-b283-4e25-a886-3e331566729f")
 	(paper "A4")
 	(lib_symbols)
 	(text "https://docs.espressif.com/projects/esp-hardware-design-guidelines/en/latest/esp32s2/schematic-checklist.html?utm_source=chatgpt.com#adc"

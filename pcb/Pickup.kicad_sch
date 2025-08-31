@@ -2235,6 +2235,12 @@
 		(uuid "f15e19d9-46f5-42a2-9557-3d6e57d14fcf")
 	)
 	(junction
+		(at 248.92 45.72)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "0ae7c266-b2d1-4d90-8532-f32947273f4c")
+	)
+	(junction
 		(at 55.88 138.43)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -2245,6 +2251,12 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "0d506827-1cd4-49d9-8bbf-d5340d942118")
+	)
+	(junction
+		(at 210.82 45.72)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "0d99d81a-c884-4f46-abce-53b8b5bf7f24")
 	)
 	(junction
 		(at 34.29 152.4)
@@ -2668,6 +2680,16 @@
 	)
 	(wire
 		(pts
+			(xy 210.82 45.72) (xy 218.44 45.72)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "42a8a2c4-7999-415c-b525-f8f9c9dce95b")
+	)
+	(wire
+		(pts
 			(xy 123.19 60.96) (xy 127 60.96)
 		)
 		(stroke
@@ -2678,7 +2700,7 @@
 	)
 	(wire
 		(pts
-			(xy 203.2 45.72) (xy 218.44 45.72)
+			(xy 203.2 45.72) (xy 210.82 45.72)
 		)
 		(stroke
 			(width 0)
@@ -2725,6 +2747,16 @@
 			(type default)
 		)
 		(uuid "4a5a682b-6738-40f8-a8c9-9206d317abc8")
+	)
+	(wire
+		(pts
+			(xy 248.92 41.91) (xy 248.92 45.72)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "4c584aa1-a971-4b1c-ab6b-5ada2783ab95")
 	)
 	(wire
 		(pts
@@ -2978,7 +3010,7 @@
 	)
 	(wire
 		(pts
-			(xy 256.54 45.72) (xy 241.3 45.72)
+			(xy 256.54 45.72) (xy 248.92 45.72)
 		)
 		(stroke
 			(width 0)
@@ -3018,6 +3050,16 @@
 	)
 	(wire
 		(pts
+			(xy 210.82 41.91) (xy 210.82 45.72)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "9f9558dc-b253-4292-9a1e-84a8ff3a7ffa")
+	)
+	(wire
+		(pts
 			(xy 140.97 135.89) (xy 130.81 135.89)
 		)
 		(stroke
@@ -3045,6 +3087,16 @@
 			(type default)
 		)
 		(uuid "a2d4fdb2-a017-4f4a-ad50-a24a82a8c6ce")
+	)
+	(wire
+		(pts
+			(xy 248.92 45.72) (xy 241.3 45.72)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "a5d8cbd7-1cac-4927-9eb8-530dd460e393")
 	)
 	(wire
 		(pts
@@ -3980,6 +4032,73 @@
 			(project ""
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/419a62de-f56b-49aa-b69b-37bd2fc230d8"
 					(reference "#PWR04")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Connector:TestPoint")
+		(at 210.82 41.91 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "24335bcc-f72b-4441-81d5-7d51269c5e5e")
+		(property "Reference" "TP7"
+			(at 213.36 37.3379 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "TestPoint"
+			(at 213.36 39.8779 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 215.9 41.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 215.9 41.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "test point"
+			(at 210.82 41.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "28da2ee5-19a0-409b-b38d-51a2fcf16702")
+		)
+		(instances
+			(project "ecu-dev-board"
+				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/419a62de-f56b-49aa-b69b-37bd2fc230d8"
+					(reference "TP7")
 					(unit 1)
 				)
 			)
@@ -5629,6 +5748,73 @@
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/419a62de-f56b-49aa-b69b-37bd2fc230d8"
 					(reference "#PWR05")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Connector:TestPoint")
+		(at 248.92 41.91 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "b0391413-0d45-4b17-a634-91d4bc2f876d")
+		(property "Reference" "TP8"
+			(at 251.46 37.3379 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "TestPoint"
+			(at 251.46 39.8779 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" ""
+			(at 254 41.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 254 41.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "test point"
+			(at 248.92 41.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "e04eaaf9-89e8-4ffb-b11b-a61b59393628")
+		)
+		(instances
+			(project "ecu-dev-board"
+				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/419a62de-f56b-49aa-b69b-37bd2fc230d8"
+					(reference "TP8")
 					(unit 1)
 				)
 			)
