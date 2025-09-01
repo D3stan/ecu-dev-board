@@ -133,7 +133,7 @@
         "min_track_width": 0.0,
         "min_via_annular_width": 0.1,
         "min_via_diameter": 0.5,
-        "solder_mask_to_copper_clearance": 0.0,
+        "solder_mask_to_copper_clearance": 0.005,
         "use_height_for_length_calcs": true
       },
       "teardrop_options": [
@@ -628,6 +628,10 @@
     [
       "b4dfb18a-1381-42e3-8476-3a51a0195db6",
       "CDI"
+    ],
+    [
+      "59d7cd36-7b28-4e03-a153-4dfb2ab2e66a",
+      "PSU"
     ]
   ],
   "text_variables": {}

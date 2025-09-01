@@ -4716,78 +4716,6 @@
 		)
 	)
 	(symbol
-		(lib_id "Jumper:SolderJumper_3_Open")
-		(at 120.65 142.24 270)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom no)
-		(on_board yes)
-		(dnp no)
-		(uuid "6bb77a05-9a8b-429b-b0f4-3b4870f5eccd")
-		(property "Reference" "JP2"
-			(at 121.412 136.652 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "SolderJumper_3_Open"
-			(at 119.634 134.112 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" ""
-			(at 120.65 142.24 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 120.65 142.24 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Solder Jumper, 3-pole, open"
-			(at 120.65 142.24 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "3"
-			(uuid "0f247fd3-96f9-4d74-8d83-966dac7c21d0")
-		)
-		(pin "1"
-			(uuid "0202f6b4-fec9-4dc6-82b3-ab6583be36fa")
-		)
-		(pin "2"
-			(uuid "16479a7d-6a89-4b94-ab3c-ae8e544602e7")
-		)
-		(instances
-			(project ""
-				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/419a62de-f56b-49aa-b69b-37bd2fc230d8"
-					(reference "JP2")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "SamacSys_Parts:SM-LP-5001E")
 		(at 63.5 29.21 0)
 		(unit 1)
@@ -5281,9 +5209,10 @@
 					(size 1.27 1.27)
 				)
 				(justify left)
+				(hide yes)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "Jumper:SolderJumper-3_P1.3mm_Open_RoundedPad1.0x1.5mm"
 			(at 57.15 152.4 0)
 			(effects
 				(font
@@ -6714,6 +6643,79 @@
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/419a62de-f56b-49aa-b69b-37bd2fc230d8"
 					(reference "R4")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Jumper:SolderJumper_3_Open")
+		(at 120.65 142.24 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board yes)
+		(dnp no)
+		(uuid "f054ee8f-7cc4-4401-bd22-cb97f01590a2")
+		(property "Reference" "JP2"
+			(at 122.174 139.7 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "SolderJumper_3_Open"
+			(at 114.046 144.526 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Footprint" "Jumper:SolderJumper-3_P1.3mm_Open_RoundedPad1.0x1.5mm"
+			(at 120.65 142.24 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 120.65 142.24 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Solder Jumper, 3-pole, open"
+			(at 120.65 142.24 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "3"
+			(uuid "9d0a88fb-6b02-499f-8f67-ab0abdb64c95")
+		)
+		(pin "1"
+			(uuid "2d7cde84-ba9a-4260-8650-9a83b083e81a")
+		)
+		(pin "2"
+			(uuid "b378d263-0602-4312-a703-726486ee934b")
+		)
+		(instances
+			(project "ecu-dev-board"
+				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/419a62de-f56b-49aa-b69b-37bd2fc230d8"
+					(reference "JP2")
 					(unit 1)
 				)
 			)
