@@ -2546,6 +2546,16 @@
 		)
 		(uuid "07bdb8f1-4bdf-4355-9218-f1a8f36dc789")
 	)
+	(text "Aggiungere filtro PiGreco\nusare calcolatore online\n"
+		(exclude_from_sim no)
+		(at 84.836 90.17 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "33a281c4-9a9f-43fa-84d2-046d327b43af")
+	)
 	(junction
 		(at 186.69 55.88)
 		(diameter 0)
