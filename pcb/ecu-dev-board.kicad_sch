@@ -6,6 +6,48 @@
 	(paper "A4")
 	(lib_symbols)
 	(sheet
+		(at 217.17 95.25)
+		(size 44.45 43.18)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0000)
+		)
+		(uuid "1f135221-d921-46ea-b769-b97fce3b730c")
+		(property "Sheetname" "TCI"
+			(at 217.17 94.5384 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "TCI.kicad_sch"
+			(at 217.17 139.0146 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "ecu-dev-board"
+				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b"
+					(page "7")
+				)
+			)
+		)
+	)
+	(sheet
 		(at 38.1 25.4)
 		(size 44.45 43.18)
 		(exclude_from_sim no)
@@ -48,7 +90,7 @@
 		)
 	)
 	(sheet
-		(at 129.54 95.25)
+		(at 129.54 96.52)
 		(size 44.45 43.18)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -64,7 +106,7 @@
 		)
 		(uuid "4580a192-f0d7-44eb-b345-2965a93c3023")
 		(property "Sheetname" "Sensor"
-			(at 129.54 94.5384 0)
+			(at 129.54 95.8084 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -73,7 +115,7 @@
 			)
 		)
 		(property "Sheetfile" "Sensor.kicad_sch"
-			(at 129.54 139.0146 0)
+			(at 129.54 140.2846 0)
 			(effects
 				(font
 					(size 1.27 1.27)
