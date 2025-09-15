@@ -2259,7 +2259,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "LED_THT:LED_D5.0mm-4_RGB_Wide_Pins"
 			(at 248.92 46.99 0)
 			(effects
 				(font
