@@ -664,25 +664,23 @@
 			(exclude_from_sim no)
 			(in_bom yes)
 			(on_board yes)
-			(property "Reference" "Q"
-				(at 5.08 1.27 0)
+			(property "Reference" "Q3"
+				(at 8.89 0 90)
 				(effects
 					(font
 						(size 1.27 1.27)
 					)
-					(justify left)
 				)
 			)
-			(property "Value" "Q_PMOS"
-				(at 5.08 -1.27 0)
+			(property "Value" "HL3401A"
+				(at 6.35 0 90)
 				(effects
 					(font
 						(size 1.27 1.27)
 					)
-					(justify left)
 				)
 			)
-			(property "Footprint" ""
+			(property "Footprint" "Package_TO_SOT_SMD:SOT-23"
 				(at 5.08 2.54 0)
 				(effects
 					(font
@@ -896,7 +894,7 @@
 							)
 						)
 					)
-					(number "G"
+					(number "1"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -914,7 +912,7 @@
 							)
 						)
 					)
-					(number "D"
+					(number "3"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -932,7 +930,7 @@
 							)
 						)
 					)
-					(number "S"
+					(number "2"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -5059,13 +5057,13 @@
 				(hide yes)
 			)
 		)
-		(pin "D"
+		(pin "2"
 			(uuid "254e643e-f4ee-463a-8eac-4f6c1d6804a5")
 		)
-		(pin "S"
+		(pin "1"
 			(uuid "64b7941f-24ff-4228-9914-9de83c28ccc7")
 		)
-		(pin "G"
+		(pin "3"
 			(uuid "e64ea321-c041-4556-9760-15489b220364")
 		)
 		(instances
