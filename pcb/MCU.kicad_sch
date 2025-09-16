@@ -2110,6 +2110,16 @@
 	)
 	(wire
 		(pts
+			(xy 86.36 85.09) (xy 83.82 85.09)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "f1941a53-1926-492f-ab12-13f17892e801")
+	)
+	(wire
+		(pts
 			(xy 86.36 67.31) (xy 83.82 67.31)
 		)
 		(stroke
@@ -2221,6 +2231,28 @@
 		(uuid "00e46a8f-5a16-4978-8a55-74f2c3e590eb")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 104.2223 57.15 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "MAP_SW"
+		(shape input)
+		(at 86.36 85.09 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "05f48b01-e5db-4b0a-8435-ae3684e4348a")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 96.7837 85.09 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2494,6 +2526,28 @@
 			)
 		)
 	)
+	(global_label "SCR_QS"
+		(shape input)
+		(at 86.36 67.31 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "ef309d8c-bec6-4f09-94f8-92e4f08823be")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 96.6023 67.31 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
 	(symbol
 		(lib_id "power:+5V")
 		(at 63.5 33.02 0)
@@ -2629,73 +2683,6 @@
 			(project ""
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/5baacb37-d82a-49c1-a6be-f8a839583d33"
 					(reference "D14")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Connector:TestPoint")
-		(at 86.36 67.31 270)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "159e1bb0-53c9-4461-a538-890f1d5a48c7")
-		(property "Reference" "TP27"
-			(at 91.186 67.31 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "TestPoint"
-			(at 88.3921 69.85 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-		(property "Footprint" "Connector_PinHeader_1.00mm:PinHeader_1x01_P1.00mm_Vertical"
-			(at 86.36 72.39 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 86.36 72.39 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "test point"
-			(at 86.36 67.31 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "80d8ba30-4873-4fa4-a8bd-ebcb2b2fe5ce")
-		)
-		(instances
-			(project "ecu-dev-board"
-				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/5baacb37-d82a-49c1-a6be-f8a839583d33"
-					(reference "TP27")
 					(unit 1)
 				)
 			)
