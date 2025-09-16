@@ -3348,6 +3348,17 @@
 		)
 		(uuid "33a281c4-9a9f-43fa-84d2-046d327b43af")
 	)
+	(text "simulation"
+		(exclude_from_sim yes)
+		(at 56.134 18.542 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(href "https://www.falstad.com/circuit/circuitjs.html?ctz=CQAgjCAMB0l3BWcMBMcUHYMGZIA4UA2ATmIxAUgpABZsKBTAWjDACgBncFPENX7NkJ98UMQDMAhgBsODNgDcQTPFRq8VVMISpaRfXGN3QEbAO7L1YzUfPLV1h1ch2b2qjf5RX2kRodeLhYswl5gPH7eACZ8CMLEwoLCviggUQxSAK7SAC5sMUngGMI0vgl8aRmS2XkFQuAlZaGVWbn5sfGJ9WDFFemteRaFvoW6dqPcvGND3b2FgXYocSDlS6F4U4vLPLwIxKk73halnRT7K8IuAE5nqeV7BxtilHDtTM6TYqn91W0A9uAQIQaGIaJBSCBsGgoNAIFRUj1vEA")
+		)
+		(uuid "468b512b-877e-4ce2-8100-e252f4102602")
+	)
 	(junction
 		(at 184.15 43.18)
 		(diameter 0)

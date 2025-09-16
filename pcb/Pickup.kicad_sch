@@ -2470,6 +2470,16 @@
 	)
 	(wire
 		(pts
+			(xy 53.34 78.74) (xy 49.53 78.74)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "0bbd1057-fec0-4d89-95ac-7b9e9ba44ae9")
+	)
+	(wire
+		(pts
 			(xy 50.8 138.43) (xy 55.88 138.43)
 		)
 		(stroke
@@ -2910,6 +2920,16 @@
 	)
 	(wire
 		(pts
+			(xy 64.77 88.9) (xy 60.96 88.9)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "7e68a7b1-2ab0-4330-acea-61cccf081edb")
+	)
+	(wire
+		(pts
 			(xy 49.53 152.4) (xy 52.07 152.4)
 		)
 		(stroke
@@ -3097,6 +3117,16 @@
 			(type default)
 		)
 		(uuid "a5d8cbd7-1cac-4927-9eb8-530dd460e393")
+	)
+	(wire
+		(pts
+			(xy 53.34 88.9) (xy 49.53 88.9)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "a7e86882-5235-4b22-914d-e2d95f43f192")
 	)
 	(wire
 		(pts
@@ -3470,6 +3500,16 @@
 	)
 	(wire
 		(pts
+			(xy 64.77 78.74) (xy 60.96 78.74)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "f3aa1757-8bc2-43b0-9d7a-2b48ff138327")
+	)
+	(wire
+		(pts
 			(xy 120.65 135.89) (xy 130.81 135.89)
 		)
 		(stroke
@@ -3638,6 +3678,50 @@
 			)
 		)
 	)
+	(global_label "VR-"
+		(shape input)
+		(at 64.77 88.9 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "5adb0a27-7025-4d12-aa17-b6e36fe5e5a0")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 71.6862 88.9 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "PICKUP_SIM_IN-"
+		(shape input)
+		(at 49.53 88.9 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "72a7e23c-5384-4941-9069-f19975498421")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 30.8209 88.9 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
 	(global_label "PWM_VR"
 		(shape input)
 		(at 163.83 163.83 0)
@@ -3656,6 +3740,28 @@
 					(size 1.27 1.27)
 				)
 				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "PICKUP_SIM_IN+"
+		(shape input)
+		(at 49.53 78.74 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "78c82f8a-2bfe-4f00-a878-bea4f214b520")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 30.8209 78.74 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
 				(hide yes)
 			)
 		)
@@ -3722,6 +3828,28 @@
 					(size 1.27 1.27)
 				)
 				(justify right)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "VR+"
+		(shape input)
+		(at 64.77 78.74 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "962e6fab-a802-4c18-8a17-3db88c25cc41")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 71.6862 78.74 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
 				(hide yes)
 			)
 		)
@@ -4099,6 +4227,74 @@
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/419a62de-f56b-49aa-b69b-37bd2fc230d8"
 					(reference "TP7")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Jumper:SolderJumper_2_Open")
+		(at 57.15 78.74 180)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "28e23d0b-0fc8-45c2-a809-5d75c859ec26")
+		(property "Reference" "JP16"
+			(at 57.15 72.39 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "SolderJumper_2_Open"
+			(at 57.15 74.93 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Jumper:SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm"
+			(at 57.15 78.74 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 57.15 78.74 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Solder Jumper, 2-pole, open"
+			(at 57.15 78.74 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "e478add5-6df6-4ac3-aadf-093db491e29c")
+		)
+		(pin "2"
+			(uuid "94879042-c114-4bab-9bb2-801d57ab45dd")
+		)
+		(instances
+			(project "ecu-dev-board"
+				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/419a62de-f56b-49aa-b69b-37bd2fc230d8"
+					(reference "JP16")
 					(unit 1)
 				)
 			)
@@ -4939,6 +5135,74 @@
 			(project ""
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/419a62de-f56b-49aa-b69b-37bd2fc230d8"
 					(reference "R1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Jumper:SolderJumper_2_Open")
+		(at 57.15 88.9 180)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "70d1c03a-e3ad-4833-804d-15c374fa7a49")
+		(property "Reference" "JP17"
+			(at 57.15 82.55 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "SolderJumper_2_Open"
+			(at 57.15 85.09 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Jumper:SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm"
+			(at 57.15 88.9 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 57.15 88.9 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Solder Jumper, 2-pole, open"
+			(at 57.15 88.9 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "ee8c1109-cffb-4527-b4a2-ee2f4fbfab6b")
+		)
+		(pin "2"
+			(uuid "12f5f4bd-3f49-400c-beb9-ad08ff68bdf2")
+		)
+		(instances
+			(project "ecu-dev-board"
+				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/419a62de-f56b-49aa-b69b-37bd2fc230d8"
+					(reference "JP17")
 					(unit 1)
 				)
 			)
