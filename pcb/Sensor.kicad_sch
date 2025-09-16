@@ -4459,7 +4459,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Resistor_SMD:R_0201_0603Metric"
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
 			(at 246.38 64.008 90)
 			(effects
 				(font
@@ -4794,7 +4794,7 @@
 				(justify right)
 			)
 		)
-		(property "Footprint" "SODFL3718X125N"
+		(property "Footprint" "SamacSys_Parts:SODFL3718X125N"
 			(at 210.82 105.41 0)
 			(effects
 				(font
@@ -5146,7 +5146,7 @@
 				(justify right)
 			)
 		)
-		(property "Footprint" "Resistor_SMD:R_0201_0603Metric"
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
 			(at 258.318 125.73 90)
 			(effects
 				(font
@@ -5351,7 +5351,7 @@
 				(justify right)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0201_0603Metric"
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
 			(at 203.5048 121.92 0)
 			(effects
 				(font
@@ -6625,7 +6625,7 @@
 				(justify right)
 			)
 		)
-		(property "Footprint" "Resistor_SMD:R_0201_0603Metric"
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
 			(at 206.248 95.25 90)
 			(effects
 				(font
@@ -6869,7 +6869,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Resistor_SMD:R_0201_0603Metric"
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
 			(at 32.512 82.55 90)
 			(effects
 				(font
@@ -7145,7 +7145,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Resistor_SMD:R_0201_0603Metric"
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
 			(at 32.512 67.31 90)
 			(effects
 				(font
@@ -7922,7 +7922,7 @@
 				(justify right)
 			)
 		)
-		(property "Footprint" "Resistor_SMD:R_0201_0603Metric"
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
 			(at 206.248 113.03 90)
 			(effects
 				(font
@@ -8344,7 +8344,7 @@
 				(justify right)
 			)
 		)
-		(property "Footprint" "Resistor_SMD:R_0201_0603Metric"
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
 			(at 193.548 124.46 90)
 			(effects
 				(font
