@@ -832,6 +832,16 @@
 	)
 	(wire
 		(pts
+			(xy 53.34 184.15) (xy 55.88 184.15)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "3b5a319f-0004-4c87-ad0e-6521a39936a3")
+	)
+	(wire
+		(pts
 			(xy 46.99 166.37) (xy 55.88 166.37)
 		)
 		(stroke
@@ -852,7 +862,7 @@
 	)
 	(wire
 		(pts
-			(xy 44.45 179.07) (xy 55.88 179.07)
+			(xy 38.1 179.07) (xy 55.88 179.07)
 		)
 		(stroke
 			(width 0)
@@ -909,6 +919,16 @@
 			(type default)
 		)
 		(uuid "c0caed19-b59f-4842-9498-745fdee21082")
+	)
+	(wire
+		(pts
+			(xy 53.34 181.61) (xy 55.88 181.61)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "c5024bc3-97ca-4e53-86ab-60cb394d728c")
 	)
 	(wire
 		(pts
@@ -987,6 +1007,28 @@
 		(uuid "64930d3b-adf6-478f-b584-2f08602e79d2")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 38.6224 173.99 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "PICKUP_SIM+"
+		(shape input)
+		(at 53.34 181.61 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "71130548-2788-4624-9a1e-8b2af7d4a7a4")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 37.5338 181.61 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1102,6 +1144,28 @@
 					(size 1.27 1.27)
 				)
 				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "PICKUP_SIM-"
+		(shape input)
+		(at 53.34 184.15 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "d2642a95-6233-48b7-8d4f-ff4dc46ff423")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 37.5338 184.15 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
 				(hide yes)
 			)
 		)
@@ -1461,7 +1525,7 @@
 	)
 	(symbol
 		(lib_id "power:GNDPWR")
-		(at 44.45 179.07 270)
+		(at 38.1 179.07 270)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -1470,7 +1534,7 @@
 		(fields_autoplaced yes)
 		(uuid "95b1feb3-2ae1-4763-a262-ed1ec0afe70d")
 		(property "Reference" "#PWR058"
-			(at 39.37 179.07 0)
+			(at 33.02 179.07 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1479,7 +1543,7 @@
 			)
 		)
 		(property "Value" "GNDPWR"
-			(at 40.64 178.9429 90)
+			(at 34.29 178.9429 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1488,7 +1552,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 43.18 179.07 0)
+			(at 36.83 179.07 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1497,7 +1561,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 43.18 179.07 0)
+			(at 36.83 179.07 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1506,7 +1570,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GNDPWR\" , global ground"
-			(at 44.45 179.07 0)
+			(at 38.1 179.07 0)
 			(effects
 				(font
 					(size 1.27 1.27)

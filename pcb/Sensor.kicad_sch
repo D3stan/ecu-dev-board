@@ -2854,24 +2854,20 @@
 		(uuid "1c8d4fc7-cde2-4bad-abf3-52c541d1987d")
 	)
 	(no_connect
-		(at 140.97 165.1)
-		(uuid "24ad2b7f-c258-4315-9f07-ceda855e4d11")
-	)
-	(no_connect
 		(at 226.06 125.73)
 		(uuid "57f4eae9-31ca-43b1-bd93-d4e19a4706fd")
 	)
 	(no_connect
-		(at 125.73 167.64)
-		(uuid "6a269da0-90cb-4f33-8c6f-98d32c1f411a")
-	)
-	(no_connect
-		(at 125.73 162.56)
-		(uuid "8443834c-969b-4acb-aef0-724ea4d5baac")
+		(at 142.24 179.07)
+		(uuid "873d094b-4192-4a22-8e20-aafc3de4e82f")
 	)
 	(no_connect
 		(at 251.46 128.27)
 		(uuid "8919e08c-a480-41a4-9277-a8373fbde574")
+	)
+	(no_connect
+		(at 127 176.53)
+		(uuid "8cd82adc-3874-4753-83e9-eac5f6040b72")
 	)
 	(no_connect
 		(at 251.46 130.81)
@@ -2884,6 +2880,10 @@
 	(no_connect
 		(at 226.06 128.27)
 		(uuid "ae9f35bf-ab82-461c-9a79-391ba4129eb0")
+	)
+	(no_connect
+		(at 127 181.61)
+		(uuid "cee327ec-acdb-4ad6-9dda-e08ee5496828")
 	)
 	(wire
 		(pts
@@ -5597,92 +5597,6 @@
 		)
 	)
 	(symbol
-		(lib_id "Amplifier_Operational:OPA2376xxD")
-		(at 133.35 165.1 0)
-		(unit 2)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "3400a582-a3c8-41dc-96b8-0428bd6e34ca")
-		(property "Reference" "U5"
-			(at 133.35 154.94 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "OPA2376xxD"
-			(at 133.35 157.48 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" "SamacSys_Parts:SOIC127P600X175-8N"
-			(at 133.35 165.1 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "http://www.ti.com/lit/ds/symlink/opa376.pdf"
-			(at 133.35 165.1 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Dual Low-Noise, Low Quiescent Current, Precision Operational Amplifier e-trim Series, SOIC-8"
-			(at 133.35 165.1 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "2"
-			(uuid "555eb61d-6cad-4aa5-a447-bdf742fca2b3")
-		)
-		(pin "1"
-			(uuid "b309bb67-9e0f-4978-9507-fa7b9499c06d")
-		)
-		(pin "6"
-			(uuid "81e271ec-c655-47d3-b9b7-3d984c0326e1")
-		)
-		(pin "3"
-			(uuid "b98bdc05-d63a-4701-a05b-654e9652204b")
-		)
-		(pin "5"
-			(uuid "a974ab1d-7d53-4432-b162-84743fc39517")
-		)
-		(pin "8"
-			(uuid "d508e255-94b4-4081-bcd9-e38fefba24af")
-		)
-		(pin "4"
-			(uuid "f05416ce-de63-46c0-b54a-b42cb5f85d0c")
-		)
-		(pin "7"
-			(uuid "64dc91b2-a711-4d01-ae48-063060f7bbcc")
-		)
-		(instances
-			(project ""
-				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/4580a192-f0d7-44eb-b345-2965a93c3023"
-					(reference "U5")
-					(unit 2)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "power:+3.3V")
 		(at 26.67 137.16 0)
 		(unit 1)
@@ -7472,6 +7386,92 @@
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/4580a192-f0d7-44eb-b345-2965a93c3023"
 					(reference "#PWR026")
 					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Amplifier_Operational:OPA2376xxD")
+		(at 134.62 179.07 0)
+		(unit 2)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "c4976e35-b5c8-4ff0-bfbc-133f77683a7f")
+		(property "Reference" "U2"
+			(at 134.62 168.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "OPA2376xxD"
+			(at 134.62 171.45 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "SamacSys_Parts:SOIC127P600X175-8N"
+			(at 134.62 179.07 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "http://www.ti.com/lit/ds/symlink/opa376.pdf"
+			(at 134.62 179.07 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Dual Low-Noise, Low Quiescent Current, Precision Operational Amplifier e-trim Series, SOIC-8"
+			(at 134.62 179.07 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "555eb61d-6cad-4aa5-a447-bdf742fca2b3")
+		)
+		(pin "1"
+			(uuid "b309bb67-9e0f-4978-9507-fa7b9499c06d")
+		)
+		(pin "6"
+			(uuid "3808df5b-3a52-402f-8aa5-e10bd9c8a0d1")
+		)
+		(pin "3"
+			(uuid "b98bdc05-d63a-4701-a05b-654e9652204b")
+		)
+		(pin "5"
+			(uuid "7959a2fc-1fcb-4c29-a173-bdffeb2e3f95")
+		)
+		(pin "8"
+			(uuid "d508e255-94b4-4081-bcd9-e38fefba24af")
+		)
+		(pin "4"
+			(uuid "f05416ce-de63-46c0-b54a-b42cb5f85d0c")
+		)
+		(pin "7"
+			(uuid "984d47d8-c3f1-4e5e-ba3a-cf59ecee2329")
+		)
+		(instances
+			(project "ecu-dev-board"
+				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/4580a192-f0d7-44eb-b345-2965a93c3023"
+					(reference "U2")
+					(unit 2)
 				)
 			)
 		)

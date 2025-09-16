@@ -1840,6 +1840,16 @@
 	)
 	(wire
 		(pts
+			(xy 43.18 67.31) (xy 53.34 67.31)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "1a792070-cf9f-4f02-9f63-8b05f0f21faf")
+	)
+	(wire
+		(pts
 			(xy 86.36 64.77) (xy 83.82 64.77)
 		)
 		(stroke
@@ -2500,6 +2510,28 @@
 					(size 1.27 1.27)
 				)
 				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "PICKUP_SIM_IN"
+		(shape input)
+		(at 43.18 67.31 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "e6a6fce5-7de3-494c-ad7c-a9e3e8183a3d")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 26.0433 67.31 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
 				(hide yes)
 			)
 		)
