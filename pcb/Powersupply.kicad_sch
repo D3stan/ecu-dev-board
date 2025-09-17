@@ -3338,16 +3338,6 @@
 		)
 		(uuid "07bdb8f1-4bdf-4355-9218-f1a8f36dc789")
 	)
-	(text "Aggiungere filtro PiGreco\nusare calcolatore online\n"
-		(exclude_from_sim no)
-		(at 82.296 77.47 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-		)
-		(uuid "33a281c4-9a9f-43fa-84d2-046d327b43af")
-	)
 	(text "simulation"
 		(exclude_from_sim yes)
 		(at 56.134 18.542 0)
@@ -7206,7 +7196,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
+		(property "Footprint" "Capacitor_THT:CP_Radial_D8.0mm_P5.00mm"
 			(at 162.2552 77.47 0)
 			(effects
 				(font
@@ -8149,7 +8139,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:CP_Elec_3x5.4"
+		(property "Footprint" "Capacitor_THT:CP_Radial_D8.0mm_P5.00mm"
 			(at 214.3252 99.06 0)
 			(effects
 				(font

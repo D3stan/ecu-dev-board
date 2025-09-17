@@ -7400,7 +7400,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "c4976e35-b5c8-4ff0-bfbc-133f77683a7f")
-		(property "Reference" "U2"
+		(property "Reference" "U5"
 			(at 134.62 168.91 0)
 			(effects
 				(font
@@ -7470,7 +7470,7 @@
 		(instances
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/4580a192-f0d7-44eb-b345-2965a93c3023"
-					(reference "U2")
+					(reference "U5")
 					(unit 2)
 				)
 			)

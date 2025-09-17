@@ -882,6 +882,16 @@
 	)
 	(wire
 		(pts
+			(xy 81.28 176.53) (xy 78.74 176.53)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "84404b13-747d-47e1-857e-74699df097f3")
+	)
+	(wire
+		(pts
 			(xy 81.28 181.61) (xy 78.74 181.61)
 		)
 		(stroke
@@ -949,6 +959,28 @@
 			(type default)
 		)
 		(uuid "f4e0bb60-6b39-4c24-8e68-e383ba8cf206")
+	)
+	(global_label "ENABLE_QS"
+		(shape input)
+		(at 81.28 176.53 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "31045cdb-f749-4b7d-85bc-4927664c3199")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 94.788 176.53 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
 	)
 	(global_label "VR+"
 		(shape input)
@@ -1351,7 +1383,7 @@
 				)
 			)
 		)
-		(property "Footprint" "MX23A18NF1"
+		(property "Footprint" "SamacSys_Parts:MX23A18NF1"
 			(at 74.93 161.29 0)
 			(effects
 				(font
