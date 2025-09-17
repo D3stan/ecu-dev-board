@@ -1830,23 +1830,23 @@
 	)
 	(wire
 		(pts
-			(xy 71.12 87.63) (xy 73.66 87.63)
+			(xy 64.77 72.39) (xy 73.66 72.39)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "1141e136-ac7e-4612-95fd-d8d9a13a4f89")
+		(uuid "0ea024f9-9357-4fb5-9244-3ed93ff79b16")
 	)
 	(wire
 		(pts
-			(xy 63.5 67.31) (xy 73.66 67.31)
+			(xy 71.12 80.01) (xy 73.66 80.01)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "1a792070-cf9f-4f02-9f63-8b05f0f21faf")
+		(uuid "1e970b70-1cc0-4607-a0c8-cc119f50319e")
 	)
 	(wire
 		(pts
@@ -1867,6 +1867,16 @@
 			(type default)
 		)
 		(uuid "206e85da-c946-4323-b0e9-fc722cdfe7a9")
+	)
+	(wire
+		(pts
+			(xy 64.77 67.31) (xy 73.66 67.31)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "2aa7bdaf-2bb2-433c-9660-0b597ccb7cf5")
 	)
 	(wire
 		(pts
@@ -1896,7 +1906,17 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "3ed674c5-6f52-4a49-98cf-07bfbf36d3ea")
+		(uuid "3cff9f2f-fd83-49d7-b909-59354e204aa5")
+	)
+	(wire
+		(pts
+			(xy 71.12 82.55) (xy 73.66 82.55)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "45db3aba-67a7-436c-a19f-1a29daff64ee")
 	)
 	(wire
 		(pts
@@ -1940,33 +1960,23 @@
 	)
 	(wire
 		(pts
-			(xy 64.77 69.85) (xy 73.66 69.85)
+			(xy 71.12 74.93) (xy 73.66 74.93)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "65ad22e7-0419-4c75-a081-1b90e1abe15f")
+		(uuid "7b3814c5-b208-4bae-b77b-cc34b4d22a2a")
 	)
 	(wire
 		(pts
-			(xy 64.77 74.93) (xy 73.66 74.93)
+			(xy 71.12 77.47) (xy 73.66 77.47)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "713c0d1c-60d9-4e91-b3da-415328c3af64")
-	)
-	(wire
-		(pts
-			(xy 71.12 82.55) (xy 73.66 82.55)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "730930cc-ba40-42c9-ac79-a0de022500f0")
+		(uuid "85fa0851-5151-4942-ae2e-a8906dfb3a0c")
 	)
 	(wire
 		(pts
@@ -1990,16 +2000,6 @@
 	)
 	(wire
 		(pts
-			(xy 71.12 80.01) (xy 73.66 80.01)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "a92dcf12-7caa-495a-96ad-cbe78345fb69")
-	)
-	(wire
-		(pts
 			(xy 106.68 69.85) (xy 104.14 69.85)
 		)
 		(stroke
@@ -2017,16 +2017,6 @@
 			(type default)
 		)
 		(uuid "af4ee3ae-460f-448c-be0f-c2af5da77be2")
-	)
-	(wire
-		(pts
-			(xy 71.12 77.47) (xy 73.66 77.47)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "b3edabf1-2517-4789-b9ef-e8c4f1428e97")
 	)
 	(wire
 		(pts
@@ -2120,16 +2110,6 @@
 	)
 	(wire
 		(pts
-			(xy 64.77 72.39) (xy 73.66 72.39)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "e2830c52-c775-49fa-a57b-1e12a6f56dc0")
-	)
-	(wire
-		(pts
 			(xy 106.68 85.09) (xy 104.14 85.09)
 		)
 		(stroke
@@ -2160,6 +2140,16 @@
 	)
 	(wire
 		(pts
+			(xy 64.77 69.85) (xy 73.66 69.85)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "fb921ec3-7453-41be-87fb-a6df800f1c37")
+	)
+	(wire
+		(pts
 			(xy 256.54 50.8) (xy 256.54 54.61)
 		)
 		(stroke
@@ -2178,25 +2168,15 @@
 		)
 		(uuid "fcd982cb-d975-45b6-a757-f57282c032ec")
 	)
-	(label "LED_B"
-		(at 64.77 74.93 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "1d6e1231-6e73-4e4b-a2c9-fadb4cc93d82")
-	)
 	(label "LED_R"
-		(at 64.77 69.85 0)
+		(at 64.77 67.31 0)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
 			(justify left bottom)
 		)
-		(uuid "2ee54d90-fd1f-4a1f-881f-ada80c52bfe4")
+		(uuid "00659de5-f3cd-40b3-856f-96a7be4dbef4")
 	)
 	(label "LED_B"
 		(at 215.9 45.72 0)
@@ -2229,6 +2209,16 @@
 		(uuid "a45d82b7-68da-48b8-b89b-cf6254e12891")
 	)
 	(label "LED_G"
+		(at 64.77 69.85 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "ce8284eb-0065-4782-bb4c-b7ea932f0568")
+	)
+	(label "LED_B"
 		(at 64.77 72.39 0)
 		(effects
 			(font
@@ -2236,7 +2226,7 @@
 			)
 			(justify left bottom)
 		)
-		(uuid "ead78fa0-ac17-4242-8dbc-70d1b423943f")
+		(uuid "d2a1c9c2-8de7-4178-951b-0153bf00319b")
 	)
 	(global_label "SPARK_TRIGGER"
 		(shape input)
@@ -2326,46 +2316,24 @@
 			)
 		)
 	)
-	(global_label "PICKUP_SIM_IN+"
-		(shape input)
-		(at 106.68 80.01 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "2c46e889-bc70-4b8c-873d-c91d8167b183")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 125.3891 80.01 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-	)
 	(global_label "PICKUP_SIM_IN-"
 		(shape input)
-		(at 106.68 82.55 0)
+		(at 71.12 62.23 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
-			(justify left)
+			(justify right)
 		)
-		(uuid "42730e92-9c25-4007-b1bc-610099eddb59")
+		(uuid "12f117d9-5ce3-4ac1-bced-3ff1d162115c")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 125.3891 82.55 0)
+			(at 52.4109 62.23 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(justify left)
+				(justify right)
 				(hide yes)
 			)
 		)
@@ -2436,6 +2404,28 @@
 			)
 		)
 	)
+	(global_label "PICKUP_SIM_IN+"
+		(shape input)
+		(at 71.12 59.69 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "adffe787-3bb1-404b-a874-c036b68e56d6")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 52.4109 59.69 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
 	(global_label "T_RPM"
 		(shape input)
 		(at 106.68 59.69 0)
@@ -2480,28 +2470,6 @@
 			)
 		)
 	)
-	(global_label "PWM_VR"
-		(shape input)
-		(at 71.12 59.69 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "bdf35d1d-75cc-4c32-91db-edb8d7e9817a")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 60.6358 59.69 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-				(hide yes)
-			)
-		)
-	)
 	(global_label "PIEZO"
 		(shape input)
 		(at 106.68 77.47 0)
@@ -2524,28 +2492,6 @@
 			)
 		)
 	)
-	(global_label "PICKUP_SIM_IN"
-		(shape input)
-		(at 63.5 67.31 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "e6a6fce5-7de3-494c-ad7c-a9e3e8183a3d")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 46.3633 67.31 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-				(hide yes)
-			)
-		)
-	)
 	(global_label "PIEZO_SCHMITT"
 		(shape input)
 		(at 106.68 74.93 0)
@@ -2564,28 +2510,6 @@
 					(size 1.27 1.27)
 				)
 				(justify left)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "PICKUP_SIM_IN"
-		(shape input)
-		(at 71.12 62.23 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "ed614a18-3c42-4213-8739-69152d5d1bea")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 53.9833 62.23 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
 				(hide yes)
 			)
 		)
@@ -2821,7 +2745,7 @@
 	)
 	(symbol
 		(lib_id "Connector:TestPoint")
-		(at 71.12 80.01 90)
+		(at 71.12 77.47 90)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -2829,7 +2753,7 @@
 		(dnp no)
 		(uuid "363cc417-8ef3-4166-892a-f739f2d28cde")
 		(property "Reference" "TP23"
-			(at 66.294 80.01 90)
+			(at 66.294 77.47 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2838,7 +2762,7 @@
 			)
 		)
 		(property "Value" "TestPoint"
-			(at 69.0879 77.47 0)
+			(at 69.0879 74.93 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2848,7 +2772,7 @@
 			)
 		)
 		(property "Footprint" "Connector_PinHeader_1.00mm:PinHeader_1x01_P1.00mm_Vertical"
-			(at 71.12 74.93 0)
+			(at 71.12 72.39 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2857,7 +2781,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 71.12 74.93 0)
+			(at 71.12 72.39 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2866,7 +2790,7 @@
 			)
 		)
 		(property "Description" "test point"
-			(at 71.12 80.01 0)
+			(at 71.12 77.47 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3087,7 +3011,7 @@
 	)
 	(symbol
 		(lib_id "Connector:TestPoint")
-		(at 71.12 77.47 90)
+		(at 71.12 74.93 90)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -3095,7 +3019,7 @@
 		(dnp no)
 		(uuid "790570b5-b977-41ed-a927-eab13598bad3")
 		(property "Reference" "TP22"
-			(at 66.294 77.47 90)
+			(at 66.294 74.93 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3104,7 +3028,7 @@
 			)
 		)
 		(property "Value" "TestPoint"
-			(at 69.0879 74.93 0)
+			(at 69.0879 72.39 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3114,7 +3038,7 @@
 			)
 		)
 		(property "Footprint" "Connector_PinHeader_1.00mm:PinHeader_1x01_P1.00mm_Vertical"
-			(at 71.12 72.39 0)
+			(at 71.12 69.85 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3123,7 +3047,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 71.12 72.39 0)
+			(at 71.12 69.85 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3132,7 +3056,7 @@
 			)
 		)
 		(property "Description" "test point"
-			(at 71.12 77.47 0)
+			(at 71.12 74.93 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3314,7 +3238,7 @@
 	)
 	(symbol
 		(lib_id "Connector:TestPoint")
-		(at 71.12 82.55 90)
+		(at 71.12 80.01 90)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -3322,6 +3246,73 @@
 		(dnp no)
 		(uuid "87e806e4-8b4a-4f6a-afa0-8631ebc6e899")
 		(property "Reference" "TP24"
+			(at 66.548 80.01 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "TestPoint"
+			(at 69.0879 77.47 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Footprint" "Connector_PinHeader_1.00mm:PinHeader_1x01_P1.00mm_Vertical"
+			(at 71.12 74.93 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 71.12 74.93 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "test point"
+			(at 71.12 80.01 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "e6402239-94fb-46aa-bf4d-519aa03ed707")
+		)
+		(instances
+			(project "ecu-dev-board"
+				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/5baacb37-d82a-49c1-a6be-f8a839583d33"
+					(reference "TP24")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Connector:TestPoint")
+		(at 71.12 82.55 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "b0d13556-16be-4dbb-b035-7249334d6c03")
+		(property "Reference" "TP25"
 			(at 66.548 82.55 90)
 			(effects
 				(font
@@ -3360,73 +3351,6 @@
 		)
 		(property "Description" "test point"
 			(at 71.12 82.55 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "e6402239-94fb-46aa-bf4d-519aa03ed707")
-		)
-		(instances
-			(project "ecu-dev-board"
-				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/5baacb37-d82a-49c1-a6be-f8a839583d33"
-					(reference "TP24")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Connector:TestPoint")
-		(at 71.12 85.09 90)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "b0d13556-16be-4dbb-b035-7249334d6c03")
-		(property "Reference" "TP25"
-			(at 66.548 85.09 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "TestPoint"
-			(at 69.0879 82.55 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-		(property "Footprint" "Connector_PinHeader_1.00mm:PinHeader_1x01_P1.00mm_Vertical"
-			(at 71.12 80.01 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 71.12 80.01 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "test point"
-			(at 71.12 85.09 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3581,7 +3505,7 @@
 	)
 	(symbol
 		(lib_id "Connector:TestPoint")
-		(at 71.12 87.63 90)
+		(at 71.12 85.09 90)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -3589,7 +3513,7 @@
 		(dnp no)
 		(uuid "f92d3f33-6374-4a27-ab09-f573eee22338")
 		(property "Reference" "TP26"
-			(at 66.548 87.63 90)
+			(at 66.548 85.09 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3598,7 +3522,7 @@
 			)
 		)
 		(property "Value" "TestPoint"
-			(at 69.0879 85.09 0)
+			(at 69.0879 82.55 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3608,7 +3532,7 @@
 			)
 		)
 		(property "Footprint" "Connector_PinHeader_1.00mm:PinHeader_1x01_P1.00mm_Vertical"
-			(at 71.12 82.55 0)
+			(at 71.12 80.01 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3617,7 +3541,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 71.12 82.55 0)
+			(at 71.12 80.01 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3626,7 +3550,7 @@
 			)
 		)
 		(property "Description" "test point"
-			(at 71.12 87.63 0)
+			(at 71.12 85.09 0)
 			(effects
 				(font
 					(size 1.27 1.27)
