@@ -809,52 +809,62 @@
 			)
 			(embedded_fonts no)
 		)
-		(symbol "SamacSys_Parts:AQY212EHAX"
-			(pin_names
-				(offset 0.762)
-			)
+		(symbol "Relay_SolidState:CPC2125N"
 			(exclude_from_sim no)
 			(in_bom yes)
 			(on_board yes)
-			(property "Reference" "K"
-				(at 19.05 7.62 0)
+			(property "Reference" "U"
+				(at -4.826 5.08 0)
 				(effects
 					(font
 						(size 1.27 1.27)
 					)
-					(justify left)
 				)
 			)
-			(property "Value" "AQY212EHAX"
-				(at 19.05 5.08 0)
+			(property "Value" "CPC2125N"
+				(at 2.794 5.08 0)
 				(effects
 					(font
 						(size 1.27 1.27)
 					)
-					(justify left)
 				)
 			)
-			(property "Footprint" "AQY212EHAX"
-				(at 19.05 2.54 0)
+			(property "Footprint" "Package_SO:SOIC-8_3.81x9.347mm_P2.54mm"
+				(at 0 -5.08 0)
 				(effects
 					(font
 						(size 1.27 1.27)
 					)
-					(justify left)
 					(hide yes)
 				)
 			)
-			(property "Datasheet" "https://datasheet.datasheetarchive.com/originals/distributors/Datasheets-DGA15/691187.pdf"
-				(at 19.05 0 0)
+			(property "Datasheet" "https://www.littelfuse.com/assetdocs/littelfuse-integrated-circuits-cpc2125n-datasheet?assetguid=a22cc393-173e-4525-944b-0453a5a13b51"
+				(at 0 -9.144 0)
 				(effects
 					(font
 						(size 1.27 1.27)
 					)
-					(justify left)
 					(hide yes)
 				)
 			)
-			(property "Description" "Solid State Relays - PCB Mount PhotoMOS(MOS FET) Relay"
+			(property "Description" "Dual Form B, Solid State Relay (Photo MOSFET) 400V, 0.1A, 35Ohm, SO-8"
+				(at 0 -7.112 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_locked" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_keywords" "MOSFET Output Photorelay 1-Form-B NC"
 				(at 0 0 0)
 				(effects
 					(font
@@ -863,109 +873,375 @@
 					(hide yes)
 				)
 			)
-			(property "Description_1" "Solid State Relays - PCB Mount PhotoMOS(MOS FET) Relay"
-				(at 19.05 -2.54 0)
+			(property "ki_fp_filters" "SOIC*3.81x9.347mm*P2.54mm*"
+				(at 0 0 0)
 				(effects
 					(font
 						(size 1.27 1.27)
 					)
-					(justify left)
 					(hide yes)
 				)
 			)
-			(property "Height" "3.15"
-				(at 19.05 -5.08 0)
-				(effects
-					(font
-						(size 1.27 1.27)
+			(symbol "CPC2125N_0_1"
+				(rectangle
+					(start -5.08 3.81)
+					(end 5.08 -3.81)
+					(stroke
+						(width 0.254)
+						(type default)
 					)
-					(justify left)
-					(hide yes)
-				)
-			)
-			(property "Manufacturer_Name" "Panasonic"
-				(at 19.05 -7.62 0)
-				(effects
-					(font
-						(size 1.27 1.27)
+					(fill
+						(type background)
 					)
-					(justify left)
-					(hide yes)
 				)
-			)
-			(property "Manufacturer_Part_Number" "AQY212EHAX"
-				(at 19.05 -10.16 0)
-				(effects
-					(font
-						(size 1.27 1.27)
+				(polyline
+					(pts
+						(xy -5.08 2.54) (xy -3.175 2.54) (xy -3.175 -2.54) (xy -5.08 -2.54)
 					)
-					(justify left)
-					(hide yes)
-				)
-			)
-			(property "Mouser Part Number" "769-AQY212EHAX"
-				(at 19.05 -12.7 0)
-				(effects
-					(font
-						(size 1.27 1.27)
+					(stroke
+						(width 0)
+						(type default)
 					)
-					(justify left)
-					(hide yes)
-				)
-			)
-			(property "Mouser Price/Stock" "https://www.mouser.co.uk/ProductDetail/Panasonic-Industrial-Devices/AQY212EHAX?qs=wKtUvITRial9CiyzkLWj6g%3D%3D"
-				(at 19.05 -15.24 0)
-				(effects
-					(font
-						(size 1.27 1.27)
+					(fill
+						(type none)
 					)
-					(justify left)
-					(hide yes)
 				)
-			)
-			(property "Arrow Part Number" "AQY212EHAX"
-				(at 19.05 -17.78 0)
-				(effects
-					(font
-						(size 1.27 1.27)
+				(polyline
+					(pts
+						(xy -3.81 -0.635) (xy -2.54 -0.635)
 					)
-					(justify left)
-					(hide yes)
-				)
-			)
-			(property "Arrow Price/Stock" "https://www.arrow.com/en/products/aqy212ehax/panasonic?region=nac"
-				(at 19.05 -20.32 0)
-				(effects
-					(font
-						(size 1.27 1.27)
+					(stroke
+						(width 0)
+						(type default)
 					)
-					(justify left)
-					(hide yes)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -3.175 -0.635) (xy -3.81 0.635) (xy -2.54 0.635) (xy -3.175 -0.635)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -1.905 0.508) (xy -0.635 0.508) (xy -1.016 0.381) (xy -1.016 0.635) (xy -0.635 0.508)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -1.905 -0.508) (xy -0.635 -0.508) (xy -1.016 -0.635) (xy -1.016 -0.381) (xy -0.635 -0.508)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 1.016 2.159) (xy 1.016 0.635)
+					)
+					(stroke
+						(width 0.2032)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 1.016 1.397) (xy 0.508 1.397) (xy 0.508 -1.397) (xy 1.016 -1.397)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 1.016 -0.635) (xy 1.016 -2.159)
+					)
+					(stroke
+						(width 0.2032)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 1.651 2.159) (xy 2.794 2.159) (xy 2.794 2.54) (xy 5.08 2.54)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 1.651 1.397) (xy 2.794 1.397) (xy 2.794 0.635)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 1.651 -0.635) (xy 2.794 -0.635) (xy 2.794 0.635) (xy 1.651 0.635)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 1.651 -1.397) (xy 2.794 -1.397) (xy 2.794 -0.635)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 1.651 -2.159) (xy 2.794 -2.159) (xy 2.794 -2.54) (xy 5.08 -2.54)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 1.778 1.397) (xy 2.286 1.524) (xy 2.286 1.27) (xy 1.778 1.397)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 1.778 -1.397) (xy 2.286 -1.27) (xy 2.286 -1.524) (xy 1.778 -1.397)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(circle
+					(center 2.794 0.635)
+					(radius 0.127)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 2.794 0) (xy 3.81 0)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(circle
+					(center 2.794 0)
+					(radius 0.127)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(circle
+					(center 2.794 -0.635)
+					(radius 0.127)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 3.429 1.651) (xy 4.191 1.651)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 3.429 -1.651) (xy 4.191 -1.651)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(circle
+					(center 3.81 2.54)
+					(radius 0.127)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 3.81 1.651) (xy 3.429 0.889) (xy 4.191 0.889) (xy 3.81 1.651)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(circle
+					(center 3.81 0)
+					(radius 0.127)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 3.81 -1.651) (xy 3.429 -0.889) (xy 4.191 -0.889) (xy 3.81 -1.651)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 3.81 -2.54) (xy 3.81 2.54)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(circle
+					(center 3.81 -2.54)
+					(radius 0.127)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
 				)
 			)
-			(symbol "AQY212EHAX_0_0"
+			(symbol "CPC2125N_1_1"
+				(polyline
+					(pts
+						(xy 1.524 2.286) (xy 1.524 0.508)
+					)
+					(stroke
+						(width 0.3302)
+						(type solid)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 1.524 -0.508) (xy 1.524 -2.286)
+					)
+					(stroke
+						(width 0.3302)
+						(type solid)
+					)
+					(fill
+						(type none)
+					)
+				)
 				(pin passive line
-					(at 0 0 0)
-					(length 5.08)
-					(name "D2"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "4"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 0 -2.54 0)
-					(length 5.08)
-					(name "A"
+					(at -7.62 2.54 0)
+					(length 2.54)
+					(name "~"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -981,9 +1257,89 @@
 					)
 				)
 				(pin passive line
-					(at 22.86 0 180)
-					(length 5.08)
-					(name "D1"
+					(at -7.62 -2.54 0)
+					(length 2.54)
+					(name "~"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 7.62 2.54 180)
+					(length 2.54)
+					(name "~"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "8"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 7.62 -2.54 180)
+					(length 2.54)
+					(name "~"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "7"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(symbol "CPC2125N_2_1"
+				(polyline
+					(pts
+						(xy 1.524 2.286) (xy 1.524 0.508)
+					)
+					(stroke
+						(width 0.3302)
+						(type solid)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 1.524 -0.508) (xy 1.524 -2.286)
+					)
+					(stroke
+						(width 0.3302)
+						(type solid)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(pin passive line
+					(at -7.62 2.54 0)
+					(length 2.54)
+					(name "~"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -999,16 +1355,16 @@
 					)
 				)
 				(pin passive line
-					(at 22.86 -2.54 180)
-					(length 5.08)
-					(name "K"
+					(at -7.62 -2.54 0)
+					(length 2.54)
+					(name "~"
 						(effects
 							(font
 								(size 1.27 1.27)
 							)
 						)
 					)
-					(number "2"
+					(number "4"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -1016,18 +1372,40 @@
 						)
 					)
 				)
-			)
-			(symbol "AQY212EHAX_0_1"
-				(polyline
-					(pts
-						(xy 5.08 2.54) (xy 17.78 2.54) (xy 17.78 -5.08) (xy 5.08 -5.08) (xy 5.08 2.54)
+				(pin passive line
+					(at 7.62 2.54 180)
+					(length 2.54)
+					(name "~"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
 					)
-					(stroke
-						(width 0.1524)
-						(type solid)
+					(number "6"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
 					)
-					(fill
-						(type none)
+				)
+				(pin passive line
+					(at 7.62 -2.54 180)
+					(length 2.54)
+					(name "~"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "5"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
 					)
 				)
 			)
@@ -2307,30 +2685,28 @@
 			(embedded_fonts no)
 		)
 	)
-	(rectangle
-		(start 204.47 77.47)
-		(end 261.62 109.22)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(fill
-			(type none)
-		)
-		(uuid 2a93a145-9898-4d5b-b315-de72e52a386b)
-	)
-	(text "PURPOSE?\n"
+	(text "BC3223\nLTV-3223\nCTT3223\nAT223-CuH-S"
 		(exclude_from_sim no)
-		(at 209.804 76.2 0)
+		(at 228.6 25.654 0)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
 		)
-		(uuid "246b598d-fd15-4bd5-8a70-c8cfb819021f")
+		(uuid "4ded4cb4-93b5-4498-b3e8-768a7e98b61f")
+	)
+	(text "AQY212EHAX\n"
+		(exclude_from_sim no)
+		(at 260.35 26.67 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "98343698-be78-48fd-ac05-b6227f69cba6")
 	)
 	(junction
-		(at 248.92 45.72)
+		(at 245.11 45.72)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "0ae7c266-b2d1-4d90-8532-f32947273f4c")
@@ -2342,7 +2718,7 @@
 		(uuid "0d0c24e7-a9bf-4b14-bfca-fb524aa43bc0")
 	)
 	(junction
-		(at 210.82 45.72)
+		(at 245.11 50.8)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "0d99d81a-c884-4f46-abce-53b8b5bf7f24")
@@ -2510,8 +2886,24 @@
 		(uuid "fd015deb-c1d1-4fef-a01b-36ff20a51ba2")
 	)
 	(no_connect
+		(at 237.49 74.93)
+		(uuid "11c0f9c6-408f-434e-8b2c-8c7b011130cd")
+	)
+	(no_connect
+		(at 237.49 69.85)
+		(uuid "160b2da3-5575-4bd4-89b3-2ac10fc27eb9")
+	)
+	(no_connect
 		(at 73.66 35.56)
 		(uuid "3fdf5c10-fe4e-468e-a72b-9990da371e0e")
+	)
+	(no_connect
+		(at 222.25 69.85)
+		(uuid "aa8096e9-b36b-43e5-9c37-0d819e3637aa")
+	)
+	(no_connect
+		(at 222.25 74.93)
+		(uuid "c71eb500-0fca-4e32-bc45-363820004098")
 	)
 	(no_connect
 		(at 93.98 35.56)
@@ -2569,7 +2961,7 @@
 	)
 	(wire
 		(pts
-			(xy 233.68 91.44) (xy 229.87 91.44)
+			(xy 229.87 121.92) (xy 226.06 121.92)
 		)
 		(stroke
 			(width 0)
@@ -2739,6 +3131,16 @@
 	)
 	(wire
 		(pts
+			(xy 222.25 50.8) (xy 217.17 50.8)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "33f82ea4-5ee4-427a-96c2-0bfca05fcd5e")
+	)
+	(wire
+		(pts
 			(xy 151.13 146.05) (xy 151.13 152.4)
 		)
 		(stroke
@@ -2809,7 +3211,7 @@
 	)
 	(wire
 		(pts
-			(xy 210.82 45.72) (xy 218.44 45.72)
+			(xy 245.11 50.8) (xy 237.49 50.8)
 		)
 		(stroke
 			(width 0)
@@ -2829,7 +3231,7 @@
 	)
 	(wire
 		(pts
-			(xy 203.2 45.72) (xy 210.82 45.72)
+			(xy 252.73 50.8) (xy 245.11 50.8)
 		)
 		(stroke
 			(width 0)
@@ -2859,17 +3261,7 @@
 	)
 	(wire
 		(pts
-			(xy 252.73 48.26) (xy 241.3 48.26)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "4a4e854e-00ae-43b8-ae34-f6ef51383c71")
-	)
-	(wire
-		(pts
-			(xy 203.2 48.26) (xy 207.01 48.26)
+			(xy 207.01 45.72) (xy 210.82 45.72)
 		)
 		(stroke
 			(width 0)
@@ -2879,7 +3271,7 @@
 	)
 	(wire
 		(pts
-			(xy 248.92 41.91) (xy 248.92 45.72)
+			(xy 245.11 41.91) (xy 245.11 45.72)
 		)
 		(stroke
 			(width 0)
@@ -3099,7 +3491,7 @@
 	)
 	(wire
 		(pts
-			(xy 245.11 101.6) (xy 241.3 101.6)
+			(xy 241.3 132.08) (xy 237.49 132.08)
 		)
 		(stroke
 			(width 0)
@@ -3219,7 +3611,7 @@
 	)
 	(wire
 		(pts
-			(xy 256.54 45.72) (xy 248.92 45.72)
+			(xy 252.73 45.72) (xy 245.11 45.72)
 		)
 		(stroke
 			(width 0)
@@ -3249,6 +3641,16 @@
 	)
 	(wire
 		(pts
+			(xy 217.17 50.8) (xy 217.17 53.34)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "9ca8701f-0cce-401a-83fb-f73de80cc8de")
+	)
+	(wire
+		(pts
 			(xy 109.22 175.26) (xy 109.22 179.07)
 		)
 		(stroke
@@ -3259,7 +3661,7 @@
 	)
 	(wire
 		(pts
-			(xy 210.82 41.91) (xy 210.82 45.72)
+			(xy 245.11 54.61) (xy 245.11 50.8)
 		)
 		(stroke
 			(width 0)
@@ -3309,7 +3711,7 @@
 	)
 	(wire
 		(pts
-			(xy 248.92 45.72) (xy 241.3 45.72)
+			(xy 245.11 45.72) (xy 237.49 45.72)
 		)
 		(stroke
 			(width 0)
@@ -3319,7 +3721,7 @@
 	)
 	(wire
 		(pts
-			(xy 233.68 101.6) (xy 229.87 101.6)
+			(xy 229.87 132.08) (xy 226.06 132.08)
 		)
 		(stroke
 			(width 0)
@@ -3349,7 +3751,7 @@
 	)
 	(wire
 		(pts
-			(xy 214.63 48.26) (xy 218.44 48.26)
+			(xy 218.44 45.72) (xy 222.25 45.72)
 		)
 		(stroke
 			(width 0)
@@ -3466,16 +3868,6 @@
 			(type default)
 		)
 		(uuid "c8705a4e-a35f-4849-b0f1-6fba76df4f7e")
-	)
-	(wire
-		(pts
-			(xy 252.73 52.07) (xy 252.73 48.26)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "cb188562-6985-407f-b552-0f33a02ff437")
 	)
 	(wire
 		(pts
@@ -3719,7 +4111,7 @@
 	)
 	(wire
 		(pts
-			(xy 245.11 91.44) (xy 241.3 91.44)
+			(xy 241.3 121.92) (xy 237.49 121.92)
 		)
 		(stroke
 			(width 0)
@@ -3829,6 +4221,50 @@
 			)
 		)
 	)
+	(global_label "PICKUP_SIM+"
+		(shape input)
+		(at 226.06 121.92 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "06597ab4-97b5-42d0-9029-a57089cd5011")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 210.2538 121.92 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "PICKUP_SIM-"
+		(shape input)
+		(at 226.06 132.08 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "0b109a40-10a7-4593-8bc0-1474b8eaedd8")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 210.2538 132.08 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
 	(global_label "VR-"
 		(shape input)
 		(at 36.83 138.43 180)
@@ -3875,22 +4311,22 @@
 	)
 	(global_label "VR+"
 		(shape input)
-		(at 203.2 45.72 180)
+		(at 252.73 50.8 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
-			(justify right)
+			(justify left)
 		)
 		(uuid "40c5af0c-1804-4a02-b98d-ab1d09ba5814")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 196.2838 45.72 0)
+			(at 259.6462 50.8 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(justify right)
+				(justify left)
 				(hide yes)
 			)
 		)
@@ -3919,7 +4355,7 @@
 	)
 	(global_label "VR-"
 		(shape input)
-		(at 245.11 101.6 0)
+		(at 241.3 132.08 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -3929,56 +4365,12 @@
 		)
 		(uuid "5adb0a27-7025-4d12-aa17-b6e36fe5e5a0")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 252.0262 101.6 0)
+			(at 248.2162 132.08 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "PICKUP_SIM_IN-"
-		(shape input)
-		(at 229.87 101.6 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "72a7e23c-5384-4941-9069-f19975498421")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 211.1609 101.6 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "PICKUP_SIM_IN+"
-		(shape input)
-		(at 229.87 91.44 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "78c82f8a-2bfe-4f00-a878-bea4f214b520")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 211.1609 91.44 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
 				(hide yes)
 			)
 		)
@@ -4007,7 +4399,7 @@
 	)
 	(global_label "VR-"
 		(shape input)
-		(at 256.54 45.72 0)
+		(at 252.73 45.72 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -4017,7 +4409,7 @@
 		)
 		(uuid "920abb26-1070-49e9-8fa8-473a24dc0cf5")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 263.4562 45.72 0)
+			(at 259.6462 45.72 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4029,7 +4421,7 @@
 	)
 	(global_label "SSR_IN"
 		(shape input)
-		(at 203.2 48.26 180)
+		(at 207.01 45.72 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -4039,7 +4431,7 @@
 		)
 		(uuid "92837ab9-0bcc-4303-a386-f6abdac235c9")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 193.6229 48.26 0)
+			(at 197.4329 45.72 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4051,7 +4443,7 @@
 	)
 	(global_label "VR+"
 		(shape input)
-		(at 245.11 91.44 0)
+		(at 241.3 121.92 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -4061,7 +4453,7 @@
 		)
 		(uuid "962e6fab-a802-4c18-8a17-3db88c25cc41")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 252.0262 91.44 0)
+			(at 248.2162 121.92 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4134,6 +4526,92 @@
 				)
 				(justify right)
 				(hide yes)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Relay_SolidState:CPC2125N")
+		(at 229.87 72.39 0)
+		(unit 2)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "0b92e7f6-f013-4c1a-b1d3-e5c96a0678a6")
+		(property "Reference" "U4"
+			(at 229.87 63.5 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "AT223-CuH-S"
+			(at 229.87 66.04 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Package_SO:SOIC-8_5.3x5.3mm_P1.27mm"
+			(at 229.87 77.47 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "https://www.lcsc.com/datasheet/C32712995.pdf"
+			(at 229.87 81.534 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Dual Form B, Solid State Relay (Photo MOSFET) 400V, 0.1A, 35Ohm, SO-8"
+			(at 229.87 79.502 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "5"
+			(uuid "f05087ad-9ac1-4111-8a9e-89c4a3a7fcb1")
+		)
+		(pin "6"
+			(uuid "3b1b93ec-0b8a-434d-9929-f3ff3bf6b345")
+		)
+		(pin "8"
+			(uuid "93a19eec-d62a-4066-80e1-49505c573ed2")
+		)
+		(pin "4"
+			(uuid "6d17e7b4-0fe8-4aac-8864-ca6e001bbfc1")
+		)
+		(pin "7"
+			(uuid "87695abb-fc2f-446c-9648-64d09642b1c4")
+		)
+		(pin "3"
+			(uuid "ffef37cc-b40e-494c-ab75-8ef07b4b741b")
+		)
+		(pin "2"
+			(uuid "4c87886a-23c0-432b-9c4e-1a7cacfaa5a2")
+		)
+		(pin "1"
+			(uuid "c1341ec3-d6e3-4c30-9079-72e761d3dec3")
+		)
+		(instances
+			(project ""
+				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/419a62de-f56b-49aa-b69b-37bd2fc230d8"
+					(reference "U4")
+					(unit 2)
+				)
 			)
 		)
 	)
@@ -4406,34 +4884,33 @@
 	)
 	(symbol
 		(lib_id "Connector:TestPoint")
-		(at 210.82 41.91 0)
+		(at 245.11 54.61 180)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "24335bcc-f72b-4441-81d5-7d51269c5e5e")
 		(property "Reference" "TP7"
-			(at 213.36 37.3379 0)
+			(at 247.65 55.372 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(justify left)
+				(justify right)
 			)
 		)
 		(property "Value" "TestPoint"
-			(at 213.36 39.8779 0)
+			(at 247.65 57.912 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(justify left)
+				(justify right)
 			)
 		)
 		(property "Footprint" "Connector_PinHeader_1.00mm:PinHeader_1x01_P1.00mm_Vertical"
-			(at 215.9 41.91 0)
+			(at 240.03 54.61 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4442,7 +4919,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 215.9 41.91 0)
+			(at 240.03 54.61 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4451,7 +4928,7 @@
 			)
 		)
 		(property "Description" "test point"
-			(at 210.82 41.91 0)
+			(at 245.11 54.61 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4542,7 +5019,7 @@
 	)
 	(symbol
 		(lib_id "Jumper:SolderJumper_2_Open")
-		(at 237.49 91.44 180)
+		(at 233.68 121.92 180)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom no)
@@ -4551,7 +5028,7 @@
 		(fields_autoplaced yes)
 		(uuid "28e23d0b-0fc8-45c2-a809-5d75c859ec26")
 		(property "Reference" "JP16"
-			(at 237.49 85.09 0)
+			(at 233.68 115.57 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4559,7 +5036,7 @@
 			)
 		)
 		(property "Value" "SolderJumper_2_Open"
-			(at 237.49 87.63 0)
+			(at 233.68 118.11 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4567,7 +5044,7 @@
 			)
 		)
 		(property "Footprint" "Jumper:SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm"
-			(at 237.49 91.44 0)
+			(at 233.68 121.92 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4576,7 +5053,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 237.49 91.44 0)
+			(at 233.68 121.92 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4585,7 +5062,7 @@
 			)
 		)
 		(property "Description" "Solder Jumper, 2-pole, open"
-			(at 237.49 91.44 0)
+			(at 233.68 121.92 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4815,7 +5292,7 @@
 	)
 	(symbol
 		(lib_id "Device:R")
-		(at 210.82 48.26 270)
+		(at 214.63 45.72 270)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -4823,7 +5300,7 @@
 		(dnp no)
 		(uuid "3ceb8eff-1370-4a85-afdc-e3403024ab01")
 		(property "Reference" "R12"
-			(at 210.82 51.308 90)
+			(at 214.63 48.768 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4831,7 +5308,7 @@
 			)
 		)
 		(property "Value" "470"
-			(at 210.82 48.26 90)
+			(at 214.63 45.72 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4839,7 +5316,7 @@
 			)
 		)
 		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
-			(at 210.82 46.482 90)
+			(at 214.63 43.942 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4848,7 +5325,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 210.82 48.26 0)
+			(at 214.63 45.72 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4857,7 +5334,7 @@
 			)
 		)
 		(property "Description" "Resistor"
-			(at 210.82 48.26 0)
+			(at 214.63 45.72 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5850,7 +6327,7 @@
 	)
 	(symbol
 		(lib_id "Jumper:SolderJumper_2_Open")
-		(at 237.49 101.6 180)
+		(at 233.68 132.08 180)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom no)
@@ -5859,7 +6336,7 @@
 		(fields_autoplaced yes)
 		(uuid "70d1c03a-e3ad-4833-804d-15c374fa7a49")
 		(property "Reference" "JP17"
-			(at 237.49 95.25 0)
+			(at 233.68 125.73 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5867,7 +6344,7 @@
 			)
 		)
 		(property "Value" "SolderJumper_2_Open"
-			(at 237.49 97.79 0)
+			(at 233.68 128.27 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5875,7 +6352,7 @@
 			)
 		)
 		(property "Footprint" "Jumper:SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm"
-			(at 237.49 101.6 0)
+			(at 233.68 132.08 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5884,7 +6361,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 237.49 101.6 0)
+			(at 233.68 132.08 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5893,7 +6370,7 @@
 			)
 		)
 		(property "Description" "Solder Jumper, 2-pole, open"
-			(at 237.49 101.6 0)
+			(at 233.68 132.08 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6716,7 +7193,7 @@
 	)
 	(symbol
 		(lib_id "Connector:TestPoint")
-		(at 248.92 41.91 0)
+		(at 245.11 41.91 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -6725,7 +7202,7 @@
 		(fields_autoplaced yes)
 		(uuid "b0391413-0d45-4b17-a634-91d4bc2f876d")
 		(property "Reference" "TP8"
-			(at 251.46 37.3379 0)
+			(at 247.65 37.3379 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6734,7 +7211,7 @@
 			)
 		)
 		(property "Value" "TestPoint"
-			(at 251.46 39.8779 0)
+			(at 247.65 39.8779 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6743,7 +7220,7 @@
 			)
 		)
 		(property "Footprint" "Connector_PinHeader_1.00mm:PinHeader_1x01_P1.00mm_Vertical"
-			(at 254 41.91 0)
+			(at 250.19 41.91 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6752,7 +7229,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 254 41.91 0)
+			(at 250.19 41.91 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6761,7 +7238,7 @@
 			)
 		)
 		(property "Description" "test point"
-			(at 248.92 41.91 0)
+			(at 245.11 41.91 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6776,162 +7253,6 @@
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/419a62de-f56b-49aa-b69b-37bd2fc230d8"
 					(reference "TP8")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "SamacSys_Parts:AQY212EHAX")
-		(at 218.44 45.72 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "b0877a96-c8d0-43d3-a202-3a3c4c46e41c")
-		(property "Reference" "K1"
-			(at 229.87 38.1 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "AQY212EHAX"
-			(at 229.87 40.64 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" "SamacSys_Parts:AQY212EHAX"
-			(at 237.49 43.18 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "https://datasheet.datasheetarchive.com/originals/distributors/Datasheets-DGA15/691187.pdf"
-			(at 237.49 45.72 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-		(property "Description" "Solid State Relays - PCB Mount PhotoMOS(MOS FET) Relay"
-			(at 218.44 45.72 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description_1" "Solid State Relays - PCB Mount PhotoMOS(MOS FET) Relay"
-			(at 237.49 48.26 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-		(property "Height" "3.15"
-			(at 237.49 50.8 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-		(property "Manufacturer_Name" "Panasonic"
-			(at 237.49 53.34 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-		(property "Manufacturer_Part_Number" "AQY212EHAX"
-			(at 237.49 55.88 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-		(property "Mouser Part Number" "769-AQY212EHAX"
-			(at 237.49 58.42 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-		(property "Mouser Price/Stock" "https://www.mouser.co.uk/ProductDetail/Panasonic-Industrial-Devices/AQY212EHAX?qs=wKtUvITRial9CiyzkLWj6g%3D%3D"
-			(at 237.49 60.96 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-		(property "Arrow Part Number" "AQY212EHAX"
-			(at 237.49 63.5 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-		(property "Arrow Price/Stock" "https://www.arrow.com/en/products/aqy212ehax/panasonic?region=nac"
-			(at 237.49 66.04 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-		(pin "4"
-			(uuid "1a1f967c-6f2b-40e2-b161-ce838c0fe448")
-		)
-		(pin "2"
-			(uuid "2dd259be-2aca-42ab-b18a-97eb63ae17ea")
-		)
-		(pin "3"
-			(uuid "2e20c931-00b7-4484-b72e-a7c04b13aa7c")
-		)
-		(pin "1"
-			(uuid "65e688b9-5114-4a9d-a0a9-935d26f99510")
-		)
-		(instances
-			(project ""
-				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/419a62de-f56b-49aa-b69b-37bd2fc230d8"
-					(reference "K1")
 					(unit 1)
 				)
 			)
@@ -7073,7 +7394,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 252.73 52.07 0)
+		(at 217.17 53.34 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -7082,7 +7403,7 @@
 		(fields_autoplaced yes)
 		(uuid "c6f19ad5-ed6a-47c4-ad24-c5d211a36e3d")
 		(property "Reference" "#PWR09"
-			(at 252.73 58.42 0)
+			(at 217.17 59.69 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7091,7 +7412,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 252.73 57.15 0)
+			(at 217.17 58.42 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7099,7 +7420,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 252.73 52.07 0)
+			(at 217.17 53.34 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7108,7 +7429,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 252.73 52.07 0)
+			(at 217.17 53.34 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7117,7 +7438,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 252.73 52.07 0)
+			(at 217.17 53.34 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7402,6 +7723,92 @@
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/419a62de-f56b-49aa-b69b-37bd2fc230d8"
 					(reference "R11")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Relay_SolidState:CPC2125N")
+		(at 229.87 48.26 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "e3cc54c8-852e-4d9c-b567-21fd1ef4070c")
+		(property "Reference" "U4"
+			(at 229.87 39.37 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "AT223-CuH-S"
+			(at 229.87 41.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Package_SO:SOIC-8_5.3x5.3mm_P1.27mm"
+			(at 229.87 53.34 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "https://www.lcsc.com/datasheet/C32712995.pdf"
+			(at 229.87 57.404 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Dual Form B, Solid State Relay (Photo MOSFET) 400V, 0.1A, 35Ohm, SO-8"
+			(at 229.87 55.372 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "5"
+			(uuid "f05087ad-9ac1-4111-8a9e-89c4a3a7fcb2")
+		)
+		(pin "6"
+			(uuid "3b1b93ec-0b8a-434d-9929-f3ff3bf6b346")
+		)
+		(pin "8"
+			(uuid "93a19eec-d62a-4066-80e1-49505c573ed3")
+		)
+		(pin "4"
+			(uuid "6d17e7b4-0fe8-4aac-8864-ca6e001bbfc2")
+		)
+		(pin "7"
+			(uuid "87695abb-fc2f-446c-9648-64d09642b1c5")
+		)
+		(pin "3"
+			(uuid "ffef37cc-b40e-494c-ab75-8ef07b4b741c")
+		)
+		(pin "2"
+			(uuid "4c87886a-23c0-432b-9c4e-1a7cacfaa5a3")
+		)
+		(pin "1"
+			(uuid "c1341ec3-d6e3-4c30-9079-72e761d3dec4")
+		)
+		(instances
+			(project ""
+				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/419a62de-f56b-49aa-b69b-37bd2fc230d8"
+					(reference "U4")
 					(unit 1)
 				)
 			)
