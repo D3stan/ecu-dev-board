@@ -3349,6 +3349,17 @@
 		)
 		(uuid "468b512b-877e-4ce2-8100-e252f4102602")
 	)
+	(text "SERVE ZENER + RESISTENZA\nPER ANDARE OLTRE I 18V\n"
+		(exclude_from_sim no)
+		(at 23.876 159.258 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "8a056dc2-5f95-4d5f-b65d-94c89921c482")
+	)
 	(text "HL3401A"
 		(exclude_from_sim no)
 		(at 16.256 135.89 0)

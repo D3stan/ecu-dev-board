@@ -1818,6 +1818,16 @@
 			(embedded_fonts no)
 		)
 	)
+	(text "RISING EDGE"
+		(exclude_from_sim no)
+		(at 130.556 72.898 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "3ebc02a9-eaf0-4e78-94ee-81eb8f7cfc06")
+	)
 	(wire
 		(pts
 			(xy 106.68 59.69) (xy 104.14 59.69)
