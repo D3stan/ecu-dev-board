@@ -3581,6 +3581,12 @@
 		(uuid "bf977782-dc8c-4c32-9d28-f84b8843f6a5")
 	)
 	(junction
+		(at 233.68 110.49)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "cf6adbe3-b936-42d8-a7b6-ce181eaa904a")
+	)
+	(junction
 		(at 200.66 81.28)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -3609,6 +3615,12 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "f5e8dc04-3445-4807-a59a-c781c7869f73")
+	)
+	(junction
+		(at 200.66 43.18)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "fe48f641-0f8e-4642-ad9b-1848e63f6824")
 	)
 	(no_connect
 		(at 115.57 78.74)
@@ -3826,16 +3838,6 @@
 	)
 	(wire
 		(pts
-			(xy 200.66 43.18) (xy 184.15 43.18)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "1941d6ed-2fd4-4eec-8e2d-ae149ba81f48")
-	)
-	(wire
-		(pts
 			(xy 184.15 81.28) (xy 184.15 91.44)
 		)
 		(stroke
@@ -3856,6 +3858,26 @@
 	)
 	(wire
 		(pts
+			(xy 233.68 110.49) (xy 224.79 110.49)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "21b1e769-34b8-4a94-abea-ab3c748552d9")
+	)
+	(wire
+		(pts
+			(xy 233.68 43.18) (xy 233.68 110.49)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "24899dde-4159-4c10-8241-9f3b7bac67ee")
+	)
+	(wire
+		(pts
 			(xy 34.29 143.51) (xy 46.99 143.51)
 		)
 		(stroke
@@ -3863,6 +3885,26 @@
 			(type default)
 		)
 		(uuid "29e7f2d3-d784-4409-b12d-adf098992f32")
+	)
+	(wire
+		(pts
+			(xy 222.25 43.18) (xy 233.68 43.18)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "2a8b6ea9-245b-42a9-bc95-2464fb41c2e9")
+	)
+	(wire
+		(pts
+			(xy 200.66 43.18) (xy 200.66 59.69)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "2e7a3c4a-df74-48e0-9bb7-3e0e456d0867")
 	)
 	(wire
 		(pts
@@ -4056,7 +4098,7 @@
 	)
 	(wire
 		(pts
-			(xy 237.49 110.49) (xy 224.79 110.49)
+			(xy 237.49 110.49) (xy 233.68 110.49)
 		)
 		(stroke
 			(width 0)
@@ -4426,6 +4468,16 @@
 	)
 	(wire
 		(pts
+			(xy 200.66 43.18) (xy 214.63 43.18)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "8c422a83-7a9b-4afc-9cda-55c449a8c064")
+	)
+	(wire
+		(pts
 			(xy 167.64 177.8) (xy 167.64 176.53)
 		)
 		(stroke
@@ -4496,13 +4548,13 @@
 	)
 	(wire
 		(pts
-			(xy 200.66 81.28) (xy 200.66 43.18)
+			(xy 184.15 43.18) (xy 200.66 43.18)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "9d20f259-0319-43a5-b62b-0ccc3ea38971")
+		(uuid "9ea6dddd-f2f7-4cfb-9064-1b393f1e28b5")
 	)
 	(wire
 		(pts
@@ -4763,6 +4815,16 @@
 			(type default)
 		)
 		(uuid "cf3f1c0f-d50b-4acb-9a0c-7e350e010243")
+	)
+	(wire
+		(pts
+			(xy 200.66 67.31) (xy 200.66 81.28)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "d146e4b3-7f66-4283-b998-99f34a913496")
 	)
 	(wire
 		(pts
@@ -6273,7 +6335,7 @@
 		(dnp no)
 		(uuid "5d42cf47-fdb5-4088-b3c9-3c05d63e8b7a")
 		(property "Reference" "D9"
-			(at 190.5 95.25 0)
+			(at 189.23 93.98 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6281,7 +6343,7 @@
 			)
 		)
 		(property "Value" "US1M"
-			(at 187.96 95.25 0)
+			(at 189.23 96.52 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6647,6 +6709,73 @@
 			(project ""
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
 					(reference "FB1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 218.44 43.18 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "68ba3fbc-2008-4138-957f-1d8483cb769c")
+		(property "Reference" "R35"
+			(at 218.44 46.228 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "330k"
+			(at 218.44 48.768 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+			(at 218.44 44.958 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 218.44 43.18 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 218.44 43.18 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "d3f9479d-47a3-460e-9c40-d54346fa768d")
+		)
+		(pin "2"
+			(uuid "1d3b0905-84ef-41ad-a8af-ceea72d5c420")
+		)
+		(instances
+			(project "ecu-dev-board"
+				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
+					(reference "R35")
 					(unit 1)
 				)
 			)
@@ -7728,6 +7857,91 @@
 			(project ""
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
 					(reference "L3")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Diode:US1M")
+		(at 200.66 63.5 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "b2322592-ed0e-4a1d-ad3f-1156b274ff7e")
+		(property "Reference" "D1"
+			(at 205.232 67.056 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "US1M"
+			(at 205.232 69.596 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Diode_SMD:D_SMA"
+			(at 196.215 63.5 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "https://www.diodes.com/assets/Datasheets/ds16008.pdf"
+			(at 200.66 63.5 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "1000V, 1A, General Purpose Rectifier Diode, SMA(DO-214AC)"
+			(at 200.66 63.5 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Sim.Device" "D"
+			(at 200.66 63.5 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Sim.Pins" "1=K 2=A"
+			(at 200.66 63.5 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "80b50af0-a39f-4623-bead-8a8273087e5f")
+		)
+		(pin "1"
+			(uuid "87b5972b-f09e-4e44-a619-006bbd6a5f1d")
+		)
+		(instances
+			(project "ecu-dev-board"
+				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
+					(reference "D1")
 					(unit 1)
 				)
 			)
