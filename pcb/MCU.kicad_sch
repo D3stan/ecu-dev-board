@@ -2480,6 +2480,28 @@
 			)
 		)
 	)
+	(global_label "SPARK_TRIGGER_AC"
+		(shape input)
+		(at 106.68 82.55 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "c2dd98f5-7a58-4676-bbf3-b8c1bd2d7399")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 127.8685 82.55 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
 	(global_label "PIEZO"
 		(shape input)
 		(at 106.68 77.47 0)
