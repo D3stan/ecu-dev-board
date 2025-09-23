@@ -5,6 +5,113 @@
 	(uuid "d474ce82-f4ed-4074-ad80-9a67c62bcb92")
 	(paper "A4")
 	(lib_symbols
+		(symbol "Connector:TestPoint"
+			(pin_numbers
+				(hide yes)
+			)
+			(pin_names
+				(offset 0.762)
+				(hide yes)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "TP"
+				(at 0 6.858 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "TestPoint"
+				(at 0 5.08 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 5.08 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "~"
+				(at 5.08 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "test point"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "test point tp"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_fp_filters" "Pin* Test*"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "TestPoint_0_1"
+				(circle
+					(center 0 3.302)
+					(radius 0.762)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "TestPoint_1_1"
+				(pin passive line
+					(at 0 0 90)
+					(length 2.54)
+					(name "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
 		(symbol "Device:C"
 			(pin_numbers
 				(hide yes)
@@ -2199,6 +2306,18 @@
 		(uuid "56e9c695-74fb-46d6-a4de-c9838aa13a3c")
 	)
 	(junction
+		(at 99.06 50.8)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "abf2fde3-7f3f-44b2-a232-c0daf87dbede")
+	)
+	(junction
+		(at 39.37 50.8)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "ac7250ae-8917-4574-b47f-2e4177ae1c0a")
+	)
+	(junction
 		(at 57.15 50.8)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -2296,6 +2415,16 @@
 	)
 	(wire
 		(pts
+			(xy 39.37 48.26) (xy 39.37 50.8)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "208e9129-03dd-4096-84df-97c31adfaad9")
+	)
+	(wire
+		(pts
 			(xy 33.02 102.87) (xy 44.45 102.87)
 		)
 		(stroke
@@ -2303,6 +2432,16 @@
 			(type default)
 		)
 		(uuid "2c6e4b7f-7023-4c90-9b7b-f856171f36c9")
+	)
+	(wire
+		(pts
+			(xy 99.06 48.26) (xy 99.06 50.8)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "3a583574-69f6-4542-8200-ddda0f63aea3")
 	)
 	(wire
 		(pts
@@ -2436,7 +2575,7 @@
 	)
 	(wire
 		(pts
-			(xy 41.91 50.8) (xy 38.1 50.8)
+			(xy 41.91 50.8) (xy 39.37 50.8)
 		)
 		(stroke
 			(width 0)
@@ -2546,6 +2685,16 @@
 	)
 	(wire
 		(pts
+			(xy 39.37 50.8) (xy 36.83 50.8)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "d3c05036-8bc3-41a7-a38a-accbc201815c")
+	)
+	(wire
+		(pts
 			(xy 110.49 40.64) (xy 110.49 43.18)
 		)
 		(stroke
@@ -2566,7 +2715,7 @@
 	)
 	(wire
 		(pts
-			(xy 102.87 50.8) (xy 96.52 50.8)
+			(xy 102.87 50.8) (xy 99.06 50.8)
 		)
 		(stroke
 			(width 0)
@@ -2613,6 +2762,16 @@
 			(type default)
 		)
 		(uuid "f29af86f-1007-42b7-880a-efba2793e105")
+	)
+	(wire
+		(pts
+			(xy 99.06 50.8) (xy 96.52 50.8)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "f9ef8c0c-4696-4863-878f-5dcba37de833")
 	)
 	(wire
 		(pts
@@ -2732,7 +2891,7 @@
 	)
 	(global_label "T_COIL"
 		(shape input)
-		(at 38.1 50.8 180)
+		(at 36.83 50.8 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -2742,7 +2901,7 @@
 		)
 		(uuid "bc50e6e6-5452-421f-bd5f-d9cef2cb8c9d")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 28.9462 50.8 0)
+			(at 27.6762 50.8 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3213,6 +3372,140 @@
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/1f135221-d921-46ea-b769-b97fce3b730c"
 					(reference "C36")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Connector:TestPoint")
+		(at 99.06 48.26 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "116bdc41-0b49-447d-a8e0-fb2af785d28c")
+		(property "Reference" "TP21"
+			(at 96.774 42.418 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "TestPoint"
+			(at 101.6 46.2279 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Footprint" "Connector_PinHeader_1.00mm:PinHeader_1x01_P1.00mm_Vertical"
+			(at 104.14 48.26 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 104.14 48.26 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "test point"
+			(at 99.06 48.26 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "36aeb60e-17aa-4123-90f7-a5bdff0daba4")
+		)
+		(instances
+			(project "ecu-dev-board"
+				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/1f135221-d921-46ea-b769-b97fce3b730c"
+					(reference "TP21")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Connector:TestPoint")
+		(at 39.37 48.26 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "1ab5a3ac-31c8-45d1-885b-32de64f11336")
+		(property "Reference" "TP27"
+			(at 37.084 42.418 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "TestPoint"
+			(at 41.91 46.2279 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Footprint" "Connector_PinHeader_1.00mm:PinHeader_1x01_P1.00mm_Vertical"
+			(at 44.45 48.26 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 44.45 48.26 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "test point"
+			(at 39.37 48.26 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "86519395-1a91-4113-be11-3902356ba8e8")
+		)
+		(instances
+			(project "ecu-dev-board"
+				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/1f135221-d921-46ea-b769-b97fce3b730c"
+					(reference "TP27")
 					(unit 1)
 				)
 			)
