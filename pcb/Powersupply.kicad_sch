@@ -6728,22 +6728,22 @@
 		(dnp no)
 		(uuid "3c4d4649-50f6-4417-815a-c3f7c5bbdd2f")
 		(property "Reference" "L1"
-			(at 192.024 83.82 90)
+			(at 192.024 83.312 90)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 			)
 		)
-		(property "Value" "250u"
-			(at 192.024 86.36 90)
+		(property "Value" "150u"
+			(at 192.024 85.852 90)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 			)
 		)
-		(property "Footprint" "Inductor_SMD:L_6.3x6.3_H3"
+		(property "Footprint" "Inductor_SMD:L_SXN_SMDRI127"
 			(at 191.77 81.28 0)
 			(effects
 				(font
@@ -6761,13 +6761,12 @@
 				(hide yes)
 			)
 		)
-		(property "Description" "Inductor"
-			(at 191.77 81.28 0)
+		(property "Description" "CYH127-150UH"
+			(at 192.278 88.138 90)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(hide yes)
 			)
 		)
 		(pin "2"
@@ -8815,7 +8814,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Inductor_SMD:L_Coilcraft_XAL7030-152"
+		(property "Footprint" "Inductor_SMD:L_SXN_SMDRI125"
 			(at 133.35 146.05 0)
 			(effects
 				(font
@@ -8833,8 +8832,8 @@
 				(hide yes)
 			)
 		)
-		(property "Description" "MDA7030-150M"
-			(at 138.176 142.494 90)
+		(property "Description" "CYH127-15UH"
+			(at 137.414 142.494 90)
 			(effects
 				(font
 					(size 1.27 1.27)
