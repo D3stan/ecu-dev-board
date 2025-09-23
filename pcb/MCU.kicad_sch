@@ -2370,6 +2370,28 @@
 			)
 		)
 	)
+	(global_label "POWER_FET"
+		(shape input)
+		(at 106.68 80.01 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "4e023578-4cb6-48a6-bc87-005a72222103")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 120.3089 80.01 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
 	(global_label "SSR_IN"
 		(shape input)
 		(at 106.68 52.07 0)
