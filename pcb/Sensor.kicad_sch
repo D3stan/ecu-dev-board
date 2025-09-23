@@ -6716,7 +6716,7 @@
 				(justify right)
 			)
 		)
-		(property "Value" "270k"
+		(property "Value" "220k"
 			(at 224.79 37.084 0)
 			(effects
 				(font
@@ -8861,7 +8861,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "8b33db97-6870-4711-9cf2-ff260d56a80e")
-		(property "Reference" "U5"
+		(property "Reference" "U2"
 			(at 116.84 181.6099 0)
 			(effects
 				(font
@@ -8933,7 +8933,7 @@
 		(instances
 			(project ""
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/4580a192-f0d7-44eb-b345-2965a93c3023"
-					(reference "U5")
+					(reference "U2")
 					(unit 3)
 				)
 			)

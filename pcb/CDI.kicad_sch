@@ -3404,7 +3404,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "Fujitsu_FTR-LYAA005x"
+		(property "Value" "Relay"
 			(at 220.98 125.7299 0)
 			(effects
 				(font
@@ -3413,7 +3413,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Relay_THT:Relay_SPST-NO_Fujitsu_FTR-LYAA005x_FormA_Vertical"
+		(property "Footprint" "Custom:Ext_Relay"
 			(at 220.98 125.73 0)
 			(effects
 				(font
