@@ -5911,7 +5911,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
 			(at 98.552 96.52 90)
 			(effects
 				(font
@@ -5929,8 +5929,8 @@
 				(hide yes)
 			)
 		)
-		(property "Description" "Bleeder"
-			(at 106.68 100.076 0)
+		(property "Description" "0.25W Bleeder"
+			(at 109.982 100.33 0)
 			(effects
 				(font
 					(size 1.27 1.27)
