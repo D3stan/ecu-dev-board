@@ -5028,7 +5028,7 @@
 	)
 	(global_label "SPARK_TRIGGER"
 		(shape input)
-		(at 182.88 143.51 270)
+		(at 182.88 143.51 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -5038,7 +5038,7 @@
 		)
 		(uuid "4096e4f2-b0ad-4cac-b2f9-dc1dbad2ccf6")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 182.88 161.3723 90)
+			(at 165.0177 143.51 0)
 			(effects
 				(font
 					(size 1.27 1.27)
