@@ -6881,7 +6881,7 @@
 				(hide yes)
 			)
 		)
-		(property "Footprint" "Connector_PinHeader_1.00mm:PinHeader_1x01_P1.00mm_Vertical"
+		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x01_P2.54mm_Vertical"
 			(at 238.76 113.03 0)
 			(effects
 				(font
@@ -7896,7 +7896,7 @@
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
-		(dnp no)
+		(dnp yes)
 		(uuid "8ed0ce33-d39b-4a87-8b03-29358e6acf6f")
 		(property "Reference" "C14"
 			(at 162.56 72.39 90)
@@ -8947,7 +8947,7 @@
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
-		(dnp no)
+		(dnp yes)
 		(uuid "b928bdde-bf28-4044-8fab-78385ada6066")
 		(property "Reference" "C10"
 			(at 49.784 148.844 0)
@@ -9290,7 +9290,7 @@
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
-		(dnp no)
+		(dnp yes)
 		(uuid "c2ea531e-6974-44a5-81c9-42c2bf057c2f")
 		(property "Reference" "TP28"
 			(at 241.554 72.898 0)
@@ -9311,7 +9311,7 @@
 				(hide yes)
 			)
 		)
-		(property "Footprint" "Connector_PinHeader_1.00mm:PinHeader_1x01_P1.00mm_Vertical"
+		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x01_P2.54mm_Vertical"
 			(at 248.92 78.74 0)
 			(effects
 				(font
@@ -9489,7 +9489,7 @@
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
-		(dnp no)
+		(dnp yes)
 		(uuid "cb07d9dc-2d6e-452c-bbcf-d78b11083bcf")
 		(property "Reference" "C19"
 			(at 217.17 94.234 0)
@@ -10213,7 +10213,7 @@
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
-		(dnp no)
+		(dnp yes)
 		(uuid "ecae6096-9407-4125-aedf-bf0dc5ef82b3")
 		(property "Reference" "C12"
 			(at 81.28 93.9799 0)

@@ -2123,6 +2123,18 @@
 		(uuid "1865a6dc-6435-40aa-9d57-027f96a925a4")
 	)
 	(junction
+		(at 111.76 120.65)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "3f7cf7d7-0a5e-4ac8-ba44-856c854cbd36")
+	)
+	(junction
+		(at 232.41 133.35)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "3fc8dd3e-52af-4769-9473-ec864a3201d0")
+	)
+	(junction
 		(at 232.41 40.64)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -2210,7 +2222,7 @@
 	)
 	(wire
 		(pts
-			(xy 111.76 121.92) (xy 111.76 124.46)
+			(xy 111.76 118.11) (xy 111.76 120.65)
 		)
 		(stroke
 			(width 0)
@@ -2280,7 +2292,7 @@
 	)
 	(wire
 		(pts
-			(xy 214.63 133.35) (xy 226.06 133.35)
+			(xy 214.63 133.35) (xy 232.41 133.35)
 		)
 		(stroke
 			(width 0)
@@ -2297,6 +2309,16 @@
 			(type default)
 		)
 		(uuid "2db2f4fd-f0bc-4ac3-94a9-cf843d1fd62b")
+	)
+	(wire
+		(pts
+			(xy 232.41 129.54) (xy 232.41 133.35)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "334d47fa-2300-48aa-a5dd-df69a3ebb339")
 	)
 	(wire
 		(pts
@@ -2740,6 +2762,16 @@
 	)
 	(wire
 		(pts
+			(xy 115.57 120.65) (xy 111.76 120.65)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "d3db3fe5-dfd4-4e6c-9984-db6504764a24")
+	)
+	(wire
+		(pts
 			(xy 232.41 40.64) (xy 237.49 40.64)
 		)
 		(stroke
@@ -2780,6 +2812,16 @@
 	)
 	(wire
 		(pts
+			(xy 232.41 133.35) (xy 242.57 133.35)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "e267b4dd-c383-49fd-83b2-0f94f6dfe86d")
+	)
+	(wire
+		(pts
 			(xy 219.71 53.34) (xy 219.71 46.99)
 		)
 		(stroke
@@ -2817,6 +2859,16 @@
 			(type default)
 		)
 		(uuid "f139b21a-d9d8-4410-9511-4d32a240a583")
+	)
+	(wire
+		(pts
+			(xy 111.76 120.65) (xy 111.76 124.46)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "f283df9e-b68a-443c-9cf5-05516ac1b055")
 	)
 	(wire
 		(pts
@@ -2970,7 +3022,7 @@
 	)
 	(global_label "KILL_SWITCH"
 		(shape input)
-		(at 111.76 121.92 90)
+		(at 111.76 118.11 90)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -2980,7 +3032,7 @@
 		)
 		(uuid "bf7e039b-dffa-4e23-aa49-3805ad1e4b32")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 111.76 107.2024 90)
+			(at 111.76 103.3924 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2992,7 +3044,7 @@
 	)
 	(global_label "COIL_QS"
 		(shape input)
-		(at 226.06 133.35 0)
+		(at 242.57 133.35 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -3002,7 +3054,7 @@
 		)
 		(uuid "d83cf177-a7f3-4f58-a020-b708c5699c26")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 236.7862 133.35 0)
+			(at 253.2962 133.35 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3022,7 +3074,7 @@
 		(dnp no)
 		(uuid "015c8fcd-687c-484b-9fab-77f227da5f5d")
 		(property "Reference" "D13"
-			(at 117.094 124.46 90)
+			(at 117.348 127.254 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3031,7 +3083,7 @@
 			)
 		)
 		(property "Value" "TN1215-800G-TR"
-			(at 117.094 127 90)
+			(at 117.348 129.794 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3386,6 +3438,73 @@
 		)
 	)
 	(symbol
+		(lib_id "Connector:TestPoint")
+		(at 232.41 129.54 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp yes)
+		(fields_autoplaced yes)
+		(uuid "1042d3b7-172f-478e-9d0e-c597750216b2")
+		(property "Reference" "TP31"
+			(at 234.95 124.9679 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "TestPoint"
+			(at 234.95 127.5079 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x01_P2.54mm_Vertical"
+			(at 237.49 129.54 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 237.49 129.54 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "test point"
+			(at 232.41 129.54 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "b83abc8c-c4f1-4d97-b279-0169bba5cbae")
+		)
+		(instances
+			(project "ecu-dev-board"
+				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/b4dfb18a-1381-42e3-8476-3a51a0195db6"
+					(reference "TP31")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "Relay:Fujitsu_FTR-LYAA005x")
 		(at 209.55 124.46 0)
 		(unit 1)
@@ -3524,73 +3643,6 @@
 			(project ""
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/b4dfb18a-1381-42e3-8476-3a51a0195db6"
 					(reference "#PWR051")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Device:R")
-		(at 146.05 48.26 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "1ab0dc68-e39c-4cc4-ab71-7d51f1230dcb")
-		(property "Reference" "R57"
-			(at 141.351 46.863 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "10k"
-			(at 141.351 49.403 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical"
-			(at 144.272 48.26 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 146.05 48.26 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Resistor"
-			(at 146.05 48.26 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "2"
-			(uuid "606c1db3-a19b-4db1-8cb1-ce8b7eb36b71")
-		)
-		(pin "1"
-			(uuid "25a30cc1-a941-40d9-a6af-0a58ae04f639")
-		)
-		(instances
-			(project "ecu-dev-board"
-				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/b4dfb18a-1381-42e3-8476-3a51a0195db6"
-					(reference "R57")
 					(unit 1)
 				)
 			)
@@ -3745,7 +3797,7 @@
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
-		(dnp no)
+		(dnp yes)
 		(fields_autoplaced yes)
 		(uuid "2f803fee-c28e-4eb4-a3d0-43c24d039be1")
 		(property "Reference" "TP9"
@@ -3766,7 +3818,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Connector_PinHeader_1.00mm:PinHeader_1x01_P1.00mm_Vertical"
+		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x01_P2.54mm_Vertical"
 			(at 132.08 59.69 0)
 			(effects
 				(font
@@ -3976,7 +4028,7 @@
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
-		(dnp no)
+		(dnp yes)
 		(fields_autoplaced yes)
 		(uuid "447392cf-a6b8-40cd-afc2-329e276b7541")
 		(property "Reference" "TP10"
@@ -3997,7 +4049,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Connector_PinHeader_1.00mm:PinHeader_1x01_P1.00mm_Vertical"
+		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x01_P2.54mm_Vertical"
 			(at 195.58 33.02 0)
 			(effects
 				(font
@@ -4465,6 +4517,73 @@
 		)
 	)
 	(symbol
+		(lib_id "Device:R")
+		(at 67.31 116.84 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "6e85cc0c-77df-4120-943b-22785b0ac75c")
+		(property "Reference" "R49"
+			(at 62.865 115.443 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "47k"
+			(at 62.865 117.983 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+			(at 65.532 116.84 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 67.31 116.84 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 67.31 116.84 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "7882a3aa-188a-48d9-b4df-d92f0b2f239a")
+		)
+		(pin "1"
+			(uuid "ef5af1fa-b10a-4947-a2e9-2dfde73aefc4")
+		)
+		(instances
+			(project "ecu-dev-board"
+				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/b4dfb18a-1381-42e3-8476-3a51a0195db6"
+					(reference "R49")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "power:+12V")
 		(at 146.05 41.91 0)
 		(unit 1)
@@ -4739,7 +4858,7 @@
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
-		(dnp no)
+		(dnp yes)
 		(fields_autoplaced yes)
 		(uuid "8a2f1117-e44f-4391-ae64-2ee560e0a682")
 		(property "Reference" "TP11"
@@ -4760,7 +4879,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Connector_PinHeader_1.00mm:PinHeader_1x01_P1.00mm_Vertical"
+		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x01_P2.54mm_Vertical"
 			(at 260.35 33.02 0)
 			(effects
 				(font
@@ -5163,73 +5282,6 @@
 	)
 	(symbol
 		(lib_id "Device:R")
-		(at 184.15 62.23 90)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "a7635fdb-252e-43ae-91a2-15873a5994ef")
-		(property "Reference" "R13"
-			(at 183.896 65.278 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "220"
-			(at 183.896 67.818 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical"
-			(at 184.15 64.008 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 184.15 62.23 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Resistor"
-			(at 184.15 62.23 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "2"
-			(uuid "5b0f6bcf-a0d7-457b-b33e-603eff6483a5")
-		)
-		(pin "1"
-			(uuid "f7a3ad8f-4848-4006-8f43-78e6aafa10e0")
-		)
-		(instances
-			(project ""
-				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/b4dfb18a-1381-42e3-8476-3a51a0195db6"
-					(reference "R13")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Device:R")
 		(at 185.42 142.24 90)
 		(unit 1)
 		(exclude_from_sim no)
@@ -5291,6 +5343,73 @@
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/b4dfb18a-1381-42e3-8476-3a51a0195db6"
 					(reference "R46")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 184.15 62.23 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "b2ce6782-3892-4fd1-a595-5c68353b0759")
+		(property "Reference" "R13"
+			(at 184.15 65.278 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "220"
+			(at 184.15 67.818 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+			(at 184.15 64.008 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 184.15 62.23 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 184.15 62.23 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "e139357d-f86f-408c-a039-b0f45dac234d")
+		)
+		(pin "1"
+			(uuid "9aeba8bb-c9c8-49fd-8107-7c8df25770bd")
+		)
+		(instances
+			(project "ecu-dev-board"
+				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/b4dfb18a-1381-42e3-8476-3a51a0195db6"
+					(reference "R13")
 					(unit 1)
 				)
 			)
@@ -5373,80 +5492,13 @@
 		)
 	)
 	(symbol
-		(lib_id "Device:R")
-		(at 95.25 137.16 270)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "c326f6a0-a2aa-468d-9fd8-1885a1a896ce")
-		(property "Reference" "R56"
-			(at 95.504 134.112 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "220"
-			(at 95.504 131.572 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical"
-			(at 95.25 135.382 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 95.25 137.16 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Resistor"
-			(at 95.25 137.16 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "2"
-			(uuid "d2010e1a-bd51-4e39-8510-728cdffe46a7")
-		)
-		(pin "1"
-			(uuid "09fe7279-9515-40bb-989c-3062995f7710")
-		)
-		(instances
-			(project "ecu-dev-board"
-				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/b4dfb18a-1381-42e3-8476-3a51a0195db6"
-					(reference "R56")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "Connector:TestPoint")
 		(at 177.8 58.42 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
-		(dnp no)
+		(dnp yes)
 		(fields_autoplaced yes)
 		(uuid "d56c8fcd-bd9f-4c41-be01-1dba290a8797")
 		(property "Reference" "TP19"
@@ -5467,7 +5519,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Connector_PinHeader_1.00mm:PinHeader_1x01_P1.00mm_Vertical"
+		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x01_P2.54mm_Vertical"
 			(at 182.88 58.42 0)
 			(effects
 				(font
@@ -5501,6 +5553,73 @@
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/b4dfb18a-1381-42e3-8476-3a51a0195db6"
 					(reference "TP19")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Connector:TestPoint")
+		(at 115.57 120.65 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp yes)
+		(fields_autoplaced yes)
+		(uuid "dd5cfd51-a593-44f9-aa24-eb9d9d8d65cd")
+		(property "Reference" "TP30"
+			(at 120.65 119.3799 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "TestPoint"
+			(at 120.65 121.9199 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x01_P2.54mm_Vertical"
+			(at 115.57 125.73 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 115.57 125.73 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "test point"
+			(at 115.57 120.65 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "bc4011e3-02c8-4abd-8249-b54af9842e32")
+		)
+		(instances
+			(project "ecu-dev-board"
+				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/b4dfb18a-1381-42e3-8476-3a51a0195db6"
+					(reference "TP30")
 					(unit 1)
 				)
 			)
@@ -5655,73 +5774,6 @@
 			(project ""
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/b4dfb18a-1381-42e3-8476-3a51a0195db6"
 					(reference "D2")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Device:R")
-		(at 67.31 116.84 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "e429b4a9-46cd-4d6d-b1fa-00026cab0140")
-		(property "Reference" "R49"
-			(at 62.611 115.443 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "47k"
-			(at 62.611 117.983 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical"
-			(at 65.532 116.84 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 67.31 116.84 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Resistor"
-			(at 67.31 116.84 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "2"
-			(uuid "34d38ce0-df62-4c19-8bcc-12e76e0a772b")
-		)
-		(pin "1"
-			(uuid "7a00806e-c375-421d-8271-35aba257340c")
-		)
-		(instances
-			(project "ecu-dev-board"
-				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/b4dfb18a-1381-42e3-8476-3a51a0195db6"
-					(reference "R49")
 					(unit 1)
 				)
 			)
@@ -6008,6 +6060,73 @@
 		)
 	)
 	(symbol
+		(lib_id "Device:R")
+		(at 95.25 137.16 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "f39cab71-6c15-4136-9f41-db2766e2fc7a")
+		(property "Reference" "R56"
+			(at 95.25 140.208 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "220"
+			(at 95.25 142.748 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+			(at 95.25 138.938 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 95.25 137.16 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 95.25 137.16 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "e8c5a3fb-78b9-44cb-8924-26632c676d30")
+		)
+		(pin "1"
+			(uuid "ca3a1f7a-36f8-4afc-83c3-e202b55a77e7")
+		)
+		(instances
+			(project "ecu-dev-board"
+				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/b4dfb18a-1381-42e3-8476-3a51a0195db6"
+					(reference "R56")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "power:GNDPWR")
 		(at 255.27 66.04 0)
 		(unit 1)
@@ -6068,6 +6187,73 @@
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/b4dfb18a-1381-42e3-8476-3a51a0195db6"
 					(reference "#PWR013")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 146.05 48.26 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "f94ff9db-1907-4c9d-a17b-7ac81a2e122d")
+		(property "Reference" "R45"
+			(at 141.605 46.863 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "10k"
+			(at 141.605 49.403 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+			(at 144.272 48.26 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 146.05 48.26 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 146.05 48.26 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "342a76d3-b408-415c-9d54-89c4fc294ece")
+		)
+		(pin "1"
+			(uuid "9d28c178-b782-459a-bc5c-8218d33f884d")
+		)
+		(instances
+			(project "ecu-dev-board"
+				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/b4dfb18a-1381-42e3-8476-3a51a0195db6"
+					(reference "R45")
 					(unit 1)
 				)
 			)
