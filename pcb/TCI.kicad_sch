@@ -4864,7 +4864,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "SamacSys_Parts:STGB20M65DF2"
+		(property "Footprint" "Package_TO_SOT_SMD:TO-263-2"
 			(at 118.11 173.99 0)
 			(effects
 				(font
