@@ -1300,28 +1300,6 @@
 			)
 		)
 	)
-	(global_label "SPARE"
-		(shape input)
-		(at 81.28 171.45 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "6d21a566-7454-4184-b20d-def2de18a7c7")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 90.2523 171.45 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-	)
 	(global_label "PICKUP_SIM+"
 		(shape input)
 		(at 53.34 181.61 180)
@@ -1445,6 +1423,28 @@
 		(uuid "9bce1821-ea79-461d-9437-40bf8ae43e29")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 92.0062 179.07 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "COIL_SPARK_IN"
+		(shape input)
+		(at 81.28 171.45 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "ac66e043-f28e-42e6-862d-c3f2f4316803")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 98.4772 171.45 0)
 			(effects
 				(font
 					(size 1.27 1.27)

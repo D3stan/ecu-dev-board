@@ -375,6 +375,173 @@
 			)
 			(embedded_fonts no)
 		)
+		(symbol "Diode:1N4148W"
+			(pin_numbers
+				(hide yes)
+			)
+			(pin_names
+				(hide yes)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "D"
+				(at 0 2.54 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "1N4148W"
+				(at 0 -2.54 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" "Diode_SMD:D_SOD-123"
+				(at 0 -4.445 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "https://www.vishay.com/docs/85748/1n4148w.pdf"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "75V 0.15A Fast Switching Diode, SOD-123"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Sim.Device" "D"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Sim.Pins" "1=K 2=A"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "diode"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_fp_filters" "D*SOD?123*"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "1N4148W_0_1"
+				(polyline
+					(pts
+						(xy -1.27 1.27) (xy -1.27 -1.27)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 1.27 1.27) (xy 1.27 -1.27) (xy -1.27 0) (xy 1.27 1.27)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 1.27 0) (xy -1.27 0)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "1N4148W_1_1"
+				(pin passive line
+					(at -3.81 0 0)
+					(length 2.54)
+					(name "K"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 3.81 0 180)
+					(length 2.54)
+					(name "A"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
 		(symbol "Jumper:SolderJumper_2_Open"
 			(pin_numbers
 				(hide yes)
@@ -1406,6 +1573,254 @@
 								(size 1.27 1.27)
 							)
 						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "SamacSys_Parts:BZT52B5V1-E3-08"
+			(pin_names
+				(offset 0.762)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "Z"
+				(at 10.16 8.89 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Value" "BZT52B5V1-E3-08"
+				(at 10.16 6.35 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Footprint" "BZT52B5V1E308"
+				(at 10.16 3.81 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "http://www.vishay.com/docs/85760/bzt52.pdf"
+				(at 10.16 1.27 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+					(hide yes)
+				)
+			)
+			(property "Description" "Vishay BZT52B5V1-E3-08 Zener Diode, 5.1V 2% 500 mW SMT 2-Pin SOD-123"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description_1" "Vishay BZT52B5V1-E3-08 Zener Diode, 5.1V 2% 500 mW SMT 2-Pin SOD-123"
+				(at 10.16 -1.27 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+					(hide yes)
+				)
+			)
+			(property "Height" "1.35"
+				(at 10.16 -3.81 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+					(hide yes)
+				)
+			)
+			(property "Manufacturer_Name" "Vishay"
+				(at 10.16 -6.35 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+					(hide yes)
+				)
+			)
+			(property "Manufacturer_Part_Number" "BZT52B5V1-E3-08"
+				(at 10.16 -8.89 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+					(hide yes)
+				)
+			)
+			(property "Mouser Part Number" "78-BZT52B5V1-E3-08"
+				(at 10.16 -11.43 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+					(hide yes)
+				)
+			)
+			(property "Mouser Price/Stock" "https://www.mouser.co.uk/ProductDetail/Vishay-Semiconductors/BZT52B5V1-E3-08?qs=KP8Io%2FXyE5Sz55z44LM67w%3D%3D"
+				(at 10.16 -13.97 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+					(hide yes)
+				)
+			)
+			(property "Arrow Part Number" "BZT52B5V1-E3-08"
+				(at 10.16 -16.51 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+					(hide yes)
+				)
+			)
+			(property "Arrow Price/Stock" "https://www.arrow.com/en/products/bzt52b5v1-e3-08/vishay?utm_currency=USD&region=nac"
+				(at 10.16 -19.05 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+					(hide yes)
+				)
+			)
+			(symbol "BZT52B5V1-E3-08_0_0"
+				(pin passive line
+					(at 0 0 0)
+					(length 2.54)
+					(name "~"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 15.24 0 180)
+					(length 2.54)
+					(name "~"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(symbol "BZT52B5V1-E3-08_0_1"
+				(polyline
+					(pts
+						(xy 2.54 0) (xy 5.08 0)
+					)
+					(stroke
+						(width 0.1524)
+						(type solid)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 4.064 -2.54) (xy 5.08 -2.032)
+					)
+					(stroke
+						(width 0.1524)
+						(type solid)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 5.08 2.032) (xy 5.08 -2.032)
+					)
+					(stroke
+						(width 0.1524)
+						(type solid)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 5.08 2.032) (xy 6.096 2.54)
+					)
+					(stroke
+						(width 0.1524)
+						(type solid)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 5.08 0) (xy 10.16 2.54) (xy 10.16 -2.54) (xy 5.08 0)
+					)
+					(stroke
+						(width 0.254)
+						(type solid)
+					)
+					(fill
+						(type outline)
+					)
+				)
+				(polyline
+					(pts
+						(xy 12.7 0) (xy 10.16 0)
+					)
+					(stroke
+						(width 0.1524)
+						(type solid)
+					)
+					(fill
+						(type none)
 					)
 				)
 			)
@@ -2706,6 +3121,12 @@
 		(uuid "98343698-be78-48fd-ac05-b6227f69cba6")
 	)
 	(junction
+		(at 219.71 81.28)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "036bbc3c-20cd-452d-a069-3cb217d79c72")
+	)
+	(junction
 		(at 245.11 45.72)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -2832,6 +3253,12 @@
 		(uuid "b120e3fa-fc29-4811-b516-f35e13cc0c38")
 	)
 	(junction
+		(at 251.46 81.28)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "b25e1f06-5d25-43ac-97e3-8283c920542d")
+	)
+	(junction
 		(at 68.58 152.4)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -2842,6 +3269,12 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "b9cbe44f-eb80-4fe1-80ff-19eb2e925b77")
+	)
+	(junction
+		(at 205.74 81.28)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "d0055409-1b85-4bf9-bc71-d2b6ad8d2c36")
 	)
 	(junction
 		(at 49.53 152.4)
@@ -2874,6 +3307,12 @@
 		(uuid "e5e946b3-0ec7-41c3-9600-f86aacd87ea7")
 	)
 	(junction
+		(at 219.71 91.44)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "ecb15bc6-f7b5-4d58-b8df-85ef65792897")
+	)
+	(junction
 		(at 116.84 125.73)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -2886,24 +3325,8 @@
 		(uuid "fd015deb-c1d1-4fef-a01b-36ff20a51ba2")
 	)
 	(no_connect
-		(at 237.49 74.93)
-		(uuid "11c0f9c6-408f-434e-8b2c-8c7b011130cd")
-	)
-	(no_connect
-		(at 237.49 69.85)
-		(uuid "160b2da3-5575-4bd4-89b3-2ac10fc27eb9")
-	)
-	(no_connect
 		(at 73.66 35.56)
 		(uuid "3fdf5c10-fe4e-468e-a72b-9990da371e0e")
-	)
-	(no_connect
-		(at 222.25 69.85)
-		(uuid "aa8096e9-b36b-43e5-9c37-0d819e3637aa")
-	)
-	(no_connect
-		(at 222.25 74.93)
-		(uuid "c71eb500-0fca-4e32-bc45-363820004098")
 	)
 	(no_connect
 		(at 93.98 35.56)
@@ -2918,6 +3341,16 @@
 			(type default)
 		)
 		(uuid "01184627-772f-4635-985a-e778ae55e093")
+	)
+	(wire
+		(pts
+			(xy 219.71 82.55) (xy 219.71 81.28)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "01e77957-df4e-4367-ba7d-ba232da70b19")
 	)
 	(wire
 		(pts
@@ -3021,6 +3454,16 @@
 	)
 	(wire
 		(pts
+			(xy 198.12 81.28) (xy 205.74 81.28)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "1aad7e91-2a57-4bea-8bb9-bb6396c1e8c8")
+	)
+	(wire
+		(pts
 			(xy 34.29 152.4) (xy 40.64 152.4)
 		)
 		(stroke
@@ -3081,6 +3524,16 @@
 	)
 	(wire
 		(pts
+			(xy 205.74 99.06) (xy 205.74 97.79)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "28142626-15c9-4c9e-a79a-b0375dbdb4d9")
+	)
+	(wire
+		(pts
 			(xy 76.2 45.72) (xy 68.58 45.72)
 		)
 		(stroke
@@ -3128,6 +3581,16 @@
 			(type default)
 		)
 		(uuid "31194555-75b2-495e-8aca-990b6bfa86b1")
+	)
+	(wire
+		(pts
+			(xy 190.5 81.28) (xy 186.69 81.28)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "325bc114-6d80-44b8-9e23-161b3ac4151b")
 	)
 	(wire
 		(pts
@@ -3208,6 +3671,16 @@
 			(type default)
 		)
 		(uuid "3f0b703d-b1d0-4f77-a7f3-421688d1b781")
+	)
+	(wire
+		(pts
+			(xy 205.74 82.55) (xy 205.74 81.28)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "422738ee-5b20-4643-938e-b865b288884a")
 	)
 	(wire
 		(pts
@@ -3331,6 +3804,16 @@
 	)
 	(wire
 		(pts
+			(xy 219.71 81.28) (xy 228.6 81.28)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "56d6f353-774c-4931-9a47-796532c0bbba")
+	)
+	(wire
+		(pts
 			(xy 120.65 147.32) (xy 120.65 152.4)
 		)
 		(stroke
@@ -3381,6 +3864,26 @@
 	)
 	(wire
 		(pts
+			(xy 219.71 91.44) (xy 219.71 92.71)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "63baf12b-85aa-4284-8f11-fd3c92c49153")
+	)
+	(wire
+		(pts
+			(xy 227.33 86.36) (xy 227.33 91.44)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "67d90ef1-100c-49f0-82a9-17428b77a353")
+	)
+	(wire
+		(pts
 			(xy 116.84 123.19) (xy 116.84 125.73)
 		)
 		(stroke
@@ -3411,6 +3914,16 @@
 	)
 	(wire
 		(pts
+			(xy 243.84 86.36) (xy 251.46 86.36)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "700ec176-1f6b-4056-88a6-d5a31ebe9c24")
+	)
+	(wire
+		(pts
 			(xy 68.58 152.4) (xy 68.58 154.94)
 		)
 		(stroke
@@ -3418,6 +3931,16 @@
 			(type default)
 		)
 		(uuid "70c9d1b5-13e5-4721-99e0-d9bf67f0349d")
+	)
+	(wire
+		(pts
+			(xy 227.33 91.44) (xy 219.71 91.44)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "71904c7f-f8c1-443c-8098-831aaca8f6c1")
 	)
 	(wire
 		(pts
@@ -3521,6 +4044,16 @@
 	)
 	(wire
 		(pts
+			(xy 251.46 71.12) (xy 251.46 72.39)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "844abd66-6980-4562-aa83-7404c96e32e8")
+	)
+	(wire
+		(pts
 			(xy 50.8 125.73) (xy 55.88 125.73)
 		)
 		(stroke
@@ -3528,6 +4061,16 @@
 			(type default)
 		)
 		(uuid "8528c1a0-826d-410b-bbbc-0970de0b9159")
+	)
+	(wire
+		(pts
+			(xy 251.46 81.28) (xy 261.62 81.28)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "878574da-2101-4d76-9fb8-705f8660efff")
 	)
 	(wire
 		(pts
@@ -3588,6 +4131,16 @@
 			(type default)
 		)
 		(uuid "96bff931-7a93-4f1c-9ea6-cd8406b4dc8f")
+	)
+	(wire
+		(pts
+			(xy 251.46 80.01) (xy 251.46 81.28)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "977aa387-e42a-433b-a65b-f2a0321408f6")
 	)
 	(wire
 		(pts
@@ -3721,6 +4274,16 @@
 	)
 	(wire
 		(pts
+			(xy 219.71 91.44) (xy 219.71 90.17)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "a71de2c8-6aae-427b-b8bb-a5b4260c2f50")
+	)
+	(wire
+		(pts
 			(xy 229.87 132.08) (xy 226.06 132.08)
 		)
 		(stroke
@@ -3778,6 +4341,16 @@
 			(type default)
 		)
 		(uuid "acc79c9a-ee20-4e17-af23-b9f6f191a1af")
+	)
+	(wire
+		(pts
+			(xy 251.46 86.36) (xy 251.46 92.71)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "aea31766-63bf-4876-9d34-949d921bfe8e")
 	)
 	(wire
 		(pts
@@ -3891,6 +4464,16 @@
 	)
 	(wire
 		(pts
+			(xy 205.74 81.28) (xy 219.71 81.28)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "cca21f63-3f12-4cf7-b9a5-ba5866ab14d1")
+	)
+	(wire
+		(pts
 			(xy 119.38 163.83) (xy 133.35 163.83)
 		)
 		(stroke
@@ -3918,6 +4501,16 @@
 			(type default)
 		)
 		(uuid "d0b0d83b-3040-4103-b2a0-ec42c54a44b3")
+	)
+	(wire
+		(pts
+			(xy 243.84 81.28) (xy 251.46 81.28)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "d283e27f-6f7b-4c3c-96e2-2ba706b5e117")
 	)
 	(wire
 		(pts
@@ -3958,6 +4551,16 @@
 			(type default)
 		)
 		(uuid "db95867e-2897-4e4c-804f-ed9f4750818c")
+	)
+	(wire
+		(pts
+			(xy 228.6 86.36) (xy 227.33 86.36)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "dbc50888-3abc-40a3-906f-01ef15bea2b2")
 	)
 	(wire
 		(pts
@@ -4221,6 +4824,28 @@
 			)
 		)
 	)
+	(global_label "COIL_SPARK_OUT"
+		(shape input)
+		(at 261.62 81.28 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "023b79a1-d65b-4697-9619-95cc2cfe3798")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 280.5105 81.28 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
 	(global_label "PICKUP_SIM+"
 		(shape input)
 		(at 226.06 121.92 180)
@@ -4371,6 +4996,28 @@
 					(size 1.27 1.27)
 				)
 				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "COIL_SPARK_IN"
+		(shape input)
+		(at 186.69 81.28 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "5b39e366-023d-4c06-91f0-abf9cbf03b2b")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 169.4928 81.28 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
 				(hide yes)
 			)
 		)
@@ -4531,7 +5178,7 @@
 	)
 	(symbol
 		(lib_id "Relay_SolidState:CPC2125N")
-		(at 229.87 72.39 0)
+		(at 236.22 83.82 0)
 		(unit 2)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -4540,7 +5187,7 @@
 		(fields_autoplaced yes)
 		(uuid "0b92e7f6-f013-4c1a-b1d3-e5c96a0678a6")
 		(property "Reference" "U4"
-			(at 229.87 63.5 0)
+			(at 236.22 74.93 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4548,7 +5195,7 @@
 			)
 		)
 		(property "Value" "AT223-CuH-S"
-			(at 229.87 66.04 0)
+			(at 236.22 77.47 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4556,7 +5203,7 @@
 			)
 		)
 		(property "Footprint" "Package_SO:SOP-8_6.605x9.655mm_P2.54mm"
-			(at 229.87 77.47 0)
+			(at 236.22 88.9 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4565,7 +5212,7 @@
 			)
 		)
 		(property "Datasheet" "https://www.lcsc.com/datasheet/C32712995.pdf"
-			(at 229.87 81.534 0)
+			(at 236.22 92.964 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4574,7 +5221,7 @@
 			)
 		)
 		(property "Description" "Dual Form B, Solid State Relay (Photo MOSFET) 400V, 0.1A, 35Ohm, SO-8"
-			(at 229.87 79.502 0)
+			(at 236.22 90.932 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5695,6 +6342,93 @@
 		)
 	)
 	(symbol
+		(lib_id "Diode:1N4148W")
+		(at 219.71 86.36 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "50f993c9-0c23-4dfe-8d9b-9b898c8de698")
+		(property "Reference" "D15"
+			(at 217.932 87.63 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Value" "1N4148W"
+			(at 217.932 85.09 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Footprint" "Diode_SMD:D_SOD-123"
+			(at 215.265 86.36 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "https://www.vishay.com/docs/85748/1n4148w.pdf"
+			(at 219.71 86.36 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "75V 0.15A Fast Switching Diode, SOD-123"
+			(at 219.71 86.36 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Sim.Device" "D"
+			(at 219.71 86.36 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Sim.Pins" "1=K 2=A"
+			(at 219.71 86.36 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "79c44f93-4853-42b7-b86c-da772e21c915")
+		)
+		(pin "2"
+			(uuid "3ef6e1c2-364d-4e1f-973c-ec341bbf9364")
+		)
+		(instances
+			(project "ecu-dev-board"
+				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/419a62de-f56b-49aa-b69b-37bd2fc230d8"
+					(reference "D15")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "power:GND")
 		(at 34.29 171.45 0)
 		(unit 1)
@@ -6394,6 +7128,73 @@
 		)
 	)
 	(symbol
+		(lib_id "Device:R")
+		(at 251.46 76.2 180)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "70eab13c-10e9-4909-b9f7-f86cdbfad973")
+		(property "Reference" "R57"
+			(at 248.412 76.2 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "47k"
+			(at 251.46 76.2 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+			(at 253.238 76.2 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 251.46 76.2 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 251.46 76.2 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "10da5d81-6855-4eb7-9c32-d0ff9b741ac5")
+		)
+		(pin "1"
+			(uuid "80604b6d-6720-4713-8bd2-536fb440903c")
+		)
+		(instances
+			(project "ecu-dev-board"
+				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/419a62de-f56b-49aa-b69b-37bd2fc230d8"
+					(reference "R57")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "Jumper:SolderJumper_3_Open")
 		(at 63.5 45.72 180)
 		(unit 1)
@@ -6635,6 +7436,223 @@
 			(project ""
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/419a62de-f56b-49aa-b69b-37bd2fc230d8"
 					(reference "IC1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:+3V3")
+		(at 251.46 71.12 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "7e4f1b38-8f21-4035-b676-5dc9e2e6acc8")
+		(property "Reference" "#PWR048"
+			(at 251.46 74.93 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "+3V3"
+			(at 251.46 66.04 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 251.46 71.12 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 251.46 71.12 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+3V3\""
+			(at 251.46 71.12 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "ac8cd8f4-83c2-49cb-a0fd-0d4b0b596751")
+		)
+		(instances
+			(project "ecu-dev-board"
+				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/419a62de-f56b-49aa-b69b-37bd2fc230d8"
+					(reference "#PWR048")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "SamacSys_Parts:BZT52B5V1-E3-08")
+		(at 205.74 82.55 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "7e910cc5-304c-420f-846e-15b86ed3a603")
+		(property "Reference" "Z2"
+			(at 199.644 88.392 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "BZT52B5V1-E3-08"
+			(at 183.388 90.932 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "SamacSys_Parts:BZT52B5V1E308"
+			(at 209.55 92.71 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "http://www.vishay.com/docs/85760/bzt52.pdf"
+			(at 207.01 92.71 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Description" "Vishay BZT52B5V1-E3-08 Zener Diode, 5.1V 2% 500 mW SMT 2-Pin SOD-123"
+			(at 205.74 82.55 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description_1" "Vishay BZT52B5V1-E3-08 Zener Diode, 5.1V 2% 500 mW SMT 2-Pin SOD-123"
+			(at 204.47 92.71 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Height" "1.35"
+			(at 201.93 92.71 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Manufacturer_Name" "Vishay"
+			(at 199.39 92.71 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Manufacturer_Part_Number" "BZT52B5V1-E3-08"
+			(at 196.85 92.71 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Mouser Part Number" "78-BZT52B5V1-E3-08"
+			(at 194.31 92.71 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Mouser Price/Stock" "https://www.mouser.co.uk/ProductDetail/Vishay-Semiconductors/BZT52B5V1-E3-08?qs=KP8Io%2FXyE5Sz55z44LM67w%3D%3D"
+			(at 191.77 92.71 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Arrow Part Number" "BZT52B5V1-E3-08"
+			(at 189.23 92.71 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Arrow Price/Stock" "https://www.arrow.com/en/products/bzt52b5v1-e3-08/vishay?utm_currency=USD&region=nac"
+			(at 186.69 92.71 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "156d1a9f-f4c8-403d-a69c-d47f45fa55b8")
+		)
+		(pin "1"
+			(uuid "d92fd392-c420-4ceb-86c5-15c829b044f7")
+		)
+		(instances
+			(project "ecu-dev-board"
+				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/419a62de-f56b-49aa-b69b-37bd2fc230d8"
+					(reference "Z2")
 					(unit 1)
 				)
 			)
@@ -6920,6 +7938,72 @@
 		)
 	)
 	(symbol
+		(lib_id "power:GND")
+		(at 251.46 92.71 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "8c7cdc0c-ffbf-46b2-9b23-05b421988fb5")
+		(property "Reference" "#PWR086"
+			(at 251.46 99.06 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 251.46 97.79 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 251.46 92.71 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 251.46 92.71 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 251.46 92.71 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "a534290f-386b-4405-bee0-b9bf016d7e0e")
+		)
+		(instances
+			(project "ecu-dev-board"
+				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/419a62de-f56b-49aa-b69b-37bd2fc230d8"
+					(reference "#PWR086")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "Device:C")
 		(at 130.81 142.24 0)
 		(unit 1)
@@ -7061,6 +8145,72 @@
 	)
 	(symbol
 		(lib_id "power:GND")
+		(at 219.71 92.71 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "a56802bd-199c-4cdf-a4f1-061399ce32d5")
+		(property "Reference" "#PWR087"
+			(at 219.71 99.06 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 219.71 97.79 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 219.71 92.71 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 219.71 92.71 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 219.71 92.71 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "a32ff8ce-c24a-4b73-b19b-aa214e833ccb")
+		)
+		(instances
+			(project "ecu-dev-board"
+				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/419a62de-f56b-49aa-b69b-37bd2fc230d8"
+					(reference "#PWR087")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
 		(at 81.28 95.25 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -7186,6 +8336,73 @@
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/419a62de-f56b-49aa-b69b-37bd2fc230d8"
 					(reference "#PWR05")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 194.31 81.28 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "af3bef1e-bc3c-4d21-8342-02c881f16bbd")
+		(property "Reference" "R66"
+			(at 194.31 76.708 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "470k"
+			(at 194.31 78.994 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+			(at 194.31 79.502 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 194.31 81.28 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 194.31 81.28 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "4f9a55cd-7adb-4038-96ba-1f2280d080d2")
+		)
+		(pin "1"
+			(uuid "2e41cd8c-104e-41a7-af20-b14db593d283")
+		)
+		(instances
+			(project "ecu-dev-board"
+				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/419a62de-f56b-49aa-b69b-37bd2fc230d8"
+					(reference "R66")
 					(unit 1)
 				)
 			)
@@ -7387,6 +8604,72 @@
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/419a62de-f56b-49aa-b69b-37bd2fc230d8"
 					(reference "TP6")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 205.74 99.06 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "c62a7efa-ddef-40f0-abe7-43629eb64e6a")
+		(property "Reference" "#PWR088"
+			(at 205.74 105.41 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 205.74 104.14 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 205.74 99.06 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 205.74 99.06 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 205.74 99.06 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "3768685b-0ccb-4040-b11c-6c93d8cf69f7")
+		)
+		(instances
+			(project "ecu-dev-board"
+				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/419a62de-f56b-49aa-b69b-37bd2fc230d8"
+					(reference "#PWR088")
 					(unit 1)
 				)
 			)

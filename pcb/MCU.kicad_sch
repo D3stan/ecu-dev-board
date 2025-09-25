@@ -2358,6 +2358,28 @@
 			)
 		)
 	)
+	(global_label "COIL_SPARK_OUT"
+		(shape input)
+		(at 71.12 87.63 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "16ac759d-6bfa-4669-8ce5-d2cfe84f0aca")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 52.2295 87.63 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
 	(global_label "DIGITAL_QS_OUT"
 		(shape input)
 		(at 106.68 72.39 0)
@@ -2508,28 +2530,6 @@
 					(size 1.27 1.27)
 				)
 				(justify left)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "SPARE"
-		(shape input)
-		(at 71.12 87.63 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "bb033215-84d8-4b34-832b-4b76547466d1")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 62.1477 87.63 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
 				(hide yes)
 			)
 		)
