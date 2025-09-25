@@ -3042,7 +3042,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "SamacSys_Parts:TN1215800GTR"
+		(property "Footprint" "Package_TO_SOT_SMD:TO-263-2"
 			(at 104.14 138.43 0)
 			(effects
 				(font
@@ -5874,7 +5874,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "SamacSys_Parts:TN1215800GTR"
+		(property "Footprint" "Package_TO_SOT_SMD:TO-263-2"
 			(at 201.93 63.5 0)
 			(effects
 				(font
