@@ -5423,10 +5423,9 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp yes)
-		(fields_autoplaced yes)
 		(uuid "17c8dd76-f052-4926-a0f1-e9ddeac3ff30")
 		(property "Reference" "TP1"
-			(at 41.91 116.0779 0)
+			(at 28.448 117.094 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5435,7 +5434,7 @@
 			)
 		)
 		(property "Value" "TestPoint"
-			(at 41.91 118.6179 0)
+			(at 28.448 119.634 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5560,7 +5559,7 @@
 		(dnp no)
 		(uuid "1e4a990a-c47a-457f-8bfb-abdb23926cda")
 		(property "Reference" "R6"
-			(at 25.4 149.352 90)
+			(at 25.4 147.32 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5568,7 +5567,7 @@
 			)
 		)
 		(property "Value" "10k"
-			(at 25.4 152.4 90)
+			(at 25.4 149.86 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5836,7 +5835,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "0.1u"
+		(property "Value" "100n"
 			(at 122.174 172.72 0)
 			(effects
 				(font
@@ -6302,7 +6301,7 @@
 		(dnp no)
 		(uuid "4b3b7b5f-f332-4e57-8e7a-cc2a117b1243")
 		(property "Reference" "R7"
-			(at 31.242 160.02 90)
+			(at 30.48 158.75 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6310,7 +6309,7 @@
 			)
 		)
 		(property "Value" "10k"
-			(at 34.29 160.02 90)
+			(at 30.734 161.036 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6354,6 +6353,75 @@
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/419a62de-f56b-49aa-b69b-37bd2fc230d8"
 					(reference "R7")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 50.8 45.72 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "4c5e7b74-c7cd-450d-a406-9640fc976cf6")
+		(property "Reference" "R2"
+			(at 50.8 40.132 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+					(thickness 0.254)
+					(bold yes)
+				)
+			)
+		)
+		(property "Value" "100R"
+			(at 50.8 42.926 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+			(at 50.8 47.498 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 50.8 45.72 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 50.8 45.72 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "db90f1d7-ac07-411e-b698-a085e3720b7b")
+		)
+		(pin "1"
+			(uuid "1f1ca9ac-07c6-481c-a9ba-982e7944c732")
+		)
+		(instances
+			(project "ecu-dev-board"
+				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/419a62de-f56b-49aa-b69b-37bd2fc230d8"
+					(reference "R2")
 					(unit 1)
 				)
 			)
@@ -6583,6 +6651,76 @@
 		)
 	)
 	(symbol
+		(lib_id "Device:C")
+		(at 107.95 43.18 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "55f34c0f-a108-4b2b-b6c9-63b62c6ce556")
+		(property "Reference" "C28"
+			(at 111.76 41.9099 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "100n"
+			(at 111.76 44.4499 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
+			(at 108.9152 46.99 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 107.95 43.18 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Unpolarized capacitor"
+			(at 107.95 43.18 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "e1ced024-fa87-45dc-8ebb-3662d7457357")
+		)
+		(pin "1"
+			(uuid "74ea1ccc-e75d-4fb1-8749-61f89f153789")
+		)
+		(instances
+			(project "ecu-dev-board"
+				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/419a62de-f56b-49aa-b69b-37bd2fc230d8"
+					(reference "C28")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "power:GND")
 		(at 34.29 171.45 0)
 		(unit 1)
@@ -6658,7 +6796,7 @@
 		(dnp no)
 		(uuid "5b64caca-58b3-41a9-b43a-e26ad8f4b600")
 		(property "Reference" "R55"
-			(at 67.31 81.788 90)
+			(at 67.31 72.898 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6666,7 +6804,7 @@
 			)
 		)
 		(property "Value" "270"
-			(at 67.31 78.74 90)
+			(at 67.31 75.438 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6859,7 +6997,7 @@
 		(dnp no)
 		(uuid "6914bc44-d6dc-4083-801e-21ec50f0797c")
 		(property "Reference" "R8"
-			(at 113.792 119.38 90)
+			(at 112.776 118.364 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6867,7 +7005,7 @@
 			)
 		)
 		(property "Value" "10k"
-			(at 116.84 119.38 90)
+			(at 112.776 120.904 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7151,13 +7289,15 @@
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
-		(dnp yes)
+		(dnp no)
 		(uuid "6cf6332c-c475-496e-be27-e329034d0f26")
 		(property "Reference" "R1"
 			(at 50.8 19.812 90)
 			(effects
 				(font
 					(size 1.27 1.27)
+					(thickness 0.254)
+					(bold yes)
 				)
 			)
 		)
@@ -7169,7 +7309,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical"
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
 			(at 50.8 27.178 90)
 			(effects
 				(font
@@ -7212,35 +7352,34 @@
 		)
 	)
 	(symbol
-		(lib_id "Device:C")
-		(at 107.95 43.18 0)
+		(lib_id "Device:R")
+		(at 46.99 125.73 270)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
-		(dnp yes)
-		(fields_autoplaced yes)
-		(uuid "705a418f-a79f-4614-b26e-0430599b6a6e")
-		(property "Reference" "C28"
-			(at 111.76 41.9099 0)
+		(dnp no)
+		(uuid "6e7d7ae5-05d8-45d8-a997-bc991d75b568")
+		(property "Reference" "R4"
+			(at 46.99 120.396 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+					(thickness 0.254)
+					(bold yes)
+				)
+			)
+		)
+		(property "Value" "10k"
+			(at 46.99 123.19 90)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(justify left)
 			)
 		)
-		(property "Value" "100n"
-			(at 111.76 44.4499 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" "Capacitor_THT:C_Disc_D4.3mm_W1.9mm_P5.00mm"
-			(at 108.9152 46.99 0)
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+			(at 46.99 123.952 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7249,7 +7388,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 107.95 43.18 0)
+			(at 46.99 125.73 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7257,25 +7396,25 @@
 				(hide yes)
 			)
 		)
-		(property "Description" "Unpolarized capacitor"
-			(at 107.95 43.18 0)
+		(property "Description" "Resistor"
+			(at 46.99 125.73 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(hide yes)
 			)
-		)
-		(pin "1"
-			(uuid "96d17b7d-1f46-4da9-b7cb-1236174ae810")
 		)
 		(pin "2"
-			(uuid "6c68ce6d-96b8-4917-a6e5-4df5717ee676")
+			(uuid "cd0284a7-5f0c-4b8e-ba7e-458f6086ac29")
+		)
+		(pin "1"
+			(uuid "00e4a78a-f232-4fe6-8e75-cdfbed88e751")
 		)
 		(instances
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/419a62de-f56b-49aa-b69b-37bd2fc230d8"
-					(reference "C28")
+					(reference "R4")
 					(unit 1)
 				)
 			)
@@ -7291,7 +7430,7 @@
 		(dnp no)
 		(uuid "70eab13c-10e9-4909-b9f7-f86cdbfad973")
 		(property "Reference" "R57"
-			(at 248.412 76.2 90)
+			(at 255.27 75.184 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7299,7 +7438,7 @@
 			)
 		)
 		(property "Value" "47k"
-			(at 251.46 76.2 90)
+			(at 255.27 77.724 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7349,6 +7488,75 @@
 		)
 	)
 	(symbol
+		(lib_id "Device:R")
+		(at 46.99 138.43 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "798c30bd-f713-4c50-9f18-cc9c3b2435ba")
+		(property "Reference" "R5"
+			(at 46.99 133.096 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+					(thickness 0.254)
+					(bold yes)
+				)
+			)
+		)
+		(property "Value" "10k"
+			(at 46.99 135.89 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+			(at 46.99 136.652 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 46.99 138.43 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 46.99 138.43 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "faf3b774-7b68-46e7-a950-f829ed103dab")
+		)
+		(pin "1"
+			(uuid "c5cd1cef-eac2-4e04-ac90-4c82f0231275")
+		)
+		(instances
+			(project "ecu-dev-board"
+				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/419a62de-f56b-49aa-b69b-37bd2fc230d8"
+					(reference "R5")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "Jumper:SolderJumper_3_Open")
 		(at 63.5 45.72 180)
 		(unit 1)
@@ -7358,7 +7566,7 @@
 		(dnp no)
 		(uuid "7c4b18f5-17da-4038-bd15-66c68e8b1ae0")
 		(property "Reference" "JP18"
-			(at 66.04 47.244 90)
+			(at 65.786 49.784 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8020,73 +8228,6 @@
 		)
 	)
 	(symbol
-		(lib_id "Device:R")
-		(at 50.8 45.72 90)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp yes)
-		(uuid "8878b5ec-2c67-411e-8288-3de21507ec74")
-		(property "Reference" "R2"
-			(at 50.546 40.64 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "100R"
-			(at 50.8 42.926 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical"
-			(at 50.8 47.498 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 50.8 45.72 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Resistor"
-			(at 50.8 45.72 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "2"
-			(uuid "c4007471-813b-4889-b522-1005a4d5e62c")
-		)
-		(pin "1"
-			(uuid "d9b13e82-a2f8-4301-956d-b6383d38125d")
-		)
-		(instances
-			(project "ecu-dev-board"
-				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/419a62de-f56b-49aa-b69b-37bd2fc230d8"
-					(reference "R2")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "Jumper:SolderJumper_3_Open")
 		(at 63.5 25.4 0)
 		(unit 1)
@@ -8096,7 +8237,7 @@
 		(dnp no)
 		(uuid "8b006405-35ff-4fd6-a39f-d19584e45926")
 		(property "Reference" "JP1"
-			(at 60.96 23.876 90)
+			(at 61.722 21.082 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8303,10 +8444,9 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "932b5488-cec2-41a3-a934-f8e50378d293")
 		(property "Reference" "C3"
-			(at 144.78 140.9699 0)
+			(at 143.764 140.97 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8315,7 +8455,7 @@
 			)
 		)
 		(property "Value" "100n"
-			(at 144.78 143.5099 0)
+			(at 143.764 143.51 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8360,6 +8500,142 @@
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/419a62de-f56b-49aa-b69b-37bd2fc230d8"
 					(reference "C3")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:C")
+		(at 92.71 85.09 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "9c467ecf-40d3-4bb7-a4b4-17b96ce5e09e")
+		(property "Reference" "C29"
+			(at 92.71 89.154 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+					(thickness 0.254)
+					(bold yes)
+				)
+			)
+		)
+		(property "Value" "100n"
+			(at 92.71 91.694 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
+			(at 88.9 86.0552 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 92.71 85.09 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Unpolarized capacitor"
+			(at 92.71 85.09 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "3d2d7a55-5fe1-4907-9a1d-00a686ed3e89")
+		)
+		(pin "1"
+			(uuid "4db76a15-320c-40f6-a3d5-0516319e6b79")
+		)
+		(instances
+			(project "ecu-dev-board"
+				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/419a62de-f56b-49aa-b69b-37bd2fc230d8"
+					(reference "C29")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 81.28 90.17 180)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "a0c8e0e9-b901-4aac-932c-3e254dec2e6c")
+		(property "Reference" "R3"
+			(at 76.835 89.027 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "10k"
+			(at 76.835 91.821 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+			(at 83.058 90.17 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 81.28 90.17 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 81.28 90.17 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "3275e552-61de-4560-acc8-a0626b86246c")
+		)
+		(pin "1"
+			(uuid "1573d8ae-5cda-45a1-92f8-fa805330ec67")
+		)
+		(instances
+			(project "ecu-dev-board"
+				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/419a62de-f56b-49aa-b69b-37bd2fc230d8"
+					(reference "R3")
 					(unit 1)
 				)
 			)
@@ -8631,73 +8907,6 @@
 		)
 	)
 	(symbol
-		(lib_id "Device:C")
-		(at 92.71 85.09 90)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp yes)
-		(uuid "b22be88c-1d17-416b-bb49-fcc0b0dfcece")
-		(property "Reference" "C29"
-			(at 92.71 89.154 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "100n"
-			(at 92.71 91.694 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" "Capacitor_THT:C_Disc_D4.3mm_W1.9mm_P5.00mm"
-			(at 96.52 84.1248 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 92.71 85.09 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Unpolarized capacitor"
-			(at 92.71 85.09 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "7c5221e5-e094-49f0-96d4-fd2c33bcfd9a")
-		)
-		(pin "2"
-			(uuid "1ac8e56c-dd47-48d2-9397-d041c6fa36d1")
-		)
-		(instances
-			(project "ecu-dev-board"
-				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/419a62de-f56b-49aa-b69b-37bd2fc230d8"
-					(reference "C29")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "Connector:TestPoint")
 		(at 121.92 48.26 0)
 		(unit 1)
@@ -8897,73 +9106,6 @@
 		)
 	)
 	(symbol
-		(lib_id "Device:R")
-		(at 46.99 125.73 90)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp yes)
-		(uuid "cc5b50e0-4fcb-4dcd-b6dd-34a41bf3d2c5")
-		(property "Reference" "R5"
-			(at 46.99 122.682 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "10k"
-			(at 46.99 125.73 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical"
-			(at 46.99 127.508 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 46.99 125.73 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Resistor"
-			(at 46.99 125.73 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "2"
-			(uuid "f5eade9d-e253-4c9d-97e7-a237b90ec752")
-		)
-		(pin "1"
-			(uuid "6d34a433-c4d1-4ead-aa7f-56f8e497a0e2")
-		)
-		(instances
-			(project "ecu-dev-board"
-				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/419a62de-f56b-49aa-b69b-37bd2fc230d8"
-					(reference "R5")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "Device:C")
 		(at 40.64 160.02 0)
 		(unit 1)
@@ -9040,10 +9182,9 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp yes)
-		(fields_autoplaced yes)
 		(uuid "dc046f3c-c6f2-4ca5-a9a4-64c754387e7f")
 		(property "Reference" "TP2"
-			(at 41.91 128.7779 0)
+			(at 28.194 130.048 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9052,7 +9193,7 @@
 			)
 		)
 		(property "Value" "TestPoint"
-			(at 41.91 131.3179 0)
+			(at 28.194 132.588 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9270,7 +9411,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "0.1u"
+		(property "Value" "100n"
 			(at 52.324 161.29 0)
 			(effects
 				(font
@@ -9316,73 +9457,6 @@
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/419a62de-f56b-49aa-b69b-37bd2fc230d8"
 					(reference "C6")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Device:R")
-		(at 46.99 138.43 90)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp yes)
-		(uuid "eee237cb-86e2-4bd4-94f7-a257ef044a06")
-		(property "Reference" "R4"
-			(at 46.99 135.382 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "10k"
-			(at 46.99 138.43 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical"
-			(at 46.99 140.208 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 46.99 138.43 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Resistor"
-			(at 46.99 138.43 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "2"
-			(uuid "453fc388-27ed-407b-93ef-1ffbd5b416e9")
-		)
-		(pin "1"
-			(uuid "a23790ca-ec6d-4549-9ee7-bec7e0327418")
-		)
-		(instances
-			(project "ecu-dev-board"
-				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/419a62de-f56b-49aa-b69b-37bd2fc230d8"
-					(reference "R4")
 					(unit 1)
 				)
 			)
@@ -9522,73 +9596,6 @@
 			(project ""
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/419a62de-f56b-49aa-b69b-37bd2fc230d8"
 					(reference "#PWR02")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Device:R")
-		(at 81.28 90.17 180)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp yes)
-		(uuid "f44c66e9-6cff-428e-b024-78d7310bc608")
-		(property "Reference" "R3"
-			(at 78.232 90.17 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "10k"
-			(at 81.28 90.17 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical"
-			(at 83.058 90.17 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 81.28 90.17 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Resistor"
-			(at 81.28 90.17 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "2"
-			(uuid "4562b176-9901-45b9-93f4-8fac32c1208e")
-		)
-		(pin "1"
-			(uuid "58d4271b-7afb-4dac-8b90-f00791d4bf10")
-		)
-		(instances
-			(project "ecu-dev-board"
-				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/419a62de-f56b-49aa-b69b-37bd2fc230d8"
-					(reference "R3")
 					(unit 1)
 				)
 			)

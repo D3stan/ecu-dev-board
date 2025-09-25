@@ -2051,12 +2051,6 @@
 		(color 0 0 0 0)
 		(uuid "f54e850b-06bf-4721-befe-644af69a3a1b")
 	)
-	(junction
-		(at 232.41 64.6071)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "fb9825d9-2d20-4664-a7e6-eb1571bdef8e")
-	)
 	(wire
 		(pts
 			(xy 261.62 40.64) (xy 255.27 40.64)
@@ -2136,16 +2130,6 @@
 			(type default)
 		)
 		(uuid "1f41f212-7e8f-4131-acda-d610cf00fafb")
-	)
-	(wire
-		(pts
-			(xy 232.41 64.6071) (xy 232.41 64.77)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "211982ed-a368-4043-a2b4-becce33a481b")
 	)
 	(wire
 		(pts
@@ -2689,7 +2673,7 @@
 	)
 	(wire
 		(pts
-			(xy 232.41 62.23) (xy 232.41 64.6071)
+			(xy 232.41 62.23) (xy 232.41 64.77)
 		)
 		(stroke
 			(width 0)
@@ -4124,7 +4108,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 232.41 64.6071 0)
+		(at 232.41 64.77 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -4132,7 +4116,7 @@
 		(dnp no)
 		(uuid "58431038-e837-4518-9255-695114477fdf")
 		(property "Reference" "#PWR020"
-			(at 232.41 70.9571 0)
+			(at 232.41 71.12 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4141,7 +4125,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 230.378 69.1791 0)
+			(at 230.378 69.342 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4150,7 +4134,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 232.41 64.6071 0)
+			(at 232.41 64.77 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4159,7 +4143,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 232.41 64.6071 0)
+			(at 232.41 64.77 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4168,7 +4152,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 232.41 64.6071 0)
+			(at 232.41 64.77 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4441,7 +4425,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Capacitor_THT:C_Axial_L12.0mm_D7.5mm_P20.00mm_Horizontal"
+		(property "Footprint" "Capacitor_THT:C_Axial_L17.0mm_D6.5mm_P20.00mm_Horizontal"
 			(at 245.11 39.6748 0)
 			(effects
 				(font
@@ -4459,7 +4443,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" "300V"
+		(property "Description" "400V"
 			(at 241.3 36.576 90)
 			(effects
 				(font
