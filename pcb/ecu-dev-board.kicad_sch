@@ -1168,9 +1168,9 @@
 		)
 		(uuid "f4e0bb60-6b39-4c24-8e68-e383ba8cf206")
 	)
-	(global_label "INDUCTIVE"
+	(global_label "MAP_SW"
 		(shape input)
-		(at 81.28 168.91 0)
+		(at 81.28 179.07 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -1178,9 +1178,9 @@
 			)
 			(justify left)
 		)
-		(uuid "30edd627-17d6-4466-b10d-427beb10a71e")
+		(uuid "2500df94-e486-4882-b09b-1221c5c68cef")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 93.881 168.91 0)
+			(at 91.7037 179.07 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1192,7 +1192,7 @@
 	)
 	(global_label "ENABLE_QS"
 		(shape input)
-		(at 81.28 176.53 0)
+		(at 81.28 181.61 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -1200,9 +1200,9 @@
 			)
 			(justify left)
 		)
-		(uuid "31045cdb-f749-4b7d-85bc-4927664c3199")
+		(uuid "3703f7f7-5662-409c-b696-82caa012a907")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 94.788 176.53 0)
+			(at 94.788 181.61 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1234,28 +1234,6 @@
 			)
 		)
 	)
-	(global_label "DIGITAL_QS_IN"
-		(shape input)
-		(at 53.34 171.45 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "549bae69-ffda-41cc-b128-2038c1b425cb")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 37.1104 171.45 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-				(hide yes)
-			)
-		)
-	)
 	(global_label "PIEZO+"
 		(shape input)
 		(at 133.35 170.18 0)
@@ -1269,6 +1247,28 @@
 		(uuid "56cd1151-e9dc-436b-9955-70fd563da64a")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 143.4714 170.18 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "INDUCTIVE"
+		(shape input)
+		(at 81.28 176.53 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "59e4703d-1844-45ff-a663-e88d85c087d4")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 93.881 176.53 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1322,28 +1322,6 @@
 			)
 		)
 	)
-	(global_label "SPARK"
-		(shape input)
-		(at 81.28 184.15 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "76465dee-eb0d-44e7-ac39-78b457353dcf")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 90.3733 184.15 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-	)
 	(global_label "STATOR"
 		(shape input)
 		(at 53.34 176.53 180)
@@ -1357,6 +1335,50 @@
 		(uuid "7a487ee8-af1b-4570-8f7c-67576d108e57")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 43.521 176.53 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "COIL_QS"
+		(shape input)
+		(at 81.28 168.91 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "80942201-b760-488a-997b-eaab8dd6e5ca")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 92.0062 168.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "SPARK"
+		(shape input)
+		(at 53.34 171.45 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "82caa356-8d43-44f4-a1bd-1e6b5b9aed74")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 44.2467 171.45 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1410,9 +1432,9 @@
 			)
 		)
 	)
-	(global_label "COIL_QS"
+	(global_label "T_COIL"
 		(shape input)
-		(at 81.28 179.07 0)
+		(at 81.28 173.99 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -1420,9 +1442,9 @@
 			)
 			(justify left)
 		)
-		(uuid "9bce1821-ea79-461d-9437-40bf8ae43e29")
+		(uuid "9553ef5c-38c9-47c7-a207-de34d59aef15")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 92.0062 179.07 0)
+			(at 90.4338 173.99 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1476,9 +1498,9 @@
 			)
 		)
 	)
-	(global_label "T_COIL"
+	(global_label "DIGITAL_QS_IN"
 		(shape input)
-		(at 81.28 181.61 0)
+		(at 81.28 184.15 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -1486,9 +1508,9 @@
 			)
 			(justify left)
 		)
-		(uuid "c406a121-4d10-4230-999b-efe960f572d4")
+		(uuid "c7cd035c-4dfc-4083-bb5e-cd4f0fd0b515")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 90.4338 181.61 0)
+			(at 97.5096 184.15 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1516,28 +1538,6 @@
 					(size 1.27 1.27)
 				)
 				(justify right)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "MAP_SW"
-		(shape input)
-		(at 81.28 173.99 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "dc7dd604-c798-4849-9458-5fe6eb2e2569")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 91.7037 173.99 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
 				(hide yes)
 			)
 		)
