@@ -290,13 +290,13 @@
 	(footprint "Connector_PinHeader_2.54mm:PinHeader_1x01_P2.54mm_Vertical"
 		(layer "F.Cu")
 		(uuid "0019c684-2457-40c4-a5ba-993c8ac4deb5")
-		(at 23.21 154.55)
+		(at 45.23 143.01)
 		(descr "Through hole straight pin header, 1x01, 2.54mm pitch, single row")
 		(tags "Through hole pin header THT 1x01 2.54mm single row")
 		(property "Reference" "TP17"
 			(at 0 -2.38 0)
 			(layer "F.SilkS")
-			(uuid "b613894d-1344-41e0-872a-e7a12f9c518d")
+			(uuid "50cd157e-96c6-4a40-b8e2-d6a698ac5dff")
 			(effects
 				(font
 					(size 1 1)
@@ -307,7 +307,8 @@
 		(property "Value" "TestPoint"
 			(at 0 2.38 0)
 			(layer "F.Fab")
-			(uuid "e8727da2-e1f2-4e52-a981-98909383eb6c")
+			(hide yes)
+			(uuid "9aefc5ac-7186-41d1-9f44-e11518efd0bc")
 			(effects
 				(font
 					(size 1 1)
@@ -319,7 +320,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "e727487a-a68d-45c4-b769-81e76d8c08af")
+			(uuid "6e0654c9-840d-48b5-b70f-af6c5de60c21")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -331,7 +332,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "9c587a90-e1e4-4205-84b3-04ac230df346")
+			(uuid "df069fd6-2eae-4327-9e61-c8001dc9b5c3")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -494,17 +495,6 @@
 			(layer "F.Fab")
 			(uuid "cbae34da-eec4-4843-aa65-9b6183890b36")
 		)
-		(fp_text user "${REFERENCE}"
-			(at 0 0 90)
-			(layer "F.Fab")
-			(uuid "26b79894-9a5e-48f8-baae-d719af5b8e6c")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
 		(pad "1" thru_hole rect
 			(at 0 0)
 			(size 1.7 1.7)
@@ -532,13 +522,13 @@
 	(footprint "Jumper:SolderJumper-3_P1.3mm_Open_RoundedPad1.0x1.5mm"
 		(layer "F.Cu")
 		(uuid "00310cad-f5c3-40a1-bcc1-5c03d4b121d4")
-		(at 114.14 186.72)
+		(at 117.14 160.51)
 		(descr "SMD Solder 3-pad Jumper, 1x1.5mm rounded Pads, 0.3mm gap, open")
 		(tags "solder jumper open")
 		(property "Reference" "JP21"
 			(at 0 -1.8 0)
 			(layer "F.SilkS")
-			(uuid "ee60e22f-563a-471d-8988-6605b5558eeb")
+			(uuid "adb39ea6-6385-4216-bdc4-ef8045e6cc8b")
 			(effects
 				(font
 					(size 1 1)
@@ -549,7 +539,8 @@
 		(property "Value" "SolderJumper_3_Open"
 			(at 0 1.9 0)
 			(layer "F.Fab")
-			(uuid "6cc7a364-ba61-4e22-8d3a-f7505afcc7a3")
+			(hide yes)
+			(uuid "b4136a9b-94d4-4e98-bee2-d9e63f2afde2")
 			(effects
 				(font
 					(size 1 1)
@@ -562,7 +553,7 @@
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "78165d37-6470-4738-8911-59de5ac66886")
+			(uuid "d3182dca-5aa7-465e-9cd0-b136e9a5f691")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -575,7 +566,7 @@
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "93c0f27f-537b-4042-8f41-c00c3ea43123")
+			(uuid "f54666fa-abc8-4c1b-99ef-f1be45b0f278")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1224,13 +1215,13 @@
 	(footprint "Jumper:SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm"
 		(layer "F.Cu")
 		(uuid "010b9bed-e7a2-4422-8e6f-42bb5621eac3")
-		(at 128.77 175.08)
+		(at 111.47 171.9925)
 		(descr "SMD Solder Jumper, 1x1.5mm, rounded Pads, 0.3mm gap, open")
 		(tags "solder jumper open")
 		(property "Reference" "JP14"
 			(at 0 -1.8 0)
 			(layer "F.SilkS")
-			(uuid "47bcf0e0-2178-4942-a2b6-4b84b56eab33")
+			(uuid "2bb8b032-d09a-4eef-8d34-a83c09bea81c")
 			(effects
 				(font
 					(size 1 1)
@@ -1241,7 +1232,8 @@
 		(property "Value" "SolderJumper_2_Open"
 			(at 0 1.9 0)
 			(layer "F.Fab")
-			(uuid "c27633e8-9dce-4c2f-85db-323df902906b")
+			(hide yes)
+			(uuid "81799cbb-5925-4c32-86d9-4ec654369a64")
 			(effects
 				(font
 					(size 1 1)
@@ -1254,7 +1246,7 @@
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "96ac8edb-be45-492e-b61d-4d0626fcadcf")
+			(uuid "24c5f434-1b3c-4914-942f-6a4dd1f05939")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1267,7 +1259,7 @@
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "f8254d5d-db21-4d49-a5a6-95d87a02d61b")
+			(uuid "2b1fe462-1aa7-46fb-8352-02524d68d4a0")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1493,13 +1485,13 @@
 	(footprint "Connector_PinHeader_2.54mm:PinHeader_1x01_P2.54mm_Vertical"
 		(layer "F.Cu")
 		(uuid "012f483e-a45a-46a5-b774-80e573590161")
-		(at 56.33 159.47)
+		(at 50.29 148.88)
 		(descr "Through hole straight pin header, 1x01, 2.54mm pitch, single row")
 		(tags "Through hole pin header THT 1x01 2.54mm single row")
 		(property "Reference" "TP29"
 			(at 0 -2.38 0)
 			(layer "F.SilkS")
-			(uuid "ffc6fcb3-2568-4c10-ad34-0f29edff5ad9")
+			(uuid "61813d68-6f8b-4f9f-ae96-5847975e9678")
 			(effects
 				(font
 					(size 1 1)
@@ -1510,7 +1502,8 @@
 		(property "Value" "TestPoint"
 			(at 0 2.38 0)
 			(layer "F.Fab")
-			(uuid "ec25b5ce-0159-4269-9b74-17bf216517ce")
+			(hide yes)
+			(uuid "ae4da83f-bb97-4c02-9639-c5506be63d84")
 			(effects
 				(font
 					(size 1 1)
@@ -1522,7 +1515,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "912a6ce5-3709-4699-82af-09e7bcebc662")
+			(uuid "2b999433-82d0-4e2f-a35c-ec118257381f")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1534,7 +1527,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "684f1ba4-7f99-46a1-b403-460c0b3f1ac3")
+			(uuid "a7e4456d-abee-4a30-aaf8-a4e477b08caf")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1697,17 +1690,6 @@
 			(layer "F.Fab")
 			(uuid "a8b7e4d7-8137-4e2d-8b5f-76accfaf899e")
 		)
-		(fp_text user "${REFERENCE}"
-			(at 0 0 90)
-			(layer "F.Fab")
-			(uuid "18145dd0-674f-4113-ac8e-0ddb1f0f3ab9")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
 		(pad "1" thru_hole rect
 			(at 0 0)
 			(size 1.7 1.7)
@@ -1735,13 +1717,13 @@
 	(footprint "Connector_PinHeader_2.54mm:PinHeader_1x01_P2.54mm_Vertical"
 		(layer "F.Cu")
 		(uuid "01930147-06dd-4f09-b196-fb7b20d870aa")
-		(at 43.8 152.08)
+		(at 16.64 154.66)
 		(descr "Through hole straight pin header, 1x01, 2.54mm pitch, single row")
 		(tags "Through hole pin header THT 1x01 2.54mm single row")
 		(property "Reference" "TP30"
 			(at 0 -2.38 0)
 			(layer "F.SilkS")
-			(uuid "b9676d02-991d-4748-9b1a-73fd5312c5f9")
+			(uuid "c3a0eb93-d698-4b5a-84db-d94265df3175")
 			(effects
 				(font
 					(size 1 1)
@@ -1752,7 +1734,8 @@
 		(property "Value" "TestPoint"
 			(at 0 2.38 0)
 			(layer "F.Fab")
-			(uuid "20c6635c-c5d8-4ff4-b935-84f7a07964b3")
+			(hide yes)
+			(uuid "0c8ae48f-f798-4398-840a-848e641797e1")
 			(effects
 				(font
 					(size 1 1)
@@ -1764,7 +1747,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "49767460-0cdd-49e8-8500-52bd288c541e")
+			(uuid "0ad2c890-b989-4f16-acc7-589dda136374")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1776,7 +1759,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "4f664522-fdb5-4c2a-ab30-8f22c59cba2d")
+			(uuid "f14715fd-5fa3-40ca-b2b5-767e7ea478fe")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1938,17 +1921,6 @@
 			)
 			(layer "F.Fab")
 			(uuid "34aad10c-44e5-4e3e-9a5d-0fbd07bc039f")
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 0 90)
-			(layer "F.Fab")
-			(uuid "4a1089b9-3987-4dc6-a218-315788f3a8d8")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
 		)
 		(pad "1" thru_hole rect
 			(at 0 0)
@@ -2892,13 +2864,13 @@
 	(footprint "Jumper:SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm"
 		(layer "F.Cu")
 		(uuid "05a18f02-9704-4c6a-8c4c-e5e2aa2138fc")
-		(at 134.37 185.59)
+		(at 117.23 176.26)
 		(descr "SMD Solder Jumper, 1x1.5mm, rounded Pads, 0.3mm gap, open")
 		(tags "solder jumper open")
 		(property "Reference" "JP25"
 			(at 0 -1.8 0)
 			(layer "F.SilkS")
-			(uuid "a74801a6-fd5b-471b-84d2-315a92dda7a8")
+			(uuid "ab969713-a756-4560-8260-88fb787ad614")
 			(effects
 				(font
 					(size 1 1)
@@ -2909,7 +2881,8 @@
 		(property "Value" "SolderJumper_2_Open"
 			(at 0 1.9 0)
 			(layer "F.Fab")
-			(uuid "ac1d9496-7f94-4c60-af7a-139eeb06b3db")
+			(hide yes)
+			(uuid "c75dc3fe-5b93-4954-9cb2-733f08a78dc7")
 			(effects
 				(font
 					(size 1 1)
@@ -2922,7 +2895,7 @@
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "8bdce650-176a-476b-9e08-fd77832ab89f")
+			(uuid "dc210567-bf15-4085-8afc-a89379cbd852")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2935,7 +2908,7 @@
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "ab68294e-9bcb-4f41-94b6-e5e2471b642f")
+			(uuid "c433c17e-4a71-4b87-833b-8189619c6f38")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3161,13 +3134,13 @@
 	(footprint "Jumper:SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm"
 		(layer "F.Cu")
 		(uuid "05c01076-65e0-4b37-8e53-09f457d011cb")
-		(at 134.37 174.94)
+		(at 105.16 179.32)
 		(descr "SMD Solder Jumper, 1x1.5mm, rounded Pads, 0.3mm gap, open")
 		(tags "solder jumper open")
 		(property "Reference" "JP6"
 			(at 0 -1.8 0)
 			(layer "F.SilkS")
-			(uuid "157602c5-f810-4959-98d7-b87cc8b44194")
+			(uuid "d2dd2167-d9bc-4fbc-9730-a9fdee75c944")
 			(effects
 				(font
 					(size 1 1)
@@ -3178,7 +3151,8 @@
 		(property "Value" "SolderJumper_2_Open"
 			(at 0 1.9 0)
 			(layer "F.Fab")
-			(uuid "5d4c262e-ff03-4987-b699-2cdb2d746d31")
+			(hide yes)
+			(uuid "14000244-676a-4646-9a32-d69942cd3453")
 			(effects
 				(font
 					(size 1 1)
@@ -3191,7 +3165,7 @@
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "3b9bc32f-6235-450a-81df-0077bd3aeb3f")
+			(uuid "a08753b3-29c0-465a-83f3-da468eb1bc77")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3204,7 +3178,7 @@
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "bb45b971-d931-4fc3-90c7-c139b8ba0194")
+			(uuid "cb2fbc42-0301-4278-b119-5ff28b23e8a8")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3828,13 +3802,13 @@
 	(footprint "Connector_PinHeader_2.54mm:PinHeader_1x01_P2.54mm_Vertical"
 		(layer "F.Cu")
 		(uuid "06d6fc17-503d-4250-b963-6b6214af8b4e")
-		(at 39.13 157.74)
+		(at 37.39 148.78)
 		(descr "Through hole straight pin header, 1x01, 2.54mm pitch, single row")
 		(tags "Through hole pin header THT 1x01 2.54mm single row")
 		(property "Reference" "TP26"
 			(at 0 -2.38 0)
 			(layer "F.SilkS")
-			(uuid "22d22436-e2f6-4903-95c3-7316da52921c")
+			(uuid "04e641cf-e96e-4c53-8a36-924e6007c0e4")
 			(effects
 				(font
 					(size 1 1)
@@ -3845,7 +3819,8 @@
 		(property "Value" "TestPoint"
 			(at 0 2.38 0)
 			(layer "F.Fab")
-			(uuid "aaa2bab7-eb27-43b0-a257-6650b61681ad")
+			(hide yes)
+			(uuid "2d686147-2123-463b-ba28-edea04368790")
 			(effects
 				(font
 					(size 1 1)
@@ -3857,7 +3832,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "bce8a61d-93c0-4512-8152-e874e89b38e6")
+			(uuid "76bd94c5-ba92-4ef6-b230-beb4fd688de3")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3869,7 +3844,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "9322f4cc-e6ef-4435-a6a9-621e1247f625")
+			(uuid "6cf46613-e304-4341-9b80-744f2ebbcb93")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4031,17 +4006,6 @@
 			)
 			(layer "F.Fab")
 			(uuid "f0655d9c-0759-48c1-b8a7-720fa4ce4413")
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 0 90)
-			(layer "F.Fab")
-			(uuid "6c62ed09-8d2c-40dd-88e9-840b423a84dd")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
 		)
 		(pad "1" thru_hole rect
 			(at 0 0)
@@ -4269,13 +4233,13 @@
 	(footprint "Jumper:SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm"
 		(layer "F.Cu")
 		(uuid "0fa36ce5-602a-4ba8-bf9f-1c2d8704c737")
-		(at 139.28 189.01)
+		(at 105.2 171.87)
 		(descr "SMD Solder Jumper, 1x1.5mm, rounded Pads, 0.3mm gap, open")
 		(tags "solder jumper open")
 		(property "Reference" "JP5"
 			(at 0 -1.8 0)
 			(layer "F.SilkS")
-			(uuid "568cdd89-8fc0-4058-a6e8-5ee2d4989cc0")
+			(uuid "6e11697e-8fea-4e81-b446-6a75e45f8a1c")
 			(effects
 				(font
 					(size 1 1)
@@ -4286,7 +4250,8 @@
 		(property "Value" "SolderJumper_2_Open"
 			(at 0 1.9 0)
 			(layer "F.Fab")
-			(uuid "ba96f703-5bca-4b19-b2df-0fc908a64ea5")
+			(hide yes)
+			(uuid "a382d554-e6e5-41d9-9169-d61bb2039fda")
 			(effects
 				(font
 					(size 1 1)
@@ -4299,7 +4264,7 @@
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "c4cf53f8-7bbf-45d9-b81b-3acdc8480718")
+			(uuid "43af2942-662b-4063-9ce4-785f4d8e2f28")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4312,7 +4277,7 @@
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "0430ff5c-4fdf-4d9f-8654-c828cdce2e8a")
+			(uuid "157f9fcd-5f25-427b-8583-080356b36d01")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6697,13 +6662,13 @@
 	(footprint "Jumper:SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm"
 		(layer "F.Cu")
 		(uuid "21fae7d8-ee45-4d71-a1fe-f0f9077d44e9")
-		(at 139.28 185.46)
+		(at 105.2 168.32)
 		(descr "SMD Solder Jumper, 1x1.5mm, rounded Pads, 0.3mm gap, open")
 		(tags "solder jumper open")
 		(property "Reference" "JP4"
 			(at 0 -1.8 0)
 			(layer "F.SilkS")
-			(uuid "5b43c635-cdf9-4fc3-a956-130fd3867e91")
+			(uuid "78117364-429c-4cb9-88e2-0e6243826352")
 			(effects
 				(font
 					(size 1 1)
@@ -6714,7 +6679,8 @@
 		(property "Value" "SolderJumper_2_Open"
 			(at 0 1.9 0)
 			(layer "F.Fab")
-			(uuid "5423b0e4-c200-46b3-bc82-c54c4e9d877f")
+			(hide yes)
+			(uuid "84280637-41ed-4545-bccd-b33c1af2ee0f")
 			(effects
 				(font
 					(size 1 1)
@@ -6727,7 +6693,7 @@
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "76a720db-3587-4f74-8824-1d216cc8259f")
+			(uuid "d52a686d-abca-46b2-83d2-9917be24a0a5")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6740,7 +6706,7 @@
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "62cf87b7-f4a9-4b70-b4c5-9a85a2c01914")
+			(uuid "36e0fccb-d679-4a00-bd9b-b52c740f2e22")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6966,13 +6932,13 @@
 	(footprint "Connector_PinHeader_2.54mm:PinHeader_1x01_P2.54mm_Vertical"
 		(layer "F.Cu")
 		(uuid "24c0f8a3-e3e7-4230-beb8-deba864b0180")
-		(at 30.57 151.66)
+		(at 36.5 137.33)
 		(descr "Through hole straight pin header, 1x01, 2.54mm pitch, single row")
 		(tags "Through hole pin header THT 1x01 2.54mm single row")
 		(property "Reference" "TP6"
 			(at 0 -2.38 0)
 			(layer "F.SilkS")
-			(uuid "8f057d4a-8f5d-464f-880f-a965b0492f87")
+			(uuid "544eaec3-67b5-4e66-9149-dce38ddf6c5f")
 			(effects
 				(font
 					(size 1 1)
@@ -6983,7 +6949,8 @@
 		(property "Value" "TestPoint"
 			(at 0 2.38 0)
 			(layer "F.Fab")
-			(uuid "5af09669-4f6c-4e84-9b6b-2b865a753bad")
+			(hide yes)
+			(uuid "c21d96a7-a08a-40e2-b04a-21f4e8ae8173")
 			(effects
 				(font
 					(size 1 1)
@@ -6995,7 +6962,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "eb97ecac-122c-4af4-9250-c4d9656a950a")
+			(uuid "76cefcba-d1cd-4569-b423-378d01b00917")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7007,7 +6974,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "68d0734c-6f0b-4b4c-9670-debc7cfcaf0a")
+			(uuid "ba035212-c634-41f6-aa08-9c33ca47cae1")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7170,17 +7137,6 @@
 			(layer "F.Fab")
 			(uuid "79b1849f-0628-44d6-8d73-a226f0ba0042")
 		)
-		(fp_text user "${REFERENCE}"
-			(at 0 0 90)
-			(layer "F.Fab")
-			(uuid "7340457e-e1fd-4d2e-b2a4-9585034da82e")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
 		(pad "1" thru_hole rect
 			(at 0 0)
 			(size 1.7 1.7)
@@ -7208,13 +7164,13 @@
 	(footprint "Connector_PinHeader_2.54mm:PinHeader_1x01_P2.54mm_Vertical"
 		(layer "F.Cu")
 		(uuid "2867f852-78a5-40a5-8428-d8be9f6220a1")
-		(at 16.55 160.65)
+		(at 29.54 142.81)
 		(descr "Through hole straight pin header, 1x01, 2.54mm pitch, single row")
 		(tags "Through hole pin header THT 1x01 2.54mm single row")
 		(property "Reference" "TP13"
 			(at 0 -2.38 0)
 			(layer "F.SilkS")
-			(uuid "a13f6512-b6b6-47ef-877c-3c7a8c539c52")
+			(uuid "dbe5b41d-abe3-421e-ba28-a900056934e1")
 			(effects
 				(font
 					(size 1 1)
@@ -7225,7 +7181,8 @@
 		(property "Value" "TestPoint"
 			(at 0 2.38 0)
 			(layer "F.Fab")
-			(uuid "a36cb5e1-812f-4ce6-9d74-76815dabb463")
+			(hide yes)
+			(uuid "6f4ef96f-2dc9-42a5-9ae7-8d202d68f429")
 			(effects
 				(font
 					(size 1 1)
@@ -7237,7 +7194,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "6719bd3e-3e2a-431a-a1cc-06e12411d06f")
+			(uuid "a5cef402-959d-41a6-88f8-4b0a2b3e3824")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7249,7 +7206,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "c30f2a90-48bb-4822-b2fe-139c797c4181")
+			(uuid "4362fa27-2417-4274-a2e0-92da0388e91c")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7411,17 +7368,6 @@
 			)
 			(layer "F.Fab")
 			(uuid "834fec16-e442-4f22-bc0a-7ec6bdf37050")
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 0 90)
-			(layer "F.Fab")
-			(uuid "b78517f9-6a4d-43d6-858a-dad3b4ac4e8d")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
 		)
 		(pad "1" thru_hole rect
 			(at 0 0)
@@ -7649,13 +7595,13 @@
 	(footprint "Jumper:SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm"
 		(layer "F.Cu")
 		(uuid "2965798d-b97c-42c9-9bfe-c043f3ebaf6e")
-		(at 128.71 189.82)
+		(at 111.24 191.1725)
 		(descr "SMD Solder Jumper, 1x1.5mm, rounded Pads, 0.3mm gap, open")
 		(tags "solder jumper open")
 		(property "Reference" "JP19"
 			(at 0 -1.8 0)
 			(layer "F.SilkS")
-			(uuid "c2c7cd17-ddf5-4bae-8664-1316a8731c88")
+			(uuid "be08917d-634b-4957-aa86-2cdf0e8324e9")
 			(effects
 				(font
 					(size 1 1)
@@ -7666,7 +7612,8 @@
 		(property "Value" "SolderJumper_2_Open"
 			(at 0 1.9 0)
 			(layer "F.Fab")
-			(uuid "b56c7366-27f9-4ac4-a50e-e809c75d0c24")
+			(hide yes)
+			(uuid "03a973ea-1667-4abb-aead-11fc38b4c084")
 			(effects
 				(font
 					(size 1 1)
@@ -7679,7 +7626,7 @@
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "9281417c-2d9c-427e-84de-6a0c7bbede98")
+			(uuid "9aae3184-9519-4da2-bad0-ac045b285c31")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7692,7 +7639,7 @@
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "d9e15bdd-5b0d-4f08-b416-4f264764732d")
+			(uuid "5d96bad3-aec2-4421-8c99-4ea4580b458e")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7918,13 +7865,13 @@
 	(footprint "Connector_PinHeader_2.54mm:PinHeader_1x01_P2.54mm_Vertical"
 		(layer "F.Cu")
 		(uuid "29d786a5-caf1-4139-ab14-ab4ac9d07c10")
-		(at 19.88 160.65)
+		(at 41.24 142.95)
 		(descr "Through hole straight pin header, 1x01, 2.54mm pitch, single row")
 		(tags "Through hole pin header THT 1x01 2.54mm single row")
 		(property "Reference" "TP16"
 			(at 0 -2.38 0)
 			(layer "F.SilkS")
-			(uuid "73623769-e6ff-4cb0-8f90-21591e6d4964")
+			(uuid "67f64173-3a06-47df-84ba-8ec29c4a0ea2")
 			(effects
 				(font
 					(size 1 1)
@@ -7935,7 +7882,8 @@
 		(property "Value" "TestPoint"
 			(at 0 2.38 0)
 			(layer "F.Fab")
-			(uuid "c775c63a-ea15-4242-bb26-65077a522b0a")
+			(hide yes)
+			(uuid "3f26e1c7-f600-4965-b1ca-9dc3a8099221")
 			(effects
 				(font
 					(size 1 1)
@@ -7947,7 +7895,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "b4527f71-f52c-44dc-8cb1-5e88a4f225c5")
+			(uuid "9d0027dd-1781-4de2-8d45-7c6acaa08106")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7959,7 +7907,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "8ab32945-bbd8-4e6e-9933-b197226d0141")
+			(uuid "e35f7e38-f409-438e-8a41-2bd89ef97c2b")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8121,17 +8069,6 @@
 			)
 			(layer "F.Fab")
 			(uuid "0e563aba-221b-4ba5-a0b7-cf91ffa354aa")
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 0 90)
-			(layer "F.Fab")
-			(uuid "99d7b369-40ad-4d67-9605-7512cf422a47")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
 		)
 		(pad "1" thru_hole rect
 			(at 0 0)
@@ -8725,13 +8662,13 @@
 	(footprint "Jumper:SolderJumper-3_P1.3mm_Open_RoundedPad1.0x1.5mm"
 		(layer "F.Cu")
 		(uuid "329d1a11-e689-451e-8132-77844ac7f681")
-		(at 122.36 178.835)
+		(at 105.15 160.405)
 		(descr "SMD Solder 3-pad Jumper, 1x1.5mm rounded Pads, 0.3mm gap, open")
 		(tags "solder jumper open")
 		(property "Reference" "JP2"
 			(at 0 -1.8 0)
 			(layer "F.SilkS")
-			(uuid "aab084ad-ad94-4f9d-8a99-022495f7964f")
+			(uuid "5d19e677-9ec8-4d6e-84f8-2a75b9a31d70")
 			(effects
 				(font
 					(size 1 1)
@@ -8742,7 +8679,8 @@
 		(property "Value" "SolderJumper_3_Open"
 			(at 0 1.9 0)
 			(layer "F.Fab")
-			(uuid "a3bac6f4-d3dc-477b-8b8b-4f0631e9449b")
+			(hide yes)
+			(uuid "76e3e000-edea-4b3c-8a24-12420eb6b0d5")
 			(effects
 				(font
 					(size 1 1)
@@ -8755,7 +8693,7 @@
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "a932ee43-28d0-4004-ae6b-6c7397524030")
+			(uuid "286d09ae-2370-4238-a64f-162cb26e8fd0")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8768,7 +8706,7 @@
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "dbc3390e-c788-40fe-ba85-00ed9a7e0262")
+			(uuid "f8dd0307-36f7-4c92-b4fb-1c3051452558")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9033,13 +8971,13 @@
 	(footprint "Connector_PinHeader_2.54mm:PinHeader_1x01_P2.54mm_Vertical"
 		(layer "F.Cu")
 		(uuid "3602cb6c-d2d2-4682-b6b9-0e207f3a1d6f")
-		(at 19.88 154.55)
+		(at 33.41 142.86)
 		(descr "Through hole straight pin header, 1x01, 2.54mm pitch, single row")
 		(tags "Through hole pin header THT 1x01 2.54mm single row")
 		(property "Reference" "TP14"
 			(at 0 -2.38 0)
 			(layer "F.SilkS")
-			(uuid "f0898f57-c27b-48dc-9394-743d364a20de")
+			(uuid "1f5822e8-b7b5-4500-8b1c-1a77ce7417d9")
 			(effects
 				(font
 					(size 1 1)
@@ -9050,7 +8988,8 @@
 		(property "Value" "TestPoint"
 			(at 0 2.38 0)
 			(layer "F.Fab")
-			(uuid "dc044edb-836b-4a21-a607-12fea1fad604")
+			(hide yes)
+			(uuid "b060001a-e7b8-4103-879f-5e86d6bc9c61")
 			(effects
 				(font
 					(size 1 1)
@@ -9062,7 +9001,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "db3a1d43-d56d-435b-a05a-d9bd9b4ec316")
+			(uuid "332d3dc6-9a46-4f6b-8567-5dc16dd7ed52")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9074,7 +9013,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "9ddfab5b-b409-45f7-b3f9-d92aaf37e894")
+			(uuid "8489cdcd-9a10-4eb7-b270-5f02690de2cb")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9236,17 +9175,6 @@
 			)
 			(layer "F.Fab")
 			(uuid "44d48f4a-7090-4c00-8732-826bbe578246")
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 0 90)
-			(layer "F.Fab")
-			(uuid "544bb26b-ff87-49fa-b951-19ffd024a736")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
 		)
 		(pad "1" thru_hole rect
 			(at 0 0)
@@ -10270,13 +10198,13 @@
 	(footprint "Jumper:SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm"
 		(layer "F.Cu")
 		(uuid "3cd2fdc8-1f8f-48ec-aae2-b20e0deb5f55")
-		(at 128.77 182.18)
+		(at 117 156.7)
 		(descr "SMD Solder Jumper, 1x1.5mm, rounded Pads, 0.3mm gap, open")
 		(tags "solder jumper open")
 		(property "Reference" "JP20"
 			(at 0 -1.8 0)
 			(layer "F.SilkS")
-			(uuid "acdcb527-5dfe-4688-859d-8cc7b28b598f")
+			(uuid "f4c566e3-16bd-477c-966c-e9f68a433c2d")
 			(effects
 				(font
 					(size 1 1)
@@ -10287,7 +10215,8 @@
 		(property "Value" "SolderJumper_2_Open"
 			(at 0 1.9 0)
 			(layer "F.Fab")
-			(uuid "ed0be2be-d795-41e5-a372-f57fff025233")
+			(hide yes)
+			(uuid "47464db9-5c3f-4029-a60e-8e66c461eb46")
 			(effects
 				(font
 					(size 1 1)
@@ -10300,7 +10229,7 @@
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "0794fcd5-4548-49e3-af6a-72e51bbb5a37")
+			(uuid "479f288d-5301-44c0-832c-6ae5d6ba032d")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -10313,7 +10242,7 @@
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "a13f0172-d52a-4b47-9d3d-564ee86c92ae")
+			(uuid "7c6ba8f6-383d-421c-a2ee-2dffa7c39575")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11111,13 +11040,13 @@
 	(footprint "Connector_PinHeader_2.54mm:PinHeader_1x01_P2.54mm_Vertical"
 		(layer "F.Cu")
 		(uuid "3eb8f7e8-9b94-4bfd-b696-ce5371a22b83")
-		(at 39.13 151.64)
+		(at 29.1 148.99)
 		(descr "Through hole straight pin header, 1x01, 2.54mm pitch, single row")
 		(tags "Through hole pin header THT 1x01 2.54mm single row")
 		(property "Reference" "TP24"
 			(at 0 -2.38 0)
 			(layer "F.SilkS")
-			(uuid "368e21cd-1c52-4c21-ac49-b68c15df40d9")
+			(uuid "2df34da1-45a4-4c79-88ab-55e6f55fec2b")
 			(effects
 				(font
 					(size 1 1)
@@ -11128,7 +11057,8 @@
 		(property "Value" "TestPoint"
 			(at 0 2.38 0)
 			(layer "F.Fab")
-			(uuid "0ed1e93b-bd47-4c16-9821-1c280f2be340")
+			(hide yes)
+			(uuid "367679d9-d722-47e1-8fc7-7f48d7cd13a7")
 			(effects
 				(font
 					(size 1 1)
@@ -11140,7 +11070,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "82edcc10-0119-4969-9ac5-5a626d1a903c")
+			(uuid "768d20e3-d289-434c-a1b4-64a0849e1997")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11152,7 +11082,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "9acea144-d8ec-4bc6-9d31-71d4599a0d9d")
+			(uuid "0c782973-79e2-4fbf-8f1c-4b97820cdc0c")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11314,17 +11244,6 @@
 			)
 			(layer "F.Fab")
 			(uuid "167fd2ef-9674-4d7e-9814-bb7b794ce4a2")
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 0 90)
-			(layer "F.Fab")
-			(uuid "69981b4e-81dc-42c6-802d-ca3385395069")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
 		)
 		(pad "1" thru_hole rect
 			(at 0 0)
@@ -11552,13 +11471,13 @@
 	(footprint "Jumper:SolderJumper-3_P1.3mm_Open_RoundedPad1.0x1.5mm"
 		(layer "F.Cu")
 		(uuid "40ffc874-bd9e-47c6-8b88-6a5390cd4cbd")
-		(at 114.14 194.39)
+		(at 117.19 172.295)
 		(descr "SMD Solder 3-pad Jumper, 1x1.5mm rounded Pads, 0.3mm gap, open")
 		(tags "solder jumper open")
 		(property "Reference" "JP24"
 			(at 0 -1.8 0)
 			(layer "F.SilkS")
-			(uuid "efb852f7-2465-494b-9b68-42f522c94fe0")
+			(uuid "9d926487-fb9a-4229-b914-8b37c5c79f5d")
 			(effects
 				(font
 					(size 1 1)
@@ -11569,7 +11488,8 @@
 		(property "Value" "SolderJumper_3_Open"
 			(at 0 1.9 0)
 			(layer "F.Fab")
-			(uuid "f1d6f23e-8437-4cb1-ae3a-44f5ceb83236")
+			(hide yes)
+			(uuid "c588aec1-2e59-423a-9747-e0588629a468")
 			(effects
 				(font
 					(size 1 1)
@@ -11582,7 +11502,7 @@
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "5cdd2771-3f8b-486b-8f39-bb5345681bb5")
+			(uuid "ac561666-df72-4450-8112-0c378ba7b67d")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11595,7 +11515,7 @@
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "13f7d924-59e7-4295-afd2-30bb771a94e9")
+			(uuid "6f188586-fe47-46c2-800f-8ffc24d1329d")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12550,13 +12470,13 @@
 	(footprint "Jumper:SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm"
 		(layer "F.Cu")
 		(uuid "451806cf-ab67-47ed-b009-ff6248f31944")
-		(at 139.28 192.56)
+		(at 105.2 175.42)
 		(descr "SMD Solder Jumper, 1x1.5mm, rounded Pads, 0.3mm gap, open")
 		(tags "solder jumper open")
 		(property "Reference" "JP7"
 			(at 0 -1.8 0)
 			(layer "F.SilkS")
-			(uuid "32e5286c-56bd-4590-915e-5227f17db4dc")
+			(uuid "088bedf0-2b01-4c46-ba2f-7397389568bf")
 			(effects
 				(font
 					(size 1 1)
@@ -12567,7 +12487,8 @@
 		(property "Value" "SolderJumper_2_Open"
 			(at 0 1.9 0)
 			(layer "F.Fab")
-			(uuid "b8330a46-4496-48c3-9a56-419d2ef3385c")
+			(hide yes)
+			(uuid "88d90b0b-95b9-48f0-aeff-20bb2bfc800b")
 			(effects
 				(font
 					(size 1 1)
@@ -12580,7 +12501,7 @@
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "aae6f1cd-351b-4678-ab3d-37db23d186ed")
+			(uuid "6ba8cd13-66b5-4c68-bb56-241623175319")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12593,7 +12514,7 @@
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "a3e1a780-c098-4e26-92cb-60ff39cce1ff")
+			(uuid "cf8b4f90-8bc2-4922-b22f-375d9e4a2e82")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12819,13 +12740,13 @@
 	(footprint "Jumper:SolderJumper-3_P1.3mm_Open_RoundedPad1.0x1.5mm"
 		(layer "F.Cu")
 		(uuid "46b76538-1522-4e21-b9a8-fe0a82f238d0")
-		(at 114.14 182.885)
+		(at 111.33 168.14)
 		(descr "SMD Solder 3-pad Jumper, 1x1.5mm rounded Pads, 0.3mm gap, open")
 		(tags "solder jumper open")
 		(property "Reference" "JP13"
 			(at 0 -1.8 0)
 			(layer "F.SilkS")
-			(uuid "57b4f5fc-a607-447a-8992-9675243d341c")
+			(uuid "b0f7bd53-4820-455a-bbf7-92c993d4b42a")
 			(effects
 				(font
 					(size 1 1)
@@ -12836,7 +12757,8 @@
 		(property "Value" "SolderJumper_3_Open"
 			(at 0 1.9 0)
 			(layer "F.Fab")
-			(uuid "ee0510f1-f536-419c-93b3-24be2d4bbd34")
+			(hide yes)
+			(uuid "ff71d98f-4b9e-46b7-8554-86612508acc1")
 			(effects
 				(font
 					(size 1 1)
@@ -12849,7 +12771,7 @@
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "87376877-6abe-4cd7-a2d6-9c7d0d482d22")
+			(uuid "83b79789-8c44-4c54-adab-ba737033e611")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12862,7 +12784,7 @@
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "cfcb9d51-e001-4976-a349-c7f0e4526333")
+			(uuid "36893ce1-a338-465f-a725-4f3338a01404")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -13625,13 +13547,13 @@
 	(footprint "Connector_PinHeader_2.54mm:PinHeader_1x01_P2.54mm_Vertical"
 		(layer "F.Cu")
 		(uuid "48577b8a-1272-48a7-b5de-bfdffb499444")
-		(at 47.96 151)
+		(at 24.91 148.85)
 		(descr "Through hole straight pin header, 1x01, 2.54mm pitch, single row")
 		(tags "Through hole pin header THT 1x01 2.54mm single row")
 		(property "Reference" "TP22"
 			(at 0 -2.38 0)
 			(layer "F.SilkS")
-			(uuid "1629c6ef-b8b8-4b63-b362-5325ef0cd471")
+			(uuid "3d29495c-d1de-411d-a73c-2e807ee96b24")
 			(effects
 				(font
 					(size 1 1)
@@ -13642,7 +13564,8 @@
 		(property "Value" "TestPoint"
 			(at 0 2.38 0)
 			(layer "F.Fab")
-			(uuid "0cbd4721-1438-4192-8596-425db815ce56")
+			(hide yes)
+			(uuid "d2ec7b62-f93f-44f3-9722-df2dc9af24fa")
 			(effects
 				(font
 					(size 1 1)
@@ -13654,7 +13577,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "04a6de03-6557-4beb-84cc-d9ca8c96bd30")
+			(uuid "a406f820-e43e-4a42-b648-52d70d430549")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -13666,7 +13589,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "efd01ee9-9e99-4a4d-9532-8a86fec24bb2")
+			(uuid "4465b524-f178-4793-9682-24f8db53387f")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -13828,17 +13751,6 @@
 			)
 			(layer "F.Fab")
 			(uuid "b6d68715-f247-4c81-8946-4c00495cabc2")
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 0 90)
-			(layer "F.Fab")
-			(uuid "ebc18028-dda3-448e-b0b0-9fb6221c7668")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
 		)
 		(pad "1" thru_hole rect
 			(at 0 0)
@@ -14961,13 +14873,13 @@
 	(footprint "Connector_PinHeader_2.54mm:PinHeader_1x01_P2.54mm_Vertical"
 		(layer "F.Cu")
 		(uuid "4d385741-44aa-4b57-8e2c-f68491392357")
-		(at 16.55 146.81)
+		(at 25.14 154.8)
 		(descr "Through hole straight pin header, 1x01, 2.54mm pitch, single row")
 		(tags "Through hole pin header THT 1x01 2.54mm single row")
 		(property "Reference" "TP32"
 			(at 0 -2.38 0)
 			(layer "F.SilkS")
-			(uuid "b49e45d8-c23b-4c54-98f3-31e5686c66ff")
+			(uuid "9251e795-1d02-4818-a204-53c8d354e17c")
 			(effects
 				(font
 					(size 1 1)
@@ -14978,7 +14890,8 @@
 		(property "Value" "TestPoint"
 			(at 0 2.38 0)
 			(layer "F.Fab")
-			(uuid "b5a97f42-06e2-4727-8bc0-fae821a4db3a")
+			(hide yes)
+			(uuid "e786d8cc-2577-4882-9ebe-aa2dcd57eb6d")
 			(effects
 				(font
 					(size 1 1)
@@ -14990,7 +14903,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "55802590-b15b-4b81-bc21-5ea44070b0b6")
+			(uuid "f2b508ed-ec7a-4c24-b2e2-b6a83a454436")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -15002,7 +14915,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "a0b88a63-b2d7-4446-8745-2ab18bb97945")
+			(uuid "1c8e9a34-9f71-44bf-bf15-35f5ece34b2f")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -15164,17 +15077,6 @@
 			)
 			(layer "F.Fab")
 			(uuid "5220ca04-e234-46ae-a649-9f41b5b5fb12")
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 0 90)
-			(layer "F.Fab")
-			(uuid "ee2b9847-dec6-4ce1-9712-5e44623a73d5")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
 		)
 		(pad "1" thru_hole rect
 			(at 0 0)
@@ -15536,13 +15438,13 @@
 	(footprint "Connector_PinHeader_2.54mm:PinHeader_1x01_P2.54mm_Vertical"
 		(layer "F.Cu")
 		(uuid "4e35f167-1069-4b01-b386-f876cf5186ba")
-		(at 34.85 151.31)
+		(at 48.76 137.29)
 		(descr "Through hole straight pin header, 1x01, 2.54mm pitch, single row")
 		(tags "Through hole pin header THT 1x01 2.54mm single row")
 		(property "Reference" "TP9"
 			(at 0 -2.38 0)
 			(layer "F.SilkS")
-			(uuid "a31def6b-149c-4d79-a272-0bf16ab00097")
+			(uuid "84e8d12a-ca4a-48c5-85d5-13dae60eb39d")
 			(effects
 				(font
 					(size 1 1)
@@ -15553,7 +15455,8 @@
 		(property "Value" "TestPoint"
 			(at 0 2.38 0)
 			(layer "F.Fab")
-			(uuid "abace850-bbfb-4117-a121-1598771aa206")
+			(hide yes)
+			(uuid "b51a3f42-ce25-42a1-93b5-f7c5f08732d7")
 			(effects
 				(font
 					(size 1 1)
@@ -15565,7 +15468,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "478dc5e9-79c8-4c0c-a3aa-70dd65d55670")
+			(uuid "53d387c0-8bd8-4f00-beba-81d735c6017c")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -15577,7 +15480,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "f6fdc644-530c-4760-b48b-d84ed6a8c16a")
+			(uuid "94bc1056-38f1-4282-bff2-80d21f2c86ce")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -15740,17 +15643,6 @@
 			(layer "F.Fab")
 			(uuid "c0160423-7d4f-4079-b6eb-ac39116b06fa")
 		)
-		(fp_text user "${REFERENCE}"
-			(at 0 0 90)
-			(layer "F.Fab")
-			(uuid "ef518b74-5466-4993-856a-83a2c7b1cb6c")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
 		(pad "1" thru_hole rect
 			(at 0 0)
 			(size 1.7 1.7)
@@ -15778,13 +15670,13 @@
 	(footprint "Connector_PinHeader_2.54mm:PinHeader_1x01_P2.54mm_Vertical"
 		(layer "F.Cu")
 		(uuid "4e849658-9aed-4c0d-8557-280a5ea44d87")
-		(at 52.2075 154.13)
+		(at 41.64 148.81)
 		(descr "Through hole straight pin header, 1x01, 2.54mm pitch, single row")
 		(tags "Through hole pin header THT 1x01 2.54mm single row")
 		(property "Reference" "TP27"
 			(at 0 -2.38 0)
 			(layer "F.SilkS")
-			(uuid "5acb3b9a-f17a-490d-ac47-860e444e942b")
+			(uuid "92ce34e5-2a51-4ed2-9de2-3d665bc5866a")
 			(effects
 				(font
 					(size 1 1)
@@ -15795,7 +15687,8 @@
 		(property "Value" "TestPoint"
 			(at 0 2.38 0)
 			(layer "F.Fab")
-			(uuid "ddaef869-5dbc-4fb9-9510-b5228b512778")
+			(hide yes)
+			(uuid "6f3b40f9-e560-44f8-8aa9-082b4cb5f7f1")
 			(effects
 				(font
 					(size 1 1)
@@ -15807,7 +15700,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "6ed0f4ca-e5bd-4a1b-8eb1-e2c271a80efb")
+			(uuid "8e02938b-2801-4ee8-a486-de6fc1dc18ea")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -15819,7 +15712,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "db719e7e-5e6d-4b3a-9e19-8977225e2e01")
+			(uuid "8d138ae0-c24b-494c-bcdb-72330ba9ad49")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -15981,17 +15874,6 @@
 			)
 			(layer "F.Fab")
 			(uuid "9c25edbe-f446-4cdd-bc8d-35547a66f28f")
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 0 90)
-			(layer "F.Fab")
-			(uuid "d03e6a02-8767-4a80-ace7-b2ec89110f1d")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
 		)
 		(pad "1" thru_hole rect
 			(at 0 0)
@@ -17078,13 +16960,13 @@
 	(footprint "Jumper:SolderJumper-3_P1.3mm_Open_RoundedPad1.0x1.5mm"
 		(layer "F.Cu")
 		(uuid "560ca66a-07d5-4216-b421-ef61ef29b49a")
-		(at 122.36 186.505)
+		(at 111.33 187.2725)
 		(descr "SMD Solder 3-pad Jumper, 1x1.5mm rounded Pads, 0.3mm gap, open")
 		(tags "solder jumper open")
 		(property "Reference" "JP18"
 			(at 0 -1.8 0)
 			(layer "F.SilkS")
-			(uuid "bd567806-b7d1-4f16-a8a3-7f4578912c62")
+			(uuid "c5248e86-0d98-4307-a293-40a00f237041")
 			(effects
 				(font
 					(size 1 1)
@@ -17095,7 +16977,8 @@
 		(property "Value" "SolderJumper_3_Open"
 			(at 0 1.9 0)
 			(layer "F.Fab")
-			(uuid "a23857bc-0964-46d8-bd12-9dc274d41f4a")
+			(hide yes)
+			(uuid "e8487124-1cd6-4a7d-b50e-2c227c571696")
 			(effects
 				(font
 					(size 1 1)
@@ -17108,7 +16991,7 @@
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "b8b8eab4-d63a-4e71-b0dc-b5b4d9373287")
+			(uuid "2232c256-7c36-4c20-98c9-fe651abfa10d")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -17121,7 +17004,7 @@
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "41787295-1bf9-47fa-a6b3-06e9250de8ca")
+			(uuid "5b6d4d1b-f927-4311-8c37-756bd59d1605")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -20374,13 +20257,13 @@
 	(footprint "Connector_PinHeader_2.54mm:PinHeader_1x01_P2.54mm_Vertical"
 		(layer "F.Cu")
 		(uuid "585f476f-e46e-4e8e-87d6-7d37c61b58b6")
-		(at 19.88 157.6)
+		(at 37.3 142.86)
 		(descr "Through hole straight pin header, 1x01, 2.54mm pitch, single row")
 		(tags "Through hole pin header THT 1x01 2.54mm single row")
 		(property "Reference" "TP15"
 			(at 0 -2.38 0)
 			(layer "F.SilkS")
-			(uuid "1387e26c-f15e-4a39-914a-84d3bf28c0fd")
+			(uuid "5887fb54-c95d-4a53-905d-a5d6c617138d")
 			(effects
 				(font
 					(size 1 1)
@@ -20391,7 +20274,8 @@
 		(property "Value" "TestPoint"
 			(at 0 2.38 0)
 			(layer "F.Fab")
-			(uuid "5d2fb70b-f5c9-400a-a3f4-0fb45dbb857d")
+			(hide yes)
+			(uuid "7a6415f7-c870-4a85-ad85-3d11f05e55b3")
 			(effects
 				(font
 					(size 1 1)
@@ -20403,7 +20287,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "b8c789b4-b8e3-4e15-870c-96696af7ce3d")
+			(uuid "55ac0b13-3165-47d8-a592-3e4234b15e6f")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -20415,7 +20299,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "ff4d03dd-9778-4bc8-8d12-ed628975aa8f")
+			(uuid "54b63de0-8eb3-45e2-bd77-800864241391")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -20577,17 +20461,6 @@
 			)
 			(layer "F.Fab")
 			(uuid "545ee56a-3d61-4568-ac5f-9cd9ced8e150")
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 0 90)
-			(layer "F.Fab")
-			(uuid "050eea4d-6a9e-4914-99c2-ef10dac20039")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
 		)
 		(pad "1" thru_hole rect
 			(at 0 0)
@@ -21014,13 +20887,13 @@
 	(footprint "Connector_PinHeader_2.54mm:PinHeader_1x01_P2.54mm_Vertical"
 		(layer "F.Cu")
 		(uuid "5f863aba-d4e0-4e03-97a2-65f754099f37")
-		(at 16.55 154.55)
+		(at 28.47 137.24)
 		(descr "Through hole straight pin header, 1x01, 2.54mm pitch, single row")
 		(tags "Through hole pin header THT 1x01 2.54mm single row")
 		(property "Reference" "TP4"
 			(at 0 -2.38 0)
 			(layer "F.SilkS")
-			(uuid "e1e27c69-169a-47b2-9a9a-9fb4c215439f")
+			(uuid "d6b2c486-6b7f-4959-ad2b-7f25ab31c9d8")
 			(effects
 				(font
 					(size 1 1)
@@ -21031,7 +20904,8 @@
 		(property "Value" "TestPoint"
 			(at 0 2.38 0)
 			(layer "F.Fab")
-			(uuid "7d0b5000-eb9e-4834-be7e-b87c548e1433")
+			(hide yes)
+			(uuid "c4608e22-4ddb-41b5-8481-789b17664b17")
 			(effects
 				(font
 					(size 1 1)
@@ -21043,7 +20917,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "23b3ae39-98af-438e-92a5-8c6acb401bef")
+			(uuid "2f9bc4bb-65c8-4be6-87ee-c05e9909f8dc")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -21055,7 +20929,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "68ab7823-18f3-4266-8381-33526c1ff391")
+			(uuid "b954bc13-bcdc-469f-8886-d5e555460545")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -21217,17 +21091,6 @@
 			)
 			(layer "F.Fab")
 			(uuid "d7b50078-4cd0-47a6-9075-879d397b9d1a")
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 0 90)
-			(layer "F.Fab")
-			(uuid "07af7a41-8d92-45e6-99f5-04b490290334")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
 		)
 		(pad "1" thru_hole rect
 			(at 0 0)
@@ -22416,13 +22279,13 @@
 	(footprint "Connector_PinHeader_2.54mm:PinHeader_1x01_P2.54mm_Vertical"
 		(layer "F.Cu")
 		(uuid "66963988-898f-4273-812e-9eb108fb8498")
-		(at 34.85 157.41)
+		(at 20.85 142.81)
 		(descr "Through hole straight pin header, 1x01, 2.54mm pitch, single row")
 		(tags "Through hole pin header THT 1x01 2.54mm single row")
 		(property "Reference" "TP11"
 			(at 0 -2.38 0)
 			(layer "F.SilkS")
-			(uuid "f98eb630-d1de-41f4-b88e-8368552702a6")
+			(uuid "b422b24c-0b07-47c0-be50-0ac038c0ac60")
 			(effects
 				(font
 					(size 1 1)
@@ -22433,7 +22296,8 @@
 		(property "Value" "TestPoint"
 			(at 0 2.38 0)
 			(layer "F.Fab")
-			(uuid "bb6fdcbd-5a0a-447b-a414-33218b703266")
+			(hide yes)
+			(uuid "1843b8ff-7c33-4109-b9e5-083d25818051")
 			(effects
 				(font
 					(size 1 1)
@@ -22445,7 +22309,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "06803d91-1049-47d5-989a-892619c20b7d")
+			(uuid "011cdaab-e164-4070-8fff-20f113d72e0c")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -22457,7 +22321,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "15bfdf68-4b73-4491-9032-b48981ddd74b")
+			(uuid "5f1ffcf1-f6c8-4dc3-886e-063b1b2b3b41")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -22619,17 +22483,6 @@
 			)
 			(layer "F.Fab")
 			(uuid "a25d8277-a4b8-4b04-a0b5-afe320542a1f")
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 0 90)
-			(layer "F.Fab")
-			(uuid "9d6f7bbd-9b9d-4ed8-bacf-11bbf8306459")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
 		)
 		(pad "1" thru_hole rect
 			(at 0 0)
@@ -23857,13 +23710,13 @@
 	(footprint "Connector_PinHeader_2.54mm:PinHeader_1x01_P2.54mm_Vertical"
 		(layer "F.Cu")
 		(uuid "6b98ea64-8f55-4c23-b451-bf74a02ae342")
-		(at 39.13 154.69)
+		(at 33.21 148.92)
 		(descr "Through hole straight pin header, 1x01, 2.54mm pitch, single row")
 		(tags "Through hole pin header THT 1x01 2.54mm single row")
 		(property "Reference" "TP25"
-			(at 0 -2.38 0)
+			(at 0.04 -2.23 0)
 			(layer "F.SilkS")
-			(uuid "3e671d3b-bf01-4ca3-9b17-a4378947648b")
+			(uuid "463a2938-3727-4393-afab-8648ef9e4c0f")
 			(effects
 				(font
 					(size 1 1)
@@ -23874,7 +23727,8 @@
 		(property "Value" "TestPoint"
 			(at 0 2.38 0)
 			(layer "F.Fab")
-			(uuid "597111f5-a81c-4255-aa38-c834401c8f7a")
+			(hide yes)
+			(uuid "eb0a07f3-8eb6-482f-a6ca-d5b0a55e603e")
 			(effects
 				(font
 					(size 1 1)
@@ -23886,7 +23740,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "2a2d9465-5a26-441f-b15b-499b7053ab73")
+			(uuid "ec0216fb-b7b0-415b-a8fc-acd96cb6e4ad")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -23898,7 +23752,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "75ce9b73-38a5-4d8a-adf6-14e3ed7fe0b9")
+			(uuid "3e074dbe-b4dd-4799-a62b-6eedb00899ba")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -24060,17 +23914,6 @@
 			)
 			(layer "F.Fab")
 			(uuid "ce72de37-7f19-4604-b0e1-a584f427f7cf")
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 0 90)
-			(layer "F.Fab")
-			(uuid "98ecd23b-7b2d-4d42-b093-0f0b09ccaedd")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
 		)
 		(pad "1" thru_hole rect
 			(at 0 0)
@@ -24829,13 +24672,13 @@
 	(footprint "Connector_PinHeader_2.54mm:PinHeader_1x01_P2.54mm_Vertical"
 		(layer "F.Cu")
 		(uuid "6e007150-95ca-4deb-a69a-7febe945eacc")
-		(at 43.71 159.64)
+		(at 20.82 154.73)
 		(descr "Through hole straight pin header, 1x01, 2.54mm pitch, single row")
 		(tags "Through hole pin header THT 1x01 2.54mm single row")
 		(property "Reference" "TP31"
 			(at 0 -2.38 0)
 			(layer "F.SilkS")
-			(uuid "a056bc58-7081-48da-8387-9bf46cf1e612")
+			(uuid "4fd2cdcd-994f-4fbc-851d-ad93e1afb118")
 			(effects
 				(font
 					(size 1 1)
@@ -24846,7 +24689,8 @@
 		(property "Value" "TestPoint"
 			(at 0 2.38 0)
 			(layer "F.Fab")
-			(uuid "0a6b841e-ce91-4897-b840-dc233354dbb7")
+			(hide yes)
+			(uuid "6519a669-74eb-45a3-9dd3-0cbd9805581f")
 			(effects
 				(font
 					(size 1 1)
@@ -24858,7 +24702,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "98820331-a027-43df-b716-d44a195d911a")
+			(uuid "eaed8491-ffec-4258-8074-4d200215e9ad")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -24870,7 +24714,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "db6a4664-8d7d-4a25-8289-d49b69a28086")
+			(uuid "8d3d6ade-e149-4553-b920-8ef7f65c8bc1")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -25032,17 +24876,6 @@
 			)
 			(layer "F.Fab")
 			(uuid "55a63b9f-624e-4173-9550-6144f15e7a32")
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 0 90)
-			(layer "F.Fab")
-			(uuid "7b7ba050-fab1-4c79-bb36-5a57dd45bfca")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
 		)
 		(pad "1" thru_hole rect
 			(at 0 0)
@@ -25469,13 +25302,13 @@
 	(footprint "Connector_PinHeader_2.54mm:PinHeader_1x01_P2.54mm_Vertical"
 		(layer "F.Cu")
 		(uuid "701954ea-0b78-462d-8679-fea6ebcbfb1f")
-		(at 27.05 160.73)
+		(at 32.32 137.33)
 		(descr "Through hole straight pin header, 1x01, 2.54mm pitch, single row")
 		(tags "Through hole pin header THT 1x01 2.54mm single row")
 		(property "Reference" "TP5"
 			(at 0 -2.38 0)
 			(layer "F.SilkS")
-			(uuid "c34c0140-28ba-4354-bd69-0f61f6aeddff")
+			(uuid "d821bd82-53e7-4dff-93ce-c9a707377bb3")
 			(effects
 				(font
 					(size 1 1)
@@ -25486,7 +25319,8 @@
 		(property "Value" "TestPoint"
 			(at 0 2.38 0)
 			(layer "F.Fab")
-			(uuid "d51d6109-2e11-43d3-bd3e-b409587c3242")
+			(hide yes)
+			(uuid "1ea58012-16c7-4495-bb6c-302329b7dded")
 			(effects
 				(font
 					(size 1 1)
@@ -25498,7 +25332,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "113aa86f-b57c-4659-869a-41654094cce0")
+			(uuid "1a445252-3215-4239-aa0d-76e0c1c33497")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -25510,7 +25344,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "002cb729-4850-4c7c-844d-e03bf6c2113c")
+			(uuid "fe4df6a4-f7eb-4dcb-acb3-d7a82a4225a9")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -25673,17 +25507,6 @@
 			(layer "F.Fab")
 			(uuid "ed64a5ec-ef12-4c24-b615-227c23828129")
 		)
-		(fp_text user "${REFERENCE}"
-			(at 0 0 90)
-			(layer "F.Fab")
-			(uuid "f9927187-8180-445f-a1cc-7a1998684cb2")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
 		(pad "1" thru_hole rect
 			(at 0 0)
 			(size 1.7 1.7)
@@ -25711,13 +25534,13 @@
 	(footprint "Connector_PinHeader_2.54mm:PinHeader_1x01_P2.54mm_Vertical"
 		(layer "F.Cu")
 		(uuid "70ad57d4-cb54-487f-8d30-1cbab6775eb7")
-		(at 27.05 151.58)
+		(at 16.62 137.33)
 		(descr "Through hole straight pin header, 1x01, 2.54mm pitch, single row")
 		(tags "Through hole pin header THT 1x01 2.54mm single row")
 		(property "Reference" "TP1"
 			(at 0 -2.38 0)
 			(layer "F.SilkS")
-			(uuid "d999a8c8-d17c-4ac8-9767-97bbe97fe2af")
+			(uuid "e9611aca-6070-40fb-a929-1afc1f7b7fa3")
 			(effects
 				(font
 					(size 1 1)
@@ -25728,7 +25551,8 @@
 		(property "Value" "TestPoint"
 			(at 0 2.38 0)
 			(layer "F.Fab")
-			(uuid "bbb461d9-3066-4185-ba23-449abe8a78e4")
+			(hide yes)
+			(uuid "c9dfb5e1-ccf0-4e67-a9d4-859427875265")
 			(effects
 				(font
 					(size 1 1)
@@ -25740,7 +25564,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "e7e5a501-f14e-4a7a-8537-521a2813d55f")
+			(uuid "a0abfd3f-08a6-459f-aab3-be68f736c80e")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -25752,7 +25576,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "2a20436f-c5d6-40d4-9723-c1f8fe3ae1e1")
+			(uuid "778fca5d-9610-452e-9b22-61c89c06bf07")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -25914,17 +25738,6 @@
 			)
 			(layer "F.Fab")
 			(uuid "40c91f46-ea34-4296-bd21-99cf8fbdb16a")
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 0 90)
-			(layer "F.Fab")
-			(uuid "cb2b6f08-0973-40c8-ad9d-2452e1530f6d")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
 		)
 		(pad "1" thru_hole rect
 			(at 0 0)
@@ -26965,13 +26778,13 @@
 	(footprint "Connector_PinHeader_2.54mm:PinHeader_1x01_P2.54mm_Vertical"
 		(layer "F.Cu")
 		(uuid "772ce119-0f32-4f24-a69e-8e65b9315a9b")
-		(at 23.21 157.6)
+		(at 49.28 143.14)
 		(descr "Through hole straight pin header, 1x01, 2.54mm pitch, single row")
 		(tags "Through hole pin header THT 1x01 2.54mm single row")
 		(property "Reference" "TP18"
 			(at 0 -2.38 0)
 			(layer "F.SilkS")
-			(uuid "6cab746f-4a45-42e3-9193-6a3052889440")
+			(uuid "7b100948-8aec-4c7c-b26f-ea172816f7ad")
 			(effects
 				(font
 					(size 1 1)
@@ -26982,7 +26795,8 @@
 		(property "Value" "TestPoint"
 			(at 0 2.38 0)
 			(layer "F.Fab")
-			(uuid "4f9ed4c3-b0d5-490b-aed2-24779838317a")
+			(hide yes)
+			(uuid "9c4d2842-d4cc-4c05-981f-82a9ea65e51c")
 			(effects
 				(font
 					(size 1 1)
@@ -26994,7 +26808,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "89b402cd-3c7e-4489-a8fd-b2bb42a679cf")
+			(uuid "ab296a05-904f-4331-b568-f1caeff6da16")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -27006,7 +26820,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "590390b9-748a-4076-87ac-d4dd6bf54770")
+			(uuid "00410900-84c2-41f5-894f-e10abc1b407b")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -27168,17 +26982,6 @@
 			)
 			(layer "F.Fab")
 			(uuid "743dfa37-645f-46b6-abf3-98df45f3f2af")
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 0 90)
-			(layer "F.Fab")
-			(uuid "6013b443-5a10-455b-8983-1b5e654903fa")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
 		)
 		(pad "1" thru_hole rect
 			(at 0 0)
@@ -30642,13 +30445,13 @@
 	(footprint "Jumper:SolderJumper-3_P1.3mm_Open_RoundedPad1.0x1.5mm"
 		(layer "F.Cu")
 		(uuid "85bbbde3-4a4e-430d-a529-e881a148b73e")
-		(at 122.36 175)
+		(at 105.15 156.57)
 		(descr "SMD Solder 3-pad Jumper, 1x1.5mm rounded Pads, 0.3mm gap, open")
 		(tags "solder jumper open")
 		(property "Reference" "JP1"
 			(at 0 -1.8 0)
 			(layer "F.SilkS")
-			(uuid "729f25d2-6fb3-47b7-a458-546030904f72")
+			(uuid "682ff397-d961-4426-aa69-4dd324393c3c")
 			(effects
 				(font
 					(size 1 1)
@@ -30659,7 +30462,8 @@
 		(property "Value" "SolderJumper_3_Open"
 			(at 0 1.9 0)
 			(layer "F.Fab")
-			(uuid "6240b255-6d97-45e9-873d-1f1cb8d7541f")
+			(hide yes)
+			(uuid "7894c5bf-3268-49f7-ae99-e06f704ecd85")
 			(effects
 				(font
 					(size 1 1)
@@ -30672,7 +30476,7 @@
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "bce27b97-eea0-4d71-af5e-a5b5724a971d")
+			(uuid "a7ba7b50-8ef6-42fa-9372-54bb4a7a4048")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -30685,7 +30489,7 @@
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "91b53129-297d-4987-b740-5e0cab310367")
+			(uuid "9357c2df-7bec-4d84-b698-dd6d055938c6")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -31348,13 +31152,13 @@
 	(footprint "Jumper:SolderJumper-3_P1.3mm_Open_RoundedPad1.0x1.5mm"
 		(layer "F.Cu")
 		(uuid "874e11f0-07d6-4b55-bdf7-df6411515cf2")
-		(at 122.36 182.67)
+		(at 105.15 164.24)
 		(descr "SMD Solder 3-pad Jumper, 1x1.5mm rounded Pads, 0.3mm gap, open")
 		(tags "solder jumper open")
 		(property "Reference" "JP3"
 			(at 0 -1.8 0)
 			(layer "F.SilkS")
-			(uuid "0d3ecc20-c2f4-4acb-8061-e007c8ebec8b")
+			(uuid "a8e69f07-2bfc-4b82-807e-b9ed59789a85")
 			(effects
 				(font
 					(size 1 1)
@@ -31365,7 +31169,8 @@
 		(property "Value" "SolderJumper_3_Open"
 			(at 0 1.9 0)
 			(layer "F.Fab")
-			(uuid "336cf61a-b3bb-4dd8-bed9-a65331a22742")
+			(hide yes)
+			(uuid "d5871e20-ed25-42f3-83fc-84759d40097e")
 			(effects
 				(font
 					(size 1 1)
@@ -31378,7 +31183,7 @@
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "66d7fa50-6242-4379-b960-d2c0dd8323b1")
+			(uuid "ebf0bc97-c028-4b5d-883d-09fa9c93ae51")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -31391,7 +31196,7 @@
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "360875dc-6379-495c-97bf-5403419c4eb6")
+			(uuid "611ebd7a-0469-4ba4-aa1d-043846f6110f")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -35017,13 +34822,13 @@
 	(footprint "Connector_PinHeader_2.54mm:PinHeader_1x01_P2.54mm_Vertical"
 		(layer "F.Cu")
 		(uuid "8f5706c8-d2ee-40d4-972d-6bd70f4877a6")
-		(at 47.96 155.59)
+		(at 33.5 154.94)
 		(descr "Through hole straight pin header, 1x01, 2.54mm pitch, single row")
 		(tags "Through hole pin header THT 1x01 2.54mm single row")
 		(property "Reference" "TP34"
 			(at 0 -2.38 0)
 			(layer "F.SilkS")
-			(uuid "6b94768e-9f64-41fc-aba3-02d3cdc02270")
+			(uuid "275f07de-a777-4b6e-8ea6-64fcb106b7b3")
 			(effects
 				(font
 					(size 1 1)
@@ -35034,7 +34839,8 @@
 		(property "Value" "TestPoint"
 			(at 0 2.38 0)
 			(layer "F.Fab")
-			(uuid "f1a3b7e6-2aa6-434e-9ac5-020cae908a41")
+			(hide yes)
+			(uuid "02d149d4-89b5-4ac1-9518-5f2c20da93a5")
 			(effects
 				(font
 					(size 1 1)
@@ -35046,7 +34852,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "8cf18b42-eee0-455b-8412-543ac80c88e2")
+			(uuid "e86e3ed0-cc5f-4b75-bf15-5b66b73ec443")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -35058,7 +34864,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "c29b8ee5-292d-4525-8e9b-e4cce839a5fc")
+			(uuid "7f4f509d-47aa-4baa-9078-6b790ec608c4")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -35220,17 +35026,6 @@
 			)
 			(layer "F.Fab")
 			(uuid "b5176f73-8557-49e4-9526-2858a5fb92a1")
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 0 90)
-			(layer "F.Fab")
-			(uuid "bc6f4424-90e5-4602-a7c7-9aea73ed52e6")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
 		)
 		(pad "1" thru_hole rect
 			(at 0 0)
@@ -36593,13 +36388,13 @@
 	(footprint "Jumper:SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm"
 		(layer "F.Cu")
 		(uuid "9922492b-12d9-4e22-8f4c-7698fa739710")
-		(at 128.77 178.63)
+		(at 111.47 175.5425)
 		(descr "SMD Solder Jumper, 1x1.5mm, rounded Pads, 0.3mm gap, open")
 		(tags "solder jumper open")
 		(property "Reference" "JP15"
 			(at 0 -1.8 0)
 			(layer "F.SilkS")
-			(uuid "d020522a-bfb6-4c65-b7c1-096b390878ca")
+			(uuid "050febd7-d99f-4435-a18a-c8e06af1a406")
 			(effects
 				(font
 					(size 1 1)
@@ -36610,7 +36405,8 @@
 		(property "Value" "SolderJumper_2_Open"
 			(at 0 1.9 0)
 			(layer "F.Fab")
-			(uuid "73b1c5e4-fc29-4358-af68-9f22bcf2ff6f")
+			(hide yes)
+			(uuid "dc6711dd-18a5-4963-b8e3-7e1c24d62478")
 			(effects
 				(font
 					(size 1 1)
@@ -36623,7 +36419,7 @@
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "0f6c446d-fd20-4ff0-b1e2-56fc9cc9c334")
+			(uuid "8c37816b-adc9-4da9-b90c-7bacfac405fe")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -36636,7 +36432,7 @@
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "4e065c01-2afa-47aa-9ba2-1b5b5533979a")
+			(uuid "58835afa-47d4-45a9-afbb-1d12b34a2547")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -37161,13 +36957,13 @@
 	(footprint "Connector_PinHeader_2.54mm:PinHeader_1x01_P2.54mm_Vertical"
 		(layer "F.Cu")
 		(uuid "9c04005e-ff8e-41b6-b90e-d56838de24a8")
-		(at 34.85 160.46)
+		(at 53.38 142.94)
 		(descr "Through hole straight pin header, 1x01, 2.54mm pitch, single row")
 		(tags "Through hole pin header THT 1x01 2.54mm single row")
 		(property "Reference" "TP19"
 			(at 0 -2.38 0)
 			(layer "F.SilkS")
-			(uuid "4b95e16f-9688-47ca-9db8-88e56acd2fa7")
+			(uuid "a1b1fa63-af3d-4c40-9cd0-0c87919c5a84")
 			(effects
 				(font
 					(size 1 1)
@@ -37178,7 +36974,8 @@
 		(property "Value" "TestPoint"
 			(at 0 2.38 0)
 			(layer "F.Fab")
-			(uuid "14a995cd-c4dc-4a36-932b-91d3743e21f1")
+			(hide yes)
+			(uuid "a775f54b-35d3-4e9f-a732-05ef01cb27b6")
 			(effects
 				(font
 					(size 1 1)
@@ -37190,7 +36987,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "1a92df46-b79e-43e4-8ae2-0f77b87c51a8")
+			(uuid "38fbaeb5-362d-4068-889b-9cdfd2eaa71f")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -37202,7 +36999,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "9686a206-9d8e-499f-84ae-64fdaa9405aa")
+			(uuid "2d88fc6f-218b-4be1-aee6-fb07d0483bb0")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -40255,13 +40052,13 @@
 	(footprint "Connector_PinHeader_2.54mm:PinHeader_1x01_P2.54mm_Vertical"
 		(layer "F.Cu")
 		(uuid "aa783636-b679-4375-a82c-327615ac9510")
-		(at 30.38 154.63)
+		(at 40.59 137.24)
 		(descr "Through hole straight pin header, 1x01, 2.54mm pitch, single row")
 		(tags "Through hole pin header THT 1x01 2.54mm single row")
 		(property "Reference" "TP7"
 			(at 0 -2.38 0)
 			(layer "F.SilkS")
-			(uuid "64b5ce7f-f84d-42d9-8cb4-ac7080d422ba")
+			(uuid "fdf8019d-5fc5-4e89-a1d4-0434b68dd50c")
 			(effects
 				(font
 					(size 1 1)
@@ -40272,7 +40069,8 @@
 		(property "Value" "TestPoint"
 			(at 0 2.38 0)
 			(layer "F.Fab")
-			(uuid "9195e4cb-8b2f-4bab-8294-15cd5baf1cc4")
+			(hide yes)
+			(uuid "6ab3d61e-2979-4ffe-87d1-b80658488a50")
 			(effects
 				(font
 					(size 1 1)
@@ -40284,7 +40082,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "93f4fe54-37fb-4727-841e-b11011f51e48")
+			(uuid "9e787071-c96f-4ffa-929c-4934302021c9")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -40296,7 +40094,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "7dd78ffd-1d33-4e5a-a6a0-6f431b704994")
+			(uuid "ff93d961-329c-4150-9ccf-a960879c8d5a")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -40459,17 +40257,6 @@
 			(layer "F.Fab")
 			(uuid "cb867449-2d30-47ec-bf3d-4540af60fbcb")
 		)
-		(fp_text user "${REFERENCE}"
-			(at 0 0 90)
-			(layer "F.Fab")
-			(uuid "3cb931ea-98e6-4b32-8d9e-3b9ae1c05328")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
 		(pad "1" thru_hole rect
 			(at 0 0)
 			(size 1.7 1.7)
@@ -40497,13 +40284,13 @@
 	(footprint "Jumper:SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm"
 		(layer "F.Cu")
 		(uuid "aa9f4262-963c-44ea-a0e1-eba8bdbc4caa")
-		(at 139.2 178.62)
+		(at 111.33 183.3225)
 		(descr "SMD Solder Jumper, 1x1.5mm, rounded Pads, 0.3mm gap, open")
 		(tags "solder jumper open")
 		(property "Reference" "JP17"
 			(at 0 -1.8 0)
 			(layer "F.SilkS")
-			(uuid "ea1da322-a817-4130-98a4-b3980b4477fb")
+			(uuid "7be43874-3924-4cd7-8463-678f4ca83465")
 			(effects
 				(font
 					(size 1 1)
@@ -40514,7 +40301,8 @@
 		(property "Value" "SolderJumper_2_Open"
 			(at 0 1.9 0)
 			(layer "F.Fab")
-			(uuid "6f2c6c43-2fee-4903-a595-01f48a4cede8")
+			(hide yes)
+			(uuid "182a2d2f-7e2e-4fdf-b9db-fadfd2a1ebef")
 			(effects
 				(font
 					(size 1 1)
@@ -40527,7 +40315,7 @@
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "c6d22b5e-e4f3-4df3-b826-fbe833c54fd5")
+			(uuid "37fa7bd6-e272-40f6-970d-eca5945fc22b")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -40540,7 +40328,7 @@
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "98acf6ee-db28-42a2-ac7d-a73da7ccdfd4")
+			(uuid "035dbc2c-7a3b-46da-a1c5-3598985d9276")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -40766,13 +40554,13 @@
 	(footprint "Jumper:SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm"
 		(layer "F.Cu")
 		(uuid "aaed1758-d711-40a6-9ab4-b0a2c2d55dc5")
-		(at 139.2 175.07)
+		(at 111.33 179.7725)
 		(descr "SMD Solder Jumper, 1x1.5mm, rounded Pads, 0.3mm gap, open")
 		(tags "solder jumper open")
 		(property "Reference" "JP16"
 			(at 0 -1.8 0)
 			(layer "F.SilkS")
-			(uuid "09891ab9-0eca-45c5-9979-7ac654fe20f5")
+			(uuid "4926b303-913b-440f-b36f-3d6ad21f388a")
 			(effects
 				(font
 					(size 1 1)
@@ -40783,7 +40571,8 @@
 		(property "Value" "SolderJumper_2_Open"
 			(at 0 1.9 0)
 			(layer "F.Fab")
-			(uuid "20e702c9-10cd-4a48-8bc6-a5a38dda7b76")
+			(hide yes)
+			(uuid "5d9e45f3-2d6f-4d95-9c71-c2fcf8caa061")
 			(effects
 				(font
 					(size 1 1)
@@ -40796,7 +40585,7 @@
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "d1ba7741-4e76-4040-bad4-0744c731c3f2")
+			(uuid "40f4ec07-0368-403d-a529-625e40d56e85")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -40809,7 +40598,7 @@
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "eeed85eb-6250-4e81-bfdd-668b47255cf4")
+			(uuid "5077f51a-e381-404e-8c2e-405124827464")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -41500,13 +41289,13 @@
 	(footprint "Jumper:SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm"
 		(layer "F.Cu")
 		(uuid "b30980b4-1341-4bec-9c90-7f35e0a81d50")
-		(at 128.77 185.73)
+		(at 117 164.55)
 		(descr "SMD Solder Jumper, 1x1.5mm, rounded Pads, 0.3mm gap, open")
 		(tags "solder jumper open")
 		(property "Reference" "JP22"
 			(at 0 -1.8 0)
 			(layer "F.SilkS")
-			(uuid "5bd5da4b-1934-457d-a700-f31e082dc951")
+			(uuid "421da5c1-a535-459c-8633-3a368467b79a")
 			(effects
 				(font
 					(size 1 1)
@@ -41517,7 +41306,8 @@
 		(property "Value" "SolderJumper_2_Open"
 			(at 0 1.9 0)
 			(layer "F.Fab")
-			(uuid "941843d7-3aef-4670-a9d0-2aaf369b549f")
+			(hide yes)
+			(uuid "eb952464-ca7d-43eb-a78c-b7202d3d1750")
 			(effects
 				(font
 					(size 1 1)
@@ -41530,7 +41320,7 @@
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "02ae57a2-e706-4729-acbe-a944e57959bd")
+			(uuid "f1b9c473-d690-4a16-867a-4389d9a8e3c4")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -41543,7 +41333,7 @@
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "31b036d5-177d-45d5-bd42-6330cc45b142")
+			(uuid "20709a9b-7a1a-4ef8-827b-6606c0360fef")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -43494,13 +43284,13 @@
 	(footprint "Connector_PinHeader_2.54mm:PinHeader_1x01_P2.54mm_Vertical"
 		(layer "F.Cu")
 		(uuid "b5319dd6-d6a4-4dce-989d-3857236ce3f1")
-		(at 27.05 157.68)
+		(at 24.43 137.24)
 		(descr "Through hole straight pin header, 1x01, 2.54mm pitch, single row")
 		(tags "Through hole pin header THT 1x01 2.54mm single row")
 		(property "Reference" "TP3"
 			(at 0 -2.38 0)
 			(layer "F.SilkS")
-			(uuid "7532c171-6d6c-419f-aa7b-869e233a7b4c")
+			(uuid "91ee6a2d-f28e-458d-86dd-1f33e45170cc")
 			(effects
 				(font
 					(size 1 1)
@@ -43511,7 +43301,8 @@
 		(property "Value" "TestPoint"
 			(at 0 2.38 0)
 			(layer "F.Fab")
-			(uuid "2eba397b-6b53-4111-b880-d0fc66d51488")
+			(hide yes)
+			(uuid "f8fc6138-54ea-406a-8657-52a565113fa0")
 			(effects
 				(font
 					(size 1 1)
@@ -43523,7 +43314,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "a2bb4d03-aa40-4399-bfac-2b7ceacfb8b2")
+			(uuid "427d155e-539c-4d0e-9076-917b7e16aa33")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -43535,7 +43326,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "2fc079ac-7e8a-4d73-af4f-65a0e554a009")
+			(uuid "54d84ff6-3669-4ed6-ba84-5310efd2d4b8")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -43697,17 +43488,6 @@
 			)
 			(layer "F.Fab")
 			(uuid "6c018b13-4531-421e-82b7-f02911dcd97f")
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 0 90)
-			(layer "F.Fab")
-			(uuid "3f9f9807-fff6-4f18-8787-82db8069998a")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
 		)
 		(pad "1" thru_hole rect
 			(at 0 0)
@@ -44079,13 +43859,13 @@
 	(footprint "Jumper:SolderJumper-3_P1.3mm_Open_RoundedPad1.0x1.5mm"
 		(layer "F.Cu")
 		(uuid "b79961df-6382-43aa-8e4b-22bc8b45ba1e")
-		(at 114.14 175.215)
+		(at 111.33 160.47)
 		(descr "SMD Solder 3-pad Jumper, 1x1.5mm rounded Pads, 0.3mm gap, open")
 		(tags "solder jumper open")
 		(property "Reference" "JP11"
 			(at 0 -1.8 0)
 			(layer "F.SilkS")
-			(uuid "8709e9bf-06ea-4e40-943d-021f9d99f87a")
+			(uuid "8c6344db-0104-4f6f-8d0d-3f3c9fde52a6")
 			(effects
 				(font
 					(size 1 1)
@@ -44096,7 +43876,8 @@
 		(property "Value" "SolderJumper_3_Open"
 			(at 0 1.9 0)
 			(layer "F.Fab")
-			(uuid "efe87891-ad67-4d70-bb3e-85cad20f1a0d")
+			(hide yes)
+			(uuid "9e886e3e-c779-4297-8f6b-fc8eee8fe8cb")
 			(effects
 				(font
 					(size 1 1)
@@ -44109,7 +43890,7 @@
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "e195e1fb-354a-4fab-aa49-b0cd77fa6e24")
+			(uuid "7cb5baee-aa28-46b8-9e36-eae7b0d7ff64")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -44122,7 +43903,7 @@
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "27ac1a38-27e8-436c-932f-849e82edfab1")
+			(uuid "399587d9-0e4a-4ba0-8091-d1a800ac9375")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -45558,13 +45339,13 @@
 	(footprint "Connector_PinHeader_2.54mm:PinHeader_1x01_P2.54mm_Vertical"
 		(layer "F.Cu")
 		(uuid "bed86b89-55d4-43ff-bab3-2fcac36306b9")
-		(at 47.96 160.18)
+		(at 37.68 154.8)
 		(descr "Through hole straight pin header, 1x01, 2.54mm pitch, single row")
 		(tags "Through hole pin header THT 1x01 2.54mm single row")
 		(property "Reference" "TP35"
 			(at 0 -2.38 0)
 			(layer "F.SilkS")
-			(uuid "5737c1ef-353c-4d42-bb84-f31e3ad9d65d")
+			(uuid "24fa60e3-622e-4cb7-9719-2295060e7e24")
 			(effects
 				(font
 					(size 1 1)
@@ -45575,7 +45356,8 @@
 		(property "Value" "TestPoint"
 			(at 0 2.38 0)
 			(layer "F.Fab")
-			(uuid "054eb59a-28b6-4a6b-b38a-c65423696df6")
+			(hide yes)
+			(uuid "0fc57881-56e2-48bf-bc49-7fba35fbb731")
 			(effects
 				(font
 					(size 1 1)
@@ -45587,7 +45369,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "efc279d5-4493-4e7d-b6af-d8f4de8ac8ef")
+			(uuid "082b67b0-71e5-4a88-8ad2-e8c2322d6585")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -45599,7 +45381,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "04ac0991-e6e6-46ec-a037-b75ba73301cb")
+			(uuid "57906efd-917d-42cb-8e15-ce8fe8e1fd4a")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -45761,17 +45543,6 @@
 			)
 			(layer "F.Fab")
 			(uuid "ded1bb27-a790-489d-941b-c3d219268cdc")
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 0 90)
-			(layer "F.Fab")
-			(uuid "a77cf856-5de6-459d-b4ba-ec7c5f04145f")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
 		)
 		(pad "1" thru_hole rect
 			(at 0 0)
@@ -50040,13 +49811,13 @@
 	(footprint "Jumper:SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm"
 		(layer "F.Cu")
 		(uuid "d4563f62-e263-4378-8115-3ae8dce024ff")
-		(at 134.54 188.67)
+		(at 111.43 156.61)
 		(descr "SMD Solder Jumper, 1x1.5mm, rounded Pads, 0.3mm gap, open")
 		(tags "solder jumper open")
 		(property "Reference" "JP10"
 			(at 0 -1.8 0)
 			(layer "F.SilkS")
-			(uuid "79c87982-ffc7-4147-994c-a29d1e3b7742")
+			(uuid "91ac9510-c1ad-46a6-88b8-62129a9ad800")
 			(effects
 				(font
 					(size 1 1)
@@ -50057,7 +49828,8 @@
 		(property "Value" "SolderJumper_2_Open"
 			(at 0 1.9 0)
 			(layer "F.Fab")
-			(uuid "1ee963c5-331c-4ba7-8f66-7c58c0278a4e")
+			(hide yes)
+			(uuid "f6067c5e-bbf8-43c8-ac00-e96cd346a6ab")
 			(effects
 				(font
 					(size 1 1)
@@ -50070,7 +49842,7 @@
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "299890d2-f341-4696-b8f8-3db2e51a4eba")
+			(uuid "ce7487be-741b-4b2f-9e80-077b27b6fc62")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -50083,7 +49855,7 @@
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "53dbc42c-5bf5-448a-a97b-b4f6246f3bdf")
+			(uuid "b12a8039-ae71-44a6-b510-ff6758d96c95")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -50324,7 +50096,7 @@
 			)
 		)
 		(property "Value" "TPS54202DDC"
-			(at 20.88 98.4 0)
+			(at 0.075 2.605 0)
 			(layer "F.Fab")
 			(uuid "c9b0b35f-cc93-4319-9f69-7fda5a1b4a70")
 			(effects
@@ -50672,13 +50444,13 @@
 	(footprint "Jumper:SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm"
 		(layer "F.Cu")
 		(uuid "d60e1337-035f-4280-a1c1-9984bbab4a13")
-		(at 134.37 182.04)
+		(at 105.16 186.42)
 		(descr "SMD Solder Jumper, 1x1.5mm, rounded Pads, 0.3mm gap, open")
 		(tags "solder jumper open")
 		(property "Reference" "JP9"
 			(at 0 -1.8 0)
 			(layer "F.SilkS")
-			(uuid "22768383-c31a-45df-b018-c12d20c75395")
+			(uuid "299a84da-aa90-4684-8539-4d81107d9f33")
 			(effects
 				(font
 					(size 1 1)
@@ -50689,7 +50461,8 @@
 		(property "Value" "SolderJumper_2_Open"
 			(at 0 1.9 0)
 			(layer "F.Fab")
-			(uuid "94f61b80-155c-4527-a97c-49fba9cf73b7")
+			(hide yes)
+			(uuid "caf62fb0-45b0-417b-bd36-4e3943a15763")
 			(effects
 				(font
 					(size 1 1)
@@ -50702,7 +50475,7 @@
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "443f860e-0ade-4705-a7c0-8089b576e3a1")
+			(uuid "aa536339-3983-441d-b559-498311c195b3")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -50715,7 +50488,7 @@
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "4280b9ae-29f8-4e70-8907-b39bd4ad3d3a")
+			(uuid "021336d1-8230-4387-b81b-fe1be1cf3943")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -51545,13 +51318,13 @@
 	(footprint "Connector_PinHeader_2.54mm:PinHeader_1x01_P2.54mm_Vertical"
 		(layer "F.Cu")
 		(uuid "d704ccf5-b001-4c53-b459-6f549e4dff1f")
-		(at 16.55 150.64)
+		(at 29.21 154.97)
 		(descr "Through hole straight pin header, 1x01, 2.54mm pitch, single row")
 		(tags "Through hole pin header THT 1x01 2.54mm single row")
 		(property "Reference" "TP33"
-			(at 0 -1.62 0)
+			(at 0.01 -2.47 0)
 			(layer "F.SilkS")
-			(uuid "9af9b7d8-3200-491c-88b7-8752a47eaa18")
+			(uuid "fbf74a39-277b-4db7-b03b-2bba421d60c8")
 			(effects
 				(font
 					(size 1 1)
@@ -51562,7 +51335,8 @@
 		(property "Value" "TestPoint"
 			(at 0.07 2.11 0)
 			(layer "F.Fab")
-			(uuid "7484cf92-146b-448f-bbac-04c5d250b9a6")
+			(hide yes)
+			(uuid "76e63d35-56d8-4863-9ce6-4f7cbba68d26")
 			(effects
 				(font
 					(size 1 1)
@@ -51574,7 +51348,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "b4e61040-b408-45aa-bdfc-fd6a11024cdf")
+			(uuid "f5590e28-7103-4331-9f3e-a119ccb78c65")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -51586,7 +51360,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "85e2b1e7-895c-46f5-a814-dae9ca3cdd2b")
+			(uuid "711ede65-4079-42b8-8f3d-1e35a963e2e3")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -51748,17 +51522,6 @@
 			)
 			(layer "F.Fab")
 			(uuid "c122c6d8-76a6-46f9-b018-1a902f686d18")
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 0 90)
-			(layer "F.Fab")
-			(uuid "8f75a0a0-3b79-4334-a38f-d7d09f0639f3")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
 		)
 		(pad "1" thru_hole rect
 			(at 0 0)
@@ -52086,13 +51849,13 @@
 	(footprint "Jumper:SolderJumper-3_P1.3mm_Open_RoundedPad1.0x1.5mm"
 		(layer "F.Cu")
 		(uuid "d8ad01be-6f77-4d9d-8ac0-c29bcc635ab9")
-		(at 114.14 179.05)
+		(at 111.33 164.305)
 		(descr "SMD Solder 3-pad Jumper, 1x1.5mm rounded Pads, 0.3mm gap, open")
 		(tags "solder jumper open")
 		(property "Reference" "JP12"
 			(at 0 -1.8 0)
 			(layer "F.SilkS")
-			(uuid "a4f79031-f935-4f55-8378-e77fa80db4c6")
+			(uuid "998abc8e-7a5c-40b0-a14b-a4436b9e76b7")
 			(effects
 				(font
 					(size 1 1)
@@ -52103,7 +51866,8 @@
 		(property "Value" "SolderJumper_3_Open"
 			(at 0 1.9 0)
 			(layer "F.Fab")
-			(uuid "e9890eb5-da47-4853-a054-2c5e5a40e988")
+			(hide yes)
+			(uuid "04c7b4d7-4552-4720-911d-61a2dc23b520")
 			(effects
 				(font
 					(size 1 1)
@@ -52116,7 +51880,7 @@
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "e0b54d2a-3146-4d32-ba8a-b82604d989bc")
+			(uuid "7830b059-368b-4d95-a20b-8c7a85445426")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -52129,7 +51893,7 @@
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "013a4838-ced0-454a-9534-ff3c2e65539f")
+			(uuid "24f2c50e-b963-464a-bf3e-e75eba6f828d")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -52991,13 +52755,13 @@
 	(footprint "Jumper:SolderJumper-3_P1.3mm_Open_RoundedPad1.0x1.5mm"
 		(layer "F.Cu")
 		(uuid "db354c85-fbe6-4710-9c12-8f74f726dec0")
-		(at 122.42 190.4575)
+		(at 117.37 180.21)
 		(descr "SMD Solder 3-pad Jumper, 1x1.5mm rounded Pads, 0.3mm gap, open")
 		(tags "solder jumper open")
 		(property "Reference" "JP26"
 			(at 0 -1.8 0)
 			(layer "F.SilkS")
-			(uuid "c9e6a6b6-21d5-414f-8989-c808e47dc881")
+			(uuid "54129abd-f885-48c6-ac74-4b4da5e5bd08")
 			(effects
 				(font
 					(size 1 1)
@@ -53008,7 +52772,8 @@
 		(property "Value" "SolderJumper_3_Open"
 			(at 0 1.9 0)
 			(layer "F.Fab")
-			(uuid "edf45e04-9a59-4851-89ab-cce17af923d8")
+			(hide yes)
+			(uuid "d3843e0e-4877-4c3d-88a7-c8cc1302b411")
 			(effects
 				(font
 					(size 1 1)
@@ -53021,7 +52786,7 @@
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "49b735b2-c9bf-4156-b8e6-3151a5bc6029")
+			(uuid "94898715-3b19-4d07-86bc-2020521cfea1")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -53034,7 +52799,7 @@
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "3b9895b1-d6ed-40d3-9700-37f299953625")
+			(uuid "e039bf05-0ece-4e03-b7eb-f51984ed902c")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -53299,13 +53064,13 @@
 	(footprint "Jumper:SolderJumper-3_P1.3mm_Open_RoundedPad1.0x1.5mm"
 		(layer "F.Cu")
 		(uuid "ddbe1006-cfca-415d-80c4-186a19917648")
-		(at 114.14 190.555)
+		(at 117.19 168.46)
 		(descr "SMD Solder 3-pad Jumper, 1x1.5mm rounded Pads, 0.3mm gap, open")
 		(tags "solder jumper open")
 		(property "Reference" "JP23"
 			(at 0 -1.8 0)
 			(layer "F.SilkS")
-			(uuid "685e693e-341c-47c6-883e-ec02e4b58479")
+			(uuid "cc874d29-e752-43f1-b48d-5a471301c952")
 			(effects
 				(font
 					(size 1 1)
@@ -53316,7 +53081,8 @@
 		(property "Value" "SolderJumper_3_Open"
 			(at 0 1.9 0)
 			(layer "F.Fab")
-			(uuid "8dbec07c-f1a8-400d-ab64-af0fc2da50e5")
+			(hide yes)
+			(uuid "8246c02b-e28b-4750-a3f4-f307778b4252")
 			(effects
 				(font
 					(size 1 1)
@@ -53329,7 +53095,7 @@
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "c84179bb-7855-499a-a48d-14d8b210dcba")
+			(uuid "d87ac8bb-5e70-4ded-b87c-ac962ab2cd38")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -53342,7 +53108,7 @@
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "beffb2d3-53b3-4553-a010-2eda2efb5698")
+			(uuid "1a01a34e-51d9-459b-99d4-da4ba4802e2e")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -53806,13 +53572,13 @@
 	(footprint "Connector_PinHeader_2.54mm:PinHeader_1x01_P2.54mm_Vertical"
 		(layer "F.Cu")
 		(uuid "df73fafb-62f2-4f53-a853-4ff4acddd652")
-		(at 30.38 157.68)
+		(at 44.63 137.29)
 		(descr "Through hole straight pin header, 1x01, 2.54mm pitch, single row")
 		(tags "Through hole pin header THT 1x01 2.54mm single row")
 		(property "Reference" "TP8"
 			(at 0 -2.38 0)
 			(layer "F.SilkS")
-			(uuid "23162ed2-6c92-4108-ad6c-181cfc47d4a5")
+			(uuid "8aff8fce-6a4d-4b3b-9ada-64f2b8c8e081")
 			(effects
 				(font
 					(size 1 1)
@@ -53823,7 +53589,8 @@
 		(property "Value" "TestPoint"
 			(at 0 2.38 0)
 			(layer "F.Fab")
-			(uuid "cf8ecaff-26ab-4803-95fc-ce7387a82175")
+			(hide yes)
+			(uuid "c24b71ab-9c9c-445d-ad6d-689b15be5a84")
 			(effects
 				(font
 					(size 1 1)
@@ -53835,7 +53602,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "cde188eb-5a7d-47b0-99bd-e1366846f9fd")
+			(uuid "532cf9bd-4ca9-4288-ab4f-d4f9c3f1876e")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -53847,7 +53614,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "1483aa29-bd16-4a81-9cee-f1a8fa9c2347")
+			(uuid "ee2e49f4-d188-470e-812a-17ddb6c14e33")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -54009,17 +53776,6 @@
 			)
 			(layer "F.Fab")
 			(uuid "9429fbeb-c2ff-49ed-a5ce-3fc3a87dcbb3")
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 0 90)
-			(layer "F.Fab")
-			(uuid "f6e8911b-6fd6-4f91-833d-85c55d69a57c")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
 		)
 		(pad "1" thru_hole rect
 			(at 0 0)
@@ -54944,13 +54700,13 @@
 	(footprint "Connector_PinHeader_2.54mm:PinHeader_1x01_P2.54mm_Vertical"
 		(layer "F.Cu")
 		(uuid "e6579c9e-b857-4d3c-ac32-9539994159bb")
-		(at 52.2075 151.08)
+		(at 20.84 148.87)
 		(descr "Through hole straight pin header, 1x01, 2.54mm pitch, single row")
 		(tags "Through hole pin header THT 1x01 2.54mm single row")
 		(property "Reference" "TP21"
 			(at 0 -2.38 0)
 			(layer "F.SilkS")
-			(uuid "653309c9-6c99-481d-b131-853453561edd")
+			(uuid "b5ba6a72-da93-4fa6-bdad-c1bdd08dbd47")
 			(effects
 				(font
 					(size 1 1)
@@ -54961,7 +54717,8 @@
 		(property "Value" "TestPoint"
 			(at 0 2.38 0)
 			(layer "F.Fab")
-			(uuid "a038c54b-9d8f-4ad1-a59e-2f1d23df5e30")
+			(hide yes)
+			(uuid "9dce6252-28d8-4a2a-82bc-24b83fd86041")
 			(effects
 				(font
 					(size 1 1)
@@ -54973,7 +54730,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "7b0bb8c5-7c0d-4df8-9fe9-3312810678b6")
+			(uuid "8e5d5bc4-c4eb-4e79-ab24-8020eb67c9cf")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -54985,7 +54742,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "f60ea93e-55f1-4201-a4ba-f65e464d8307")
+			(uuid "e0d8541f-082d-46d1-bce7-4e291aa8eaf7")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -55148,17 +54905,6 @@
 			(layer "F.Fab")
 			(uuid "d301b316-f480-4a9e-a393-07b446a30ad4")
 		)
-		(fp_text user "${REFERENCE}"
-			(at 0 0 90)
-			(layer "F.Fab")
-			(uuid "9a180e55-8403-4fd6-82cf-2d6f85a39517")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
 		(pad "1" thru_hole rect
 			(at 0 0)
 			(size 1.7 1.7)
@@ -55186,13 +54932,13 @@
 	(footprint "Connector_PinHeader_2.54mm:PinHeader_1x01_P2.54mm_Vertical"
 		(layer "F.Cu")
 		(uuid "e859bebf-0712-4ac0-b11c-46157d227562")
-		(at 23.21 160.65)
+		(at 16.45 149.01)
 		(descr "Through hole straight pin header, 1x01, 2.54mm pitch, single row")
 		(tags "Through hole pin header THT 1x01 2.54mm single row")
 		(property "Reference" "TP20"
 			(at 0 -2.38 0)
 			(layer "F.SilkS")
-			(uuid "da646966-3cba-44e2-8e51-1b093cab1646")
+			(uuid "854a20c1-de25-4b7e-8a25-7fca2a71f175")
 			(effects
 				(font
 					(size 1 1)
@@ -55203,7 +54949,8 @@
 		(property "Value" "TestPoint"
 			(at 0 2.38 0)
 			(layer "F.Fab")
-			(uuid "39d94f41-23e2-401a-b919-8ccdffc75cde")
+			(hide yes)
+			(uuid "3baf7bce-dc40-4fec-b9c8-bbf02f669ccf")
 			(effects
 				(font
 					(size 1 1)
@@ -55215,7 +54962,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "13d43c8c-8bbf-49e6-b0ac-68459715a378")
+			(uuid "bbfe47f6-ba96-4225-9e3f-195f85eb3385")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -55227,7 +54974,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "f156beaf-ac3c-4f9c-90b5-e8f6a70b7393")
+			(uuid "8d6eabda-6951-4fd0-986b-b25059179b0e")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -55389,17 +55136,6 @@
 			)
 			(layer "F.Fab")
 			(uuid "eb64612b-142a-4b7e-88e1-f631993ef54e")
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 0 90)
-			(layer "F.Fab")
-			(uuid "592d310d-dbcc-49de-9b6a-f01f3f1722a8")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
 		)
 		(pad "1" thru_hole rect
 			(at 0 0)
@@ -57209,13 +56945,13 @@
 	(footprint "Connector_PinHeader_2.54mm:PinHeader_1x01_P2.54mm_Vertical"
 		(layer "F.Cu")
 		(uuid "f41a628d-a8bc-43a4-9e67-c69a4223dcd9")
-		(at 56.33 156.42)
+		(at 46.03 148.92)
 		(descr "Through hole straight pin header, 1x01, 2.54mm pitch, single row")
 		(tags "Through hole pin header THT 1x01 2.54mm single row")
 		(property "Reference" "TP28"
 			(at 0 -2.38 0)
 			(layer "F.SilkS")
-			(uuid "6ee6d03d-1cb3-4f73-a469-e2eaa660474c")
+			(uuid "788392cc-b643-48ba-9e86-412df56c1061")
 			(effects
 				(font
 					(size 1 1)
@@ -57226,7 +56962,8 @@
 		(property "Value" "TestPoint"
 			(at 0 2.38 0)
 			(layer "F.Fab")
-			(uuid "8ee812ae-623d-4ffd-a6f2-5bccebe9a93f")
+			(hide yes)
+			(uuid "60639e84-944b-401c-9910-7f2ea2d85f69")
 			(effects
 				(font
 					(size 1 1)
@@ -57238,7 +56975,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "238d39da-d855-487c-8d89-106eb36369c2")
+			(uuid "7eac805c-be1d-4688-a33e-fda11a4fcd1d")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -57250,7 +56987,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "f4a03e9b-e073-4239-8965-6d12ce74bf0d")
+			(uuid "5339d552-45ef-4dfe-8510-e5a0ea39ef74")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -57413,17 +57150,6 @@
 			(layer "F.Fab")
 			(uuid "02223b34-7afa-43c6-8fcd-84a906e5edfd")
 		)
-		(fp_text user "${REFERENCE}"
-			(at 0 0 90)
-			(layer "F.Fab")
-			(uuid "6ec7aace-0c27-4196-b4ba-377598d5bfb0")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
 		(pad "1" thru_hole rect
 			(at 0 0)
 			(size 1.7 1.7)
@@ -57451,13 +57177,13 @@
 	(footprint "Jumper:SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm"
 		(layer "F.Cu")
 		(uuid "f4224f02-422d-4b28-b190-c2ac332921ae")
-		(at 134.37 178.49)
+		(at 105.16 182.87)
 		(descr "SMD Solder Jumper, 1x1.5mm, rounded Pads, 0.3mm gap, open")
 		(tags "solder jumper open")
 		(property "Reference" "JP8"
 			(at 0 -1.8 0)
 			(layer "F.SilkS")
-			(uuid "51672d39-4fe6-417b-816c-cd7caeb7996e")
+			(uuid "286eb9ec-a2a3-43dd-8a58-06dc2e156131")
 			(effects
 				(font
 					(size 1 1)
@@ -57468,7 +57194,8 @@
 		(property "Value" "SolderJumper_2_Open"
 			(at 0 1.9 0)
 			(layer "F.Fab")
-			(uuid "c0ead0fe-0889-46b1-bd50-0d431c08a54b")
+			(hide yes)
+			(uuid "8a60534a-f5a6-492f-8931-2340d7c0d120")
 			(effects
 				(font
 					(size 1 1)
@@ -57481,7 +57208,7 @@
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "8a59d0ec-39c6-4d7c-a9ce-0b7ca88e1dec")
+			(uuid "01f5ee0a-e672-44bc-97dc-d3be0c3bb4a8")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -57494,7 +57221,7 @@
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "2e347223-fb5c-4159-93e2-f790664ab798")
+			(uuid "148198f8-95a8-460f-b7af-845e51e9446f")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -57919,13 +57646,13 @@
 	(footprint "Jumper:SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm"
 		(layer "F.Cu")
 		(uuid "f7e71402-45b2-457a-ab8f-3b6e0e611a3b")
-		(at 139.2 182.17)
+		(at 117.42 184.08)
 		(descr "SMD Solder Jumper, 1x1.5mm, rounded Pads, 0.3mm gap, open")
 		(tags "solder jumper open")
 		(property "Reference" "JP27"
 			(at 0 -1.8 0)
 			(layer "F.SilkS")
-			(uuid "a01eab22-8f17-4d1e-bff7-3ad01f885f4f")
+			(uuid "8ee74a77-95c2-4187-887a-8d10687e2212")
 			(effects
 				(font
 					(size 1 1)
@@ -57936,7 +57663,8 @@
 		(property "Value" "SolderJumper_2_Open"
 			(at 0 1.9 0)
 			(layer "F.Fab")
-			(uuid "1c19bc1c-3631-486c-8e98-bdabd721553c")
+			(hide yes)
+			(uuid "b568ff19-529e-4331-a66f-4615d0b5886a")
 			(effects
 				(font
 					(size 1 1)
@@ -57949,7 +57677,7 @@
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "a9b9e60c-4cef-4b32-97ba-ae796c28aeaf")
+			(uuid "4101612c-4aa3-4991-bd73-0973487a9a42")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -57962,7 +57690,7 @@
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "3b1f60b7-b336-4c8d-bdaf-9d317fcdbcf0")
+			(uuid "bf303cba-8f94-420b-8d36-488bb5760488")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -58188,13 +57916,13 @@
 	(footprint "Connector_PinHeader_2.54mm:PinHeader_1x01_P2.54mm_Vertical"
 		(layer "F.Cu")
 		(uuid "f8fa5ef1-8023-47b3-b379-d9b8c076e4f6")
-		(at 34.85 154.36)
+		(at 16.67 142.91)
 		(descr "Through hole straight pin header, 1x01, 2.54mm pitch, single row")
 		(tags "Through hole pin header THT 1x01 2.54mm single row")
 		(property "Reference" "TP10"
 			(at 0 -2.38 0)
 			(layer "F.SilkS")
-			(uuid "f48ec06b-c912-4c1f-bac6-9b8e60583700")
+			(uuid "1aeed84a-09b7-48e5-a6eb-331633caf23e")
 			(effects
 				(font
 					(size 1 1)
@@ -58205,7 +57933,8 @@
 		(property "Value" "TestPoint"
 			(at 0 2.38 0)
 			(layer "F.Fab")
-			(uuid "db1abbc9-04a3-4b3d-9fc5-261254dfa4e4")
+			(hide yes)
+			(uuid "4812da72-9eac-4502-8832-913afd020cde")
 			(effects
 				(font
 					(size 1 1)
@@ -58217,7 +57946,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "7ba7b31a-f9af-4ce5-b0bd-06690e516603")
+			(uuid "1fab8a67-6a7e-4a05-8e2a-a47ca3bdf024")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -58229,7 +57958,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "11edfe9f-1ada-4480-9d89-ac4ebb987424")
+			(uuid "838d9a57-1ba3-41d0-a651-6025e1259c8e")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -58392,17 +58121,6 @@
 			(layer "F.Fab")
 			(uuid "b777fd4d-a171-4195-ac62-06cecd44a781")
 		)
-		(fp_text user "${REFERENCE}"
-			(at 0 0 90)
-			(layer "F.Fab")
-			(uuid "33c54ee6-ed41-455f-8819-257fe09136fe")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
 		(pad "1" thru_hole rect
 			(at 0 0)
 			(size 1.7 1.7)
@@ -58430,13 +58148,13 @@
 	(footprint "Connector_PinHeader_2.54mm:PinHeader_1x01_P2.54mm_Vertical"
 		(layer "F.Cu")
 		(uuid "fc325c34-4e39-4ae9-bc05-e18c493fc1cf")
-		(at 27.05 154.63)
+		(at 20.52 137.24)
 		(descr "Through hole straight pin header, 1x01, 2.54mm pitch, single row")
 		(tags "Through hole pin header THT 1x01 2.54mm single row")
 		(property "Reference" "TP2"
 			(at 0 -2.38 0)
 			(layer "F.SilkS")
-			(uuid "84e40ea0-d569-4027-ae9e-07e49c475adc")
+			(uuid "39e19c7e-2644-4ddf-afbe-6247ed96d3c7")
 			(effects
 				(font
 					(size 1 1)
@@ -58447,7 +58165,8 @@
 		(property "Value" "TestPoint"
 			(at 0 2.38 0)
 			(layer "F.Fab")
-			(uuid "3019c5f6-16d5-46eb-859b-a2e5381233d0")
+			(hide yes)
+			(uuid "50de0948-b6fe-45c9-bc26-ecea77979819")
 			(effects
 				(font
 					(size 1 1)
@@ -58459,7 +58178,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "d197e3d9-1c01-45c3-ad29-4699dc7b16ca")
+			(uuid "0cd0a61c-6e5f-4ad9-943c-8014c2329c9b")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -58471,7 +58190,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "e42c43d8-7688-4ff5-abe5-85afbc176cc5")
+			(uuid "7c80af9f-d5b2-4965-91a5-f6c2fc278220")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -58634,17 +58353,6 @@
 			(layer "F.Fab")
 			(uuid "74440841-b00c-4ae9-b41f-514d8fccd178")
 		)
-		(fp_text user "${REFERENCE}"
-			(at 0 0 90)
-			(layer "F.Fab")
-			(uuid "542c3293-bb9c-4a25-be6c-8bcc42e2de61")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
-		)
 		(pad "1" thru_hole rect
 			(at 0 0)
 			(size 1.7 1.7)
@@ -58672,13 +58380,13 @@
 	(footprint "Connector_PinHeader_2.54mm:PinHeader_1x01_P2.54mm_Vertical"
 		(layer "F.Cu")
 		(uuid "fec91880-cfc4-4bca-927a-a8ea9e6863d6")
-		(at 16.55 157.6)
+		(at 25.26 142.72)
 		(descr "Through hole straight pin header, 1x01, 2.54mm pitch, single row")
 		(tags "Through hole pin header THT 1x01 2.54mm single row")
 		(property "Reference" "TP12"
 			(at 0 -2.38 0)
 			(layer "F.SilkS")
-			(uuid "8f21fa63-1f13-4f6a-92e1-3672bd8a02ce")
+			(uuid "4178c96e-9b13-4410-902b-512cb67c810f")
 			(effects
 				(font
 					(size 1 1)
@@ -58689,7 +58397,8 @@
 		(property "Value" "TestPoint"
 			(at 0 2.38 0)
 			(layer "F.Fab")
-			(uuid "136eb86d-5c1c-473a-9e4a-d55ae01542eb")
+			(hide yes)
+			(uuid "c9696e5e-8a5e-4c11-a6fa-6a974859ff51")
 			(effects
 				(font
 					(size 1 1)
@@ -58701,7 +58410,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "47712e21-3e56-48d3-b19b-c12081100e36")
+			(uuid "76f2ba3c-b2f0-4567-844c-6975c5320603")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -58713,7 +58422,7 @@
 			(at 0 0 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "2f7ece64-93ec-4895-afa6-f2cfee204ecc")
+			(uuid "85385681-bb12-4dee-bffc-81ba31e4c51f")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -58875,17 +58584,6 @@
 			)
 			(layer "F.Fab")
 			(uuid "73f54989-0693-4e00-b519-6b0634a8d61c")
-		)
-		(fp_text user "${REFERENCE}"
-			(at 0 0 90)
-			(layer "F.Fab")
-			(uuid "93e00e84-14b1-4d22-ad00-3e92b582cb4f")
-			(effects
-				(font
-					(size 1 1)
-					(thickness 0.15)
-				)
-			)
 		)
 		(pad "1" thru_hole rect
 			(at 0 0)
