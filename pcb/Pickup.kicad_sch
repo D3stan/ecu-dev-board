@@ -7270,7 +7270,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "SamacSys_Parts:BZT52B5V1E308"
+		(property "Footprint" "Diode_SMD:D_SOD-123"
 			(at 209.55 92.71 0)
 			(effects
 				(font
