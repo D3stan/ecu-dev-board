@@ -1502,7 +1502,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "708fb609-6a95-45ce-99c7-2ab46073ae41")
-		(property "Reference" "J1"
+		(property "Reference" "J101"
 			(at 67.31 156.21 0)
 			(effects
 				(font
@@ -1684,7 +1684,7 @@
 		(instances
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b"
-					(reference "J1")
+					(reference "J101")
 					(unit 1)
 				)
 			)
@@ -1699,7 +1699,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "c43a094a-3ab5-426e-aade-0aa7910c725b")
-		(property "Reference" "J2"
+		(property "Reference" "J102"
 			(at 120.904 160.02 0)
 			(effects
 				(font
@@ -1832,7 +1832,7 @@
 		(instances
 			(project ""
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b"
-					(reference "J2")
+					(reference "J102")
 					(unit 1)
 				)
 			)
@@ -1847,7 +1847,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "d75e2daa-6491-4d39-b74b-eaaba43f2180")
-		(property "Reference" "#PWR049"
+		(property "Reference" "#PWR0101"
 			(at 40.64 166.37 0)
 			(effects
 				(font
@@ -1898,7 +1898,7 @@
 		(instances
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b"
-					(reference "#PWR049")
+					(reference "#PWR0101")
 					(unit 1)
 				)
 			)
@@ -1913,7 +1913,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "eecd481f-b1b0-4c99-b20d-da94b739e94d")
-		(property "Reference" "#PWR059"
+		(property "Reference" "#PWR0102"
 			(at 50.8 168.91 0)
 			(effects
 				(font
@@ -1963,7 +1963,7 @@
 		(instances
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b"
-					(reference "#PWR059")
+					(reference "#PWR0102")
 					(unit 1)
 				)
 			)

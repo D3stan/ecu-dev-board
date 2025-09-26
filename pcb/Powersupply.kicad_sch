@@ -3789,12 +3789,6 @@
 		(uuid "53fb2360-7632-47e9-bdfc-cc6faa299314")
 	)
 	(junction
-		(at 175.26 22.86)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "553f427c-2252-48b4-95e0-3683c708479b")
-	)
-	(junction
 		(at 153.67 166.37)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -3853,6 +3847,12 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "83481e98-97e1-41d4-b9b5-20036b3f203c")
+	)
+	(junction
+		(at 190.5 22.86)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "83ba2aad-27d3-4b83-a832-8904a4f74743")
 	)
 	(junction
 		(at 153.67 156.21)
@@ -4158,6 +4158,16 @@
 	)
 	(wire
 		(pts
+			(xy 170.18 22.86) (xy 160.02 22.86)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "0df61fe5-4fd4-42a6-adde-a4a9b3817cf3")
+	)
+	(wire
+		(pts
 			(xy 142.24 74.93) (xy 142.24 78.74)
 		)
 		(stroke
@@ -4215,16 +4225,6 @@
 			(type default)
 		)
 		(uuid "12516eb5-9dcf-43a0-bed4-f9f40da92058")
-	)
-	(wire
-		(pts
-			(xy 160.02 22.86) (xy 170.18 22.86)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "12a47c1c-1a0b-4e8d-b055-8cc8fbd9a0ba")
 	)
 	(wire
 		(pts
@@ -4445,16 +4445,6 @@
 			(type default)
 		)
 		(uuid "411b8061-f858-4bcd-98c9-001da06e51a1")
-	)
-	(wire
-		(pts
-			(xy 170.18 22.86) (xy 175.26 22.86)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "43514d74-91cc-41e3-b941-441d3b1c8b0f")
 	)
 	(wire
 		(pts
@@ -4938,16 +4928,6 @@
 	)
 	(wire
 		(pts
-			(xy 175.26 22.86) (xy 180.34 22.86)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "908c4afa-ff8f-4dde-b92c-bbfcb4aa8886")
-	)
-	(wire
-		(pts
 			(xy 148.59 144.78) (xy 153.67 144.78)
 		)
 		(stroke
@@ -5148,7 +5128,7 @@
 	)
 	(wire
 		(pts
-			(xy 175.26 22.86) (xy 175.26 25.4)
+			(xy 190.5 22.86) (xy 190.5 24.13)
 		)
 		(stroke
 			(width 0)
@@ -5215,6 +5195,16 @@
 			(type default)
 		)
 		(uuid "b51ad676-e59c-4f7e-b443-03eb19804664")
+	)
+	(wire
+		(pts
+			(xy 180.34 22.86) (xy 170.18 22.86)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "b56ef2fb-2fc5-4f3a-a2a0-f47fd7dae384")
 	)
 	(wire
 		(pts
@@ -5800,7 +5790,7 @@
 		(dnp yes)
 		(fields_autoplaced yes)
 		(uuid "026fb06a-5d28-4cbd-9007-94c8d302e52f")
-		(property "Reference" "Q3"
+		(property "Reference" "Q601"
 			(at 340.36 132.08 90)
 			(effects
 				(font
@@ -5855,7 +5845,7 @@
 		(instances
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
-					(reference "Q3")
+					(reference "Q601")
 					(unit 1)
 				)
 			)
@@ -5870,7 +5860,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "07d8657a-addb-4c16-a5b3-b1c1a99eb7ef")
-		(property "Reference" "#PWR031"
+		(property "Reference" "#PWR0613"
 			(at 267.97 62.23 0)
 			(effects
 				(font
@@ -5920,7 +5910,7 @@
 		(instances
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
-					(reference "#PWR031")
+					(reference "#PWR0613")
 					(unit 1)
 				)
 			)
@@ -5936,7 +5926,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "1819c7d6-35ca-4595-a710-4134199cd91b")
-		(property "Reference" "U3"
+		(property "Reference" "U601"
 			(at 87.63 134.62 0)
 			(effects
 				(font
@@ -6001,7 +5991,7 @@
 		(instances
 			(project ""
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
-					(reference "U3")
+					(reference "U601")
 					(unit 1)
 				)
 			)
@@ -6017,7 +6007,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "1906db0c-a90d-4732-a8f1-d8dd985cceef")
-		(property "Reference" "R43"
+		(property "Reference" "R610"
 			(at 257.81 138.4299 0)
 			(effects
 				(font
@@ -6071,7 +6061,7 @@
 		(instances
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
-					(reference "R43")
+					(reference "R610")
 					(unit 1)
 				)
 			)
@@ -6086,7 +6076,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "1fef1043-be01-40f8-9a27-cf900935d475")
-		(property "Reference" "#PWR0506"
+		(property "Reference" "#PWR0608"
 			(at 222.25 160.02 0)
 			(effects
 				(font
@@ -6136,7 +6126,7 @@
 		(instances
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
-					(reference "#PWR0506")
+					(reference "#PWR0608")
 					(unit 1)
 				)
 			)
@@ -6151,7 +6141,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "21a8ae7d-836b-44d8-bf14-ecf567c8e3b0")
-		(property "Reference" "C21"
+		(property "Reference" "C604"
 			(at 68.834 147.32 0)
 			(effects
 				(font
@@ -6205,7 +6195,7 @@
 		(instances
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
-					(reference "C21")
+					(reference "C604")
 					(unit 1)
 				)
 			)
@@ -6221,7 +6211,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "223a4454-dcc5-425b-b37f-333cabb48870")
-		(property "Reference" "D23"
+		(property "Reference" "D606"
 			(at 194.6275 72.39 0)
 			(effects
 				(font
@@ -6273,7 +6263,7 @@
 		(instances
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
-					(reference "D23")
+					(reference "D606")
 					(unit 1)
 				)
 			)
@@ -6288,7 +6278,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "2349e720-6c1d-41c9-9fba-916e2263681b")
-		(property "Reference" "C24"
+		(property "Reference" "C608"
 			(at 139.954 149.86 0)
 			(effects
 				(font
@@ -6342,7 +6332,7 @@
 		(instances
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
-					(reference "C24")
+					(reference "C608")
 					(unit 1)
 				)
 			)
@@ -6358,7 +6348,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "237d93bd-9e79-4403-a44a-0086dd0a596b")
-		(property "Reference" "#PWR085"
+		(property "Reference" "#PWR0616"
 			(at 271.78 137.16 0)
 			(effects
 				(font
@@ -6408,7 +6398,7 @@
 		(instances
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
-					(reference "#PWR085")
+					(reference "#PWR0616")
 					(unit 1)
 				)
 			)
@@ -6423,7 +6413,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "2a297c2f-e269-44f7-9c06-77e849c60639")
-		(property "Reference" "JP9"
+		(property "Reference" "JP604"
 			(at 236.474 74.93 0)
 			(effects
 				(font
@@ -6476,7 +6466,7 @@
 		(instances
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
-					(reference "JP9")
+					(reference "JP604")
 					(unit 1)
 				)
 			)
@@ -6492,7 +6482,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "322f8f63-f396-4d25-bf52-3714eae02bcf")
-		(property "Reference" "#PWR083"
+		(property "Reference" "#PWR0611"
 			(at 255.27 137.16 0)
 			(effects
 				(font
@@ -6542,7 +6532,7 @@
 		(instances
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
-					(reference "#PWR083")
+					(reference "#PWR0611")
 					(unit 1)
 				)
 			)
@@ -6557,7 +6547,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "34e7cbaf-c06f-4a8c-a223-bc4d1a70d270")
-		(property "Reference" "D10"
+		(property "Reference" "D604"
 			(at 149.86 34.29 0)
 			(effects
 				(font
@@ -6627,7 +6617,7 @@
 		(instances
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
-					(reference "D10")
+					(reference "D604")
 					(unit 1)
 				)
 			)
@@ -6642,7 +6632,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "36adf00d-cb4f-4e39-bb6c-e680ec4f27c7")
-		(property "Reference" "#PWR024"
+		(property "Reference" "#PWR0602"
 			(at 59.69 44.45 0)
 			(effects
 				(font
@@ -6693,7 +6683,7 @@
 		(instances
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
-					(reference "#PWR024")
+					(reference "#PWR0602")
 					(unit 1)
 				)
 			)
@@ -6708,7 +6698,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "3bbfef9a-3e3c-405b-adcd-11ff3229b408")
-		(property "Reference" "R27"
+		(property "Reference" "R601"
 			(at 76.2 92.7099 0)
 			(effects
 				(font
@@ -6761,7 +6751,7 @@
 		(instances
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
-					(reference "R27")
+					(reference "R601")
 					(unit 1)
 				)
 			)
@@ -6776,7 +6766,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "3bfb0ae5-5cb1-430c-ba33-715cc16f3a47")
-		(property "Reference" "C25"
+		(property "Reference" "C610"
 			(at 147.574 160.02 0)
 			(effects
 				(font
@@ -6830,7 +6820,7 @@
 		(instances
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
-					(reference "C25")
+					(reference "C610")
 					(unit 1)
 				)
 			)
@@ -6845,7 +6835,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "3c4d4649-50f6-4417-815a-c3f7c5bbdd2f")
-		(property "Reference" "L1"
+		(property "Reference" "L602"
 			(at 165.354 80.772 90)
 			(effects
 				(font
@@ -6896,7 +6886,7 @@
 		(instances
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
-					(reference "L1")
+					(reference "L602")
 					(unit 1)
 				)
 			)
@@ -6911,7 +6901,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "3ca24ee9-fef8-45a6-893a-26dacb3962cb")
-		(property "Reference" "R34"
+		(property "Reference" "R602"
 			(at 156.21 160.0199 0)
 			(effects
 				(font
@@ -6965,7 +6955,7 @@
 		(instances
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
-					(reference "R34")
+					(reference "R602")
 					(unit 1)
 				)
 			)
@@ -6980,7 +6970,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "4243553a-29b4-42d6-8888-ab6b9e5bc13a")
-		(property "Reference" "TP29"
+		(property "Reference" "TP602"
 			(at 224.536 116.332 0)
 			(effects
 				(font
@@ -7032,7 +7022,7 @@
 		(instances
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
-					(reference "TP29")
+					(reference "TP602")
 					(unit 1)
 				)
 			)
@@ -7047,7 +7037,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "424db39a-f2ff-4a5e-a306-031a48f14539")
-		(property "Reference" "C20"
+		(property "Reference" "C603"
 			(at 58.674 147.32 0)
 			(effects
 				(font
@@ -7101,7 +7091,75 @@
 		(instances
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
-					(reference "C20")
+					(reference "C603")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Mechanical:MountingHole_Pad")
+		(at 190.5 17.78 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "45ea662b-39b1-49a9-990b-afb5e6490382")
+		(property "Reference" "H604"
+			(at 193.04 15.2399 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "MountingHole_Pad"
+			(at 193.04 17.7799 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Footprint" "MountingHole:MountingHole_3.2mm_M3_DIN965_Pad"
+			(at 190.5 17.78 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 190.5 17.78 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Mounting Hole with connection"
+			(at 190.5 17.78 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "50c34085-11f2-4a91-a646-e8135a41fa5a")
+		)
+		(instances
+			(project "ecu-dev-board"
+				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
+					(reference "H604")
 					(unit 1)
 				)
 			)
@@ -7116,7 +7174,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "473cec46-af0a-4962-acbd-e7daf2d3459d")
-		(property "Reference" "C504"
+		(property "Reference" "C615"
 			(at 223.52 143.51 0)
 			(effects
 				(font
@@ -7170,7 +7228,7 @@
 		(instances
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
-					(reference "C504")
+					(reference "C615")
 					(unit 1)
 				)
 			)
@@ -7185,7 +7243,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "473fdca4-506a-4b8e-998b-35cb73214067")
-		(property "Reference" "JP26"
+		(property "Reference" "JP602"
 			(at 51.562 38.354 0)
 			(effects
 				(font
@@ -7243,7 +7301,7 @@
 		(instances
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
-					(reference "JP26")
+					(reference "JP602")
 					(unit 1)
 				)
 			)
@@ -7259,7 +7317,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "5ccb229f-fb6f-43f5-aba6-5dcb724861df")
-		(property "Reference" "IC3"
+		(property "Reference" "IC601"
 			(at 104.14 63.5 0)
 			(effects
 				(font
@@ -7411,7 +7469,7 @@
 		(instances
 			(project ""
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
-					(reference "IC3")
+					(reference "IC601")
 					(unit 1)
 				)
 			)
@@ -7426,7 +7484,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "5d42cf47-fdb5-4088-b3c9-3c05d63e8b7a")
-		(property "Reference" "D9"
+		(property "Reference" "D605"
 			(at 162.56 91.44 90)
 			(effects
 				(font
@@ -7496,7 +7554,7 @@
 		(instances
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
-					(reference "D9")
+					(reference "D605")
 					(unit 1)
 				)
 			)
@@ -7512,7 +7570,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "5fc57301-a345-46f9-842b-c9f0c6e9fd79")
-		(property "Reference" "D8"
+		(property "Reference" "D601"
 			(at 34.29 91.4399 90)
 			(effects
 				(font
@@ -7648,75 +7706,7 @@
 		(instances
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
-					(reference "D8")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Mechanical:MountingHole_Pad")
-		(at 180.34 17.78 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom no)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "61dd4ef3-7915-4113-a602-1887be28f3c7")
-		(property "Reference" "H3"
-			(at 182.88 15.2399 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "MountingHole_Pad"
-			(at 182.88 17.7799 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-		(property "Footprint" ""
-			(at 180.34 17.78 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 180.34 17.78 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Mounting Hole with connection"
-			(at 180.34 17.78 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "70c84306-89b8-4749-a570-c05b1c298159")
-		)
-		(instances
-			(project "ecu-dev-board"
-				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
-					(reference "H3")
+					(reference "D601")
 					(unit 1)
 				)
 			)
@@ -7731,7 +7721,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "68ba3fbc-2008-4138-957f-1d8483cb769c")
-		(property "Reference" "R35"
+		(property "Reference" "R608"
 			(at 206.756 49.276 0)
 			(effects
 				(font
@@ -7783,7 +7773,7 @@
 		(instances
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
-					(reference "R35")
+					(reference "R608")
 					(unit 1)
 				)
 			)
@@ -7798,7 +7788,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "6b0767d3-cd3b-4a7b-963b-27ed25f55d59")
-		(property "Reference" "JP8"
+		(property "Reference" "JP601"
 			(at 33.274 22.86 0)
 			(effects
 				(font
@@ -7851,7 +7841,7 @@
 		(instances
 			(project ""
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
-					(reference "JP8")
+					(reference "JP601")
 					(unit 1)
 				)
 			)
@@ -7867,7 +7857,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "6dff237a-0f10-4b7a-9cb4-6476b4ed355d")
-		(property "Reference" "D24"
+		(property "Reference" "D609"
 			(at 232.7275 133.35 0)
 			(effects
 				(font
@@ -7919,7 +7909,7 @@
 		(instances
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
-					(reference "D24")
+					(reference "D609")
 					(unit 1)
 				)
 			)
@@ -7934,7 +7924,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "6f5f97b2-0414-467f-ac8d-430f89d4010c")
-		(property "Reference" "C22"
+		(property "Reference" "C605"
 			(at 101.854 135.89 90)
 			(effects
 				(font
@@ -7988,7 +7978,7 @@
 		(instances
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
-					(reference "C22")
+					(reference "C605")
 					(unit 1)
 				)
 			)
@@ -8003,7 +7993,7 @@
 		(on_board yes)
 		(dnp yes)
 		(uuid "71a06f11-dace-417c-8969-9fee0eca4709")
-		(property "Reference" "C501"
+		(property "Reference" "C612"
 			(at 199.39 143.51 0)
 			(effects
 				(font
@@ -8057,7 +8047,7 @@
 		(instances
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
-					(reference "C501")
+					(reference "C612")
 					(unit 1)
 				)
 			)
@@ -8072,7 +8062,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "7c0f3b02-d2d1-4040-8ab1-28ad126e2bcf")
-		(property "Reference" "JP10"
+		(property "Reference" "JP605"
 			(at 236.474 104.14 0)
 			(effects
 				(font
@@ -8125,7 +8115,7 @@
 		(instances
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
-					(reference "JP10")
+					(reference "JP605")
 					(unit 1)
 				)
 			)
@@ -8141,7 +8131,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "8504e6d9-1cde-4783-aee6-a06e0b60f7b3")
-		(property "Reference" "#PWR032"
+		(property "Reference" "#PWR0601"
 			(at 45.72 162.56 0)
 			(effects
 				(font
@@ -8191,7 +8181,7 @@
 		(instances
 			(project ""
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
-					(reference "#PWR032")
+					(reference "#PWR0601")
 					(unit 1)
 				)
 			)
@@ -8199,7 +8189,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 175.26 25.4 0)
+		(at 190.5 24.13 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -8207,8 +8197,8 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "882f8c31-7310-4f1a-b93f-95ade1c17b01")
-		(property "Reference" "#PWR057"
-			(at 175.26 31.75 0)
+		(property "Reference" "#PWR0607"
+			(at 190.5 30.48 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8217,7 +8207,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 175.26 30.48 0)
+			(at 190.5 29.21 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8225,7 +8215,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 175.26 25.4 0)
+			(at 190.5 24.13 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8234,7 +8224,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 175.26 25.4 0)
+			(at 190.5 24.13 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8243,7 +8233,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 175.26 25.4 0)
+			(at 190.5 24.13 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8257,7 +8247,7 @@
 		(instances
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
-					(reference "#PWR057")
+					(reference "#PWR0607")
 					(unit 1)
 				)
 			)
@@ -8272,7 +8262,7 @@
 		(on_board yes)
 		(dnp yes)
 		(uuid "8ed0ce33-d39b-4a87-8b03-29358e6acf6f")
-		(property "Reference" "C14"
+		(property "Reference" "C607"
 			(at 135.89 69.85 90)
 			(effects
 				(font
@@ -8326,7 +8316,7 @@
 		(instances
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
-					(reference "C14")
+					(reference "C607")
 					(unit 1)
 				)
 			)
@@ -8341,7 +8331,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "8f246645-7cd6-4a79-b863-58a0a6abcd6a")
-		(property "Reference" "#PWR0504"
+		(property "Reference" "#PWR0606"
 			(at 181.61 140.97 0)
 			(effects
 				(font
@@ -8391,7 +8381,7 @@
 		(instances
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
-					(reference "#PWR0504")
+					(reference "#PWR0606")
 					(unit 1)
 				)
 			)
@@ -8407,7 +8397,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "93c4f629-f7cb-47de-8548-de5eec7b54be")
-		(property "Reference" "D21"
+		(property "Reference" "D603"
 			(at 145.0975 138.43 0)
 			(effects
 				(font
@@ -8459,75 +8449,7 @@
 		(instances
 			(project ""
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
-					(reference "D21")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Mechanical:MountingHole_Pad")
-		(at 190.5 17.78 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom no)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "9707d165-7b72-4fad-a4af-c2e26f5d0bef")
-		(property "Reference" "H4"
-			(at 193.04 15.2399 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "MountingHole_Pad"
-			(at 193.04 17.7799 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-		(property "Footprint" ""
-			(at 190.5 17.78 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 190.5 17.78 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Mounting Hole with connection"
-			(at 190.5 17.78 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "bb4e370a-235c-494b-ac36-96f231c54156")
-		)
-		(instances
-			(project "ecu-dev-board"
-				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
-					(reference "H4")
+					(reference "D603")
 					(unit 1)
 				)
 			)
@@ -8542,7 +8464,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "9a65cae6-a630-4836-b27f-fc94d1bc8afe")
-		(property "Reference" "C502"
+		(property "Reference" "C613"
 			(at 208.28 143.51 0)
 			(effects
 				(font
@@ -8596,7 +8518,7 @@
 		(instances
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
-					(reference "C502")
+					(reference "C613")
 					(unit 1)
 				)
 			)
@@ -8611,7 +8533,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "9f51306e-2f42-42cd-9253-fa11a95eeecc")
-		(property "Reference" "R33"
+		(property "Reference" "R604"
 			(at 156.21 179.0699 0)
 			(effects
 				(font
@@ -8665,7 +8587,7 @@
 		(instances
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
-					(reference "R33")
+					(reference "R604")
 					(unit 1)
 				)
 			)
@@ -8681,7 +8603,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "9fe564e8-3af2-47b3-9e90-9877814b9932")
-		(property "Reference" "R23"
+		(property "Reference" "R606"
 			(at 160.02 68.5799 0)
 			(effects
 				(font
@@ -8735,7 +8657,7 @@
 		(instances
 			(project ""
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
-					(reference "R23")
+					(reference "R606")
 					(unit 1)
 				)
 			)
@@ -8750,7 +8672,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "a2389010-26a6-4430-9faa-684039016ce4")
-		(property "Reference" "D20"
+		(property "Reference" "D611"
 			(at 274.828 148.59 90)
 			(effects
 				(font
@@ -8813,7 +8735,7 @@
 		(instances
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
-					(reference "D20")
+					(reference "D611")
 					(unit 1)
 				)
 			)
@@ -8829,7 +8751,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "a4fc5e28-35b8-43b3-ba1a-2c03dae80b9e")
-		(property "Reference" "FB1"
+		(property "Reference" "FB601"
 			(at 260.2992 20.32 90)
 			(effects
 				(font
@@ -8881,7 +8803,7 @@
 		(instances
 			(project ""
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
-					(reference "FB1")
+					(reference "FB601")
 					(unit 1)
 				)
 			)
@@ -8896,7 +8818,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "a6a5d438-7c96-4a4b-867c-b2dd7b4b1308")
-		(property "Reference" "C23"
+		(property "Reference" "C606"
 			(at 128.524 149.86 0)
 			(effects
 				(font
@@ -8950,7 +8872,75 @@
 		(instances
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
-					(reference "C23")
+					(reference "C606")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Mechanical:MountingHole_Pad")
+		(at 170.18 17.78 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "a8cc15b5-6793-4d68-8ecd-8e36e9b0874b")
+		(property "Reference" "H602"
+			(at 172.72 15.2399 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "MountingHole_Pad"
+			(at 172.72 17.7799 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Footprint" "MountingHole:MountingHole_3.2mm_M3_DIN965_Pad"
+			(at 170.18 17.78 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 170.18 17.78 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Mounting Hole with connection"
+			(at 170.18 17.78 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "ff58eacd-c6bb-4555-9eb4-acb1d521779f")
+		)
+		(instances
+			(project "ecu-dev-board"
+				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
+					(reference "H602")
 					(unit 1)
 				)
 			)
@@ -8966,7 +8956,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "a97e12d9-96a9-4f74-a153-d91683f3d9b2")
-		(property "Reference" "D6"
+		(property "Reference" "D610"
 			(at 259.08 150.1774 90)
 			(effects
 				(font
@@ -9029,7 +9019,7 @@
 		(instances
 			(project ""
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
-					(reference "D6")
+					(reference "D610")
 					(unit 1)
 				)
 			)
@@ -9045,7 +9035,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "ad84539e-279b-43e7-9242-3df6e7a8c0dd")
-		(property "Reference" "R26"
+		(property "Reference" "R607"
 			(at 189.23 91.4399 0)
 			(effects
 				(font
@@ -9099,75 +9089,7 @@
 		(instances
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
-					(reference "R26")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Mechanical:MountingHole_Pad")
-		(at 170.18 17.78 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom no)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "ae1a40f1-3d0f-4c8b-82fe-14cf51c54330")
-		(property "Reference" "H2"
-			(at 172.72 15.2399 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "MountingHole_Pad"
-			(at 172.72 17.7799 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-		(property "Footprint" ""
-			(at 170.18 17.78 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 170.18 17.78 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Mounting Hole with connection"
-			(at 170.18 17.78 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "ff81f803-b025-40c1-8a92-8c0ee783a5a0")
-		)
-		(instances
-			(project "ecu-dev-board"
-				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
-					(reference "H2")
+					(reference "R607")
 					(unit 1)
 				)
 			)
@@ -9182,7 +9104,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "b150980e-b5aa-4427-b963-515f5e95ff44")
-		(property "Reference" "L3"
+		(property "Reference" "L601"
 			(at 117.856 136.398 90)
 			(effects
 				(font
@@ -9233,7 +9155,7 @@
 		(instances
 			(project ""
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
-					(reference "L3")
+					(reference "L601")
 					(unit 1)
 				)
 			)
@@ -9248,7 +9170,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "b2322592-ed0e-4a1d-ad3f-1156b274ff7e")
-		(property "Reference" "D1"
+		(property "Reference" "D607"
 			(at 195.834 61.722 90)
 			(effects
 				(font
@@ -9318,7 +9240,7 @@
 		(instances
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
-					(reference "D1")
+					(reference "D607")
 					(unit 1)
 				)
 			)
@@ -9333,7 +9255,7 @@
 		(on_board yes)
 		(dnp yes)
 		(uuid "b928bdde-bf28-4044-8fab-78385ada6066")
-		(property "Reference" "C10"
+		(property "Reference" "C601"
 			(at 48.514 147.574 0)
 			(effects
 				(font
@@ -9387,7 +9309,7 @@
 		(instances
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
-					(reference "C10")
+					(reference "C601")
 					(unit 1)
 				)
 			)
@@ -9403,7 +9325,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "ba4f7c31-f317-4e01-846a-f213f093e496")
-		(property "Reference" "C13"
+		(property "Reference" "C611"
 			(at 177.8 91.4399 0)
 			(effects
 				(font
@@ -9457,7 +9379,7 @@
 		(instances
 			(project ""
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
-					(reference "C13")
+					(reference "C611")
 					(unit 1)
 				)
 			)
@@ -9473,7 +9395,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "bac9b5dd-1d82-4d9d-99e0-9dcad93456e3")
-		(property "Reference" "R65"
+		(property "Reference" "R611"
 			(at 274.32 138.4299 0)
 			(effects
 				(font
@@ -9527,7 +9449,7 @@
 		(instances
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
-					(reference "R65")
+					(reference "R611")
 					(unit 1)
 				)
 			)
@@ -9543,7 +9465,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "bcd1eb7d-abb7-4898-916a-f6461ea2c29b")
-		(property "Reference" "#PWR084"
+		(property "Reference" "#PWR0612"
 			(at 255.27 162.56 0)
 			(effects
 				(font
@@ -9593,7 +9515,7 @@
 		(instances
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
-					(reference "#PWR084")
+					(reference "#PWR0612")
 					(unit 1)
 				)
 			)
@@ -9608,7 +9530,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "c24cc26d-0bbd-487c-ac8a-eb80a9659c03")
-		(property "Reference" "JP25"
+		(property "Reference" "JP603"
 			(at 218.44 83.566 0)
 			(effects
 				(font
@@ -9661,7 +9583,7 @@
 		(instances
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
-					(reference "JP25")
+					(reference "JP603")
 					(unit 1)
 				)
 			)
@@ -9676,7 +9598,7 @@
 		(on_board yes)
 		(dnp yes)
 		(uuid "c2ea531e-6974-44a5-81c9-42c2bf057c2f")
-		(property "Reference" "TP28"
+		(property "Reference" "TP601"
 			(at 219.964 70.358 0)
 			(effects
 				(font
@@ -9728,7 +9650,7 @@
 		(instances
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
-					(reference "TP28")
+					(reference "TP601")
 					(unit 1)
 				)
 			)
@@ -9744,7 +9666,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "c31f0e6d-b691-4d47-91a7-a3606b64ca2a")
-		(property "Reference" "#PWR038"
+		(property "Reference" "#PWR0618"
 			(at 340.36 154.94 0)
 			(effects
 				(font
@@ -9794,7 +9716,7 @@
 		(instances
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
-					(reference "#PWR038")
+					(reference "#PWR0618")
 					(unit 1)
 				)
 			)
@@ -9809,7 +9731,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "c5bc28db-02d6-44e1-ab5b-c482019beb3a")
-		(property "Reference" "#PWR036"
+		(property "Reference" "#PWR0615"
 			(at 266.7 27.94 0)
 			(effects
 				(font
@@ -9859,7 +9781,7 @@
 		(instances
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
-					(reference "#PWR036")
+					(reference "#PWR0615")
 					(unit 1)
 				)
 			)
@@ -9874,7 +9796,7 @@
 		(on_board yes)
 		(dnp yes)
 		(uuid "cb07d9dc-2d6e-452c-bbcf-d78b11083bcf")
-		(property "Reference" "C19"
+		(property "Reference" "C616"
 			(at 271.78 62.484 0)
 			(effects
 				(font
@@ -9928,7 +9850,7 @@
 		(instances
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
-					(reference "C19")
+					(reference "C616")
 					(unit 1)
 				)
 			)
@@ -9943,7 +9865,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "cb336f06-194a-49e5-8f7f-cd72fa1944f3")
-		(property "Reference" "D19"
+		(property "Reference" "D608"
 			(at 225.298 100.33 90)
 			(effects
 				(font
@@ -10006,7 +9928,7 @@
 		(instances
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
-					(reference "D19")
+					(reference "D608")
 					(unit 1)
 				)
 			)
@@ -10022,7 +9944,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "ce9cd0d0-57b3-4dc4-b37a-526b337b2b60")
-		(property "Reference" "#PWR058"
+		(property "Reference" "#PWR0617"
 			(at 271.78 162.56 0)
 			(effects
 				(font
@@ -10072,7 +9994,75 @@
 		(instances
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
-					(reference "#PWR058")
+					(reference "#PWR0617")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Mechanical:MountingHole_Pad")
+		(at 180.34 17.78 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "cf2ab7d5-d78d-4a7a-b0e1-25179e2570e4")
+		(property "Reference" "H603"
+			(at 182.88 15.2399 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "MountingHole_Pad"
+			(at 182.88 17.7799 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Footprint" "MountingHole:MountingHole_3.2mm_M3_DIN965_Pad"
+			(at 180.34 17.78 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 180.34 17.78 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Mounting Hole with connection"
+			(at 180.34 17.78 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "321c2ac1-be12-46fc-b00f-814b26eaa138")
+		)
+		(instances
+			(project "ecu-dev-board"
+				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
+					(reference "H603")
 					(unit 1)
 				)
 			)
@@ -10087,7 +10077,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "cfc4f862-12df-45ab-8c0d-7527b9210053")
-		(property "Reference" "#PWR0505"
+		(property "Reference" "#PWR0609"
 			(at 241.3 140.97 0)
 			(effects
 				(font
@@ -10137,7 +10127,7 @@
 		(instances
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
-					(reference "#PWR0505")
+					(reference "#PWR0609")
 					(unit 1)
 				)
 			)
@@ -10153,7 +10143,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "d1b8cf4a-2f66-465f-afa2-3fd31f8b0497")
-		(property "Reference" "R24"
+		(property "Reference" "R605"
 			(at 160.02 52.0699 0)
 			(effects
 				(font
@@ -10207,7 +10197,7 @@
 		(instances
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
-					(reference "R24")
+					(reference "R605")
 					(unit 1)
 				)
 			)
@@ -10222,7 +10212,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "d1fe7dd0-d748-4b66-ac7e-ff63ecee8d45")
-		(property "Reference" "#PWR035"
+		(property "Reference" "#PWR0604"
 			(at 125.73 166.37 0)
 			(effects
 				(font
@@ -10272,7 +10262,7 @@
 		(instances
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
-					(reference "#PWR035")
+					(reference "#PWR0604")
 					(unit 1)
 				)
 			)
@@ -10287,7 +10277,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "d78010bf-cfb1-4de9-95e2-878508e9e271")
-		(property "Reference" "D7"
+		(property "Reference" "D602"
 			(at 44.196 23.368 0)
 			(effects
 				(font
@@ -10357,7 +10347,7 @@
 		(instances
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
-					(reference "D7")
+					(reference "D602")
 					(unit 1)
 				)
 			)
@@ -10373,7 +10363,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "def57167-5f69-4d33-b6a4-968754ebf4af")
-		(property "Reference" "H1"
+		(property "Reference" "H601"
 			(at 162.56 15.2399 0)
 			(effects
 				(font
@@ -10392,7 +10382,7 @@
 				(hide yes)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "MountingHole:MountingHole_3.2mm_M3_DIN965_Pad"
 			(at 160.02 17.78 0)
 			(effects
 				(font
@@ -10425,7 +10415,7 @@
 		(instances
 			(project ""
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
-					(reference "H1")
+					(reference "H601")
 					(unit 1)
 				)
 			)
@@ -10441,7 +10431,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "e7574c30-52a3-4f4c-b689-ab90f18c38da")
-		(property "Reference" "#PWR021"
+		(property "Reference" "#PWR0610"
 			(at 246.38 118.11 0)
 			(effects
 				(font
@@ -10491,7 +10481,7 @@
 		(instances
 			(project ""
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
-					(reference "#PWR021")
+					(reference "#PWR0610")
 					(unit 1)
 				)
 			)
@@ -10506,7 +10496,7 @@
 		(on_board yes)
 		(dnp yes)
 		(uuid "ecae6096-9407-4125-aedf-bf0dc5ef82b3")
-		(property "Reference" "C12"
+		(property "Reference" "C602"
 			(at 54.61 91.4399 0)
 			(effects
 				(font
@@ -10559,7 +10549,7 @@
 		(instances
 			(project ""
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
-					(reference "C12")
+					(reference "C602")
 					(unit 1)
 				)
 			)
@@ -10574,7 +10564,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "ecbf1b80-be1c-4e63-a99c-1c2bb9eafa16")
-		(property "Reference" "C17"
+		(property "Reference" "C609"
 			(at 143.51 69.85 90)
 			(effects
 				(font
@@ -10628,7 +10618,7 @@
 		(instances
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
-					(reference "C17")
+					(reference "C609")
 					(unit 1)
 				)
 			)
@@ -10644,7 +10634,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "efef4020-6007-4c2f-9f26-5c481cb7b1af")
-		(property "Reference" "R44"
+		(property "Reference" "R609"
 			(at 224.79 91.4399 0)
 			(effects
 				(font
@@ -10698,7 +10688,7 @@
 		(instances
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
-					(reference "R44")
+					(reference "R609")
 					(unit 1)
 				)
 			)
@@ -10714,7 +10704,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "f21a6c16-cfa0-466f-8ee4-15451b64025b")
-		(property "Reference" "#PWR034"
+		(property "Reference" "#PWR0603"
 			(at 87.63 160.02 0)
 			(effects
 				(font
@@ -10764,7 +10754,7 @@
 		(instances
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
-					(reference "#PWR034")
+					(reference "#PWR0603")
 					(unit 1)
 				)
 			)
@@ -10779,7 +10769,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "f4b351fe-d43e-487e-bba2-c0f0f5587609")
-		(property "Reference" "L2"
+		(property "Reference" "L603"
 			(at 188.976 131.318 90)
 			(effects
 				(font
@@ -10830,7 +10820,7 @@
 		(instances
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
-					(reference "L2")
+					(reference "L603")
 					(unit 1)
 				)
 			)
@@ -10845,7 +10835,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "f926e59b-9dc4-48aa-bf17-6b791828400f")
-		(property "Reference" "R9"
+		(property "Reference" "R603"
 			(at 156.21 170.1799 0)
 			(effects
 				(font
@@ -10899,7 +10889,7 @@
 		(instances
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
-					(reference "R9")
+					(reference "R603")
 					(unit 1)
 				)
 			)
@@ -10915,7 +10905,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "fb307c9e-8c50-4735-b6f7-3f748e2e3105")
-		(property "Reference" "#PWR052"
+		(property "Reference" "#PWR0614"
 			(at 267.97 74.93 0)
 			(effects
 				(font
@@ -10965,7 +10955,7 @@
 		(instances
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
-					(reference "#PWR052")
+					(reference "#PWR0614")
 					(unit 1)
 				)
 			)
@@ -10980,7 +10970,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "fe4e6cb3-b48a-46b6-8eb4-f61c70942590")
-		(property "Reference" "#PWR037"
+		(property "Reference" "#PWR0605"
 			(at 153.67 191.77 0)
 			(effects
 				(font
@@ -11030,7 +11020,7 @@
 		(instances
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
-					(reference "#PWR037")
+					(reference "#PWR0605")
 					(unit 1)
 				)
 			)
@@ -11045,7 +11035,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "fe5506e6-544a-4af6-8331-9ae0f0690362")
-		(property "Reference" "C503"
+		(property "Reference" "C614"
 			(at 215.9 143.51 0)
 			(effects
 				(font
@@ -11099,7 +11089,7 @@
 		(instances
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
-					(reference "C503")
+					(reference "C614")
 					(unit 1)
 				)
 			)
