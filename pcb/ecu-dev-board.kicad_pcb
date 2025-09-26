@@ -58831,6 +58831,19 @@
 		(layer "Edge.Cuts")
 		(uuid "9b8cbd18-75fb-46bc-9afa-2cb56cda99ef")
 	)
+	(gr_text "1 Layer: piste corte (alimentazione solo piste cortissime con via dal layer 4)\n2 Layer: tutta massa ininterrotta\n3 Layer: segnali\n4 Layer: alimentazione"
+		(at 197.92 9.56 0)
+		(layer "Cmts.User")
+		(uuid "52feee1d-87a8-4ddd-a2c4-2db678f50e0e")
+		(effects
+			(font
+				(size 1.5 1.5)
+				(thickness 0.3)
+				(bold yes)
+			)
+			(justify left bottom)
+		)
+	)
 	(gr_text "TROPPO GRANDI"
 		(at 63.264698 178.87 0)
 		(layer "Cmts.User")
