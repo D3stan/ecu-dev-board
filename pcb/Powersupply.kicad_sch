@@ -8011,7 +8011,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "FRT:WE_Radial_D13.0mm_P5.00mm"
+		(property "Footprint" "Capacitor_THT:CP_Radial_D8.0mm_P5.00mm"
 			(at 199.0852 149.86 0)
 			(effects
 				(font
