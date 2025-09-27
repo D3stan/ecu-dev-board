@@ -4968,6 +4968,16 @@
 	)
 	(wire
 		(pts
+			(xy 33.02 138.43) (xy 33.02 142.24)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "9781f3a5-74bd-4333-9a23-5732e59bb7e0")
+	)
+	(wire
+		(pts
 			(xy 45.72 142.24) (xy 45.72 144.78)
 		)
 		(stroke
@@ -5685,16 +5695,6 @@
 			(justify right bottom)
 		)
 		(uuid "734eccdf-5fd5-4730-a62a-5b32869c8632")
-	)
-	(label "FB_12"
-		(at 33.02 142.24 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "9c3bc942-8d41-4c8c-bfbc-b7104cd4aa79")
 	)
 	(label "RECT-"
 		(at 15.24 107.95 0)
@@ -6968,7 +6968,7 @@
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
-		(dnp no)
+		(dnp yes)
 		(uuid "4243553a-29b4-42d6-8888-ab6b9e5bc13a")
 		(property "Reference" "TP602"
 			(at 224.536 116.332 0)
@@ -7302,6 +7302,71 @@
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
 					(reference "JP602")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:+12V")
+		(at 33.02 138.43 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "4860be4f-7092-4f91-8aed-92f410db99bf")
+		(property "Reference" "#PWR01"
+			(at 33.02 142.24 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "+12V"
+			(at 33.02 134.62 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 33.02 138.43 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 33.02 138.43 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" ""
+			(at 33.02 138.43 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "8032a39b-bb0c-4345-88b9-c517896ca394")
+		)
+		(instances
+			(project "ecu-dev-board"
+				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/59d7cd36-7b28-4e03-a153-4dfb2ab2e66a"
+					(reference "#PWR01")
 					(unit 1)
 				)
 			)

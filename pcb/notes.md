@@ -11,3 +11,4 @@
 ## General
 
 * sensors wire's broke / cutting detection
+* DRV8876 BDC motor fully integrated driver
