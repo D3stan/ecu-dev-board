@@ -3149,22 +3149,10 @@
 		(uuid "036bbc3c-20cd-452d-a069-3cb217d79c72")
 	)
 	(junction
-		(at 245.11 45.72)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "0ae7c266-b2d1-4d90-8532-f32947273f4c")
-	)
-	(junction
 		(at 55.88 138.43)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "0d0c24e7-a9bf-4b14-bfca-fb524aa43bc0")
-	)
-	(junction
-		(at 245.11 50.8)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "0d99d81a-c884-4f46-abce-53b8b5bf7f24")
 	)
 	(junction
 		(at 34.29 152.4)
@@ -3706,7 +3694,7 @@
 	)
 	(wire
 		(pts
-			(xy 245.11 50.8) (xy 237.49 50.8)
+			(xy 237.49 50.8) (xy 252.73 50.8)
 		)
 		(stroke
 			(width 0)
@@ -3723,16 +3711,6 @@
 			(type default)
 		)
 		(uuid "45053800-521c-4cbe-b50f-ac89187236b8")
-	)
-	(wire
-		(pts
-			(xy 252.73 50.8) (xy 245.11 50.8)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "4508599b-c040-41af-9219-a054871a65ad")
 	)
 	(wire
 		(pts
@@ -3763,16 +3741,6 @@
 			(type default)
 		)
 		(uuid "4a5a682b-6738-40f8-a8c9-9206d317abc8")
-	)
-	(wire
-		(pts
-			(xy 245.11 41.91) (xy 245.11 45.72)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "4c584aa1-a971-4b1c-ab6b-5ada2783ab95")
 	)
 	(wire
 		(pts
@@ -4226,7 +4194,7 @@
 	)
 	(wire
 		(pts
-			(xy 252.73 45.72) (xy 245.11 45.72)
+			(xy 237.49 45.72) (xy 252.73 45.72)
 		)
 		(stroke
 			(width 0)
@@ -4276,16 +4244,6 @@
 	)
 	(wire
 		(pts
-			(xy 245.11 54.61) (xy 245.11 50.8)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "9f9558dc-b253-4292-9a1e-84a8ff3a7ffa")
-	)
-	(wire
-		(pts
 			(xy 107.95 46.99) (xy 107.95 52.07)
 		)
 		(stroke
@@ -4323,16 +4281,6 @@
 			(type default)
 		)
 		(uuid "a2d4fdb2-a017-4f4a-ad50-a24a82a8c6ce")
-	)
-	(wire
-		(pts
-			(xy 245.11 45.72) (xy 237.49 45.72)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "a5d8cbd7-1cac-4927-9eb8-530dd460e393")
 	)
 	(wire
 		(pts
@@ -5679,72 +5627,6 @@
 			(project ""
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/419a62de-f56b-49aa-b69b-37bd2fc230d8"
 					(reference "#PWR0207")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Connector:TestPoint")
-		(at 245.11 54.61 180)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp yes)
-		(uuid "24335bcc-f72b-4441-81d5-7d51269c5e5e")
-		(property "Reference" "TP207"
-			(at 247.65 55.372 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(property "Value" "TestPoint"
-			(at 247.65 57.912 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x01_P2.54mm_Vertical"
-			(at 240.03 54.61 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 240.03 54.61 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "test point"
-			(at 245.11 54.61 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "28da2ee5-19a0-409b-b38d-51a2fcf16702")
-		)
-		(instances
-			(project "ecu-dev-board"
-				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/419a62de-f56b-49aa-b69b-37bd2fc230d8"
-					(reference "TP207")
 					(unit 1)
 				)
 			)
@@ -8838,73 +8720,6 @@
 			(project "ecu-dev-board"
 				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/419a62de-f56b-49aa-b69b-37bd2fc230d8"
 					(reference "#PWR0208")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Connector:TestPoint")
-		(at 245.11 41.91 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp yes)
-		(fields_autoplaced yes)
-		(uuid "b0391413-0d45-4b17-a634-91d4bc2f876d")
-		(property "Reference" "TP206"
-			(at 247.65 37.3379 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "TestPoint"
-			(at 247.65 39.8779 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x01_P2.54mm_Vertical"
-			(at 250.19 41.91 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 250.19 41.91 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "test point"
-			(at 245.11 41.91 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "e04eaaf9-89e8-4ffb-b11b-a61b59393628")
-		)
-		(instances
-			(project "ecu-dev-board"
-				(path "/38d4df77-b5a0-4642-8410-8b13c21c2c3b/419a62de-f56b-49aa-b69b-37bd2fc230d8"
-					(reference "TP206")
 					(unit 1)
 				)
 			)
