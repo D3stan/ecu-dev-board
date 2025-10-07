@@ -12597,7 +12597,7 @@
 		(path "/708fb609-6a95-45ce-99c7-2ab46073ae41")
 		(sheetname "/")
 		(sheetfile "ecu-dev-board.kicad_sch")
-		(attr through_hole exclude_from_pos_files)
+		(attr through_hole)
 		(fp_line
 			(start -18.3 0)
 			(end -18.3 33.3)
