@@ -948,7 +948,7 @@
 	)
 	(wire
 		(pts
-			(xy 46.99 168.91) (xy 55.88 168.91)
+			(xy 53.34 168.91) (xy 55.88 168.91)
 		)
 		(stroke
 			(width 0)
@@ -1114,6 +1114,28 @@
 					(size 1.27 1.27)
 				)
 				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "COIL_QS"
+		(shape input)
+		(at 53.34 168.91 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "15be39ff-3e5e-4dea-8e71-227c721a288a")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 42.6138 168.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
 				(hide yes)
 			)
 		)
@@ -1290,28 +1312,6 @@
 					(size 1.27 1.27)
 				)
 				(justify right)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "COIL_QS"
-		(shape input)
-		(at 81.28 168.91 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "80942201-b760-488a-997b-eaab8dd6e5ca")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 92.0062 168.91 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
 				(hide yes)
 			)
 		)
@@ -1906,7 +1906,7 @@
 	)
 	(symbol
 		(lib_id "power:+BATT")
-		(at 46.99 168.91 90)
+		(at 81.28 168.91 270)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -1914,7 +1914,7 @@
 		(dnp no)
 		(uuid "eecd481f-b1b0-4c99-b20d-da94b739e94d")
 		(property "Reference" "#PWR0102"
-			(at 50.8 168.91 0)
+			(at 77.47 168.91 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1923,7 +1923,7 @@
 			)
 		)
 		(property "Value" "+BATT"
-			(at 40.386 169.164 90)
+			(at 87.884 168.91 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1931,7 +1931,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 46.99 168.91 0)
+			(at 81.28 168.91 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1940,7 +1940,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 46.99 168.91 0)
+			(at 81.28 168.91 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1949,7 +1949,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"+BATT\""
-			(at 46.99 168.91 0)
+			(at 81.28 168.91 0)
 			(effects
 				(font
 					(size 1.27 1.27)
