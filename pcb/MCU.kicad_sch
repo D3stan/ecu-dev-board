@@ -2920,7 +2920,7 @@
 				)
 			)
 		)
-		(property "Value" "180"
+		(property "Value" "200"
 			(at 227.076 48.26 90)
 			(effects
 				(font
@@ -3253,7 +3253,7 @@
 				)
 			)
 		)
-		(property "Value" "180"
+		(property "Value" "200"
 			(at 227.076 53.34 90)
 			(effects
 				(font
@@ -3680,7 +3680,7 @@
 				)
 			)
 		)
-		(property "Value" "180"
+		(property "Value" "200"
 			(at 227.33 58.42 90)
 			(effects
 				(font
