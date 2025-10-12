@@ -2476,50 +2476,6 @@
 			)
 		)
 	)
-	(global_label "SCR_QS_KS"
-		(shape input)
-		(at 106.68 62.23 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "6d4449fe-50b1-4c1a-9116-29de640c8438")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 120.3694 62.23 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "SSR_IN"
-		(shape input)
-		(at 106.68 52.07 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "7aa03fc4-4a8d-4ee2-abb5-35e02c52053f")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 116.2571 52.07 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-	)
 	(global_label "POWER_FET"
 		(shape input)
 		(at 71.12 77.47 180)
@@ -2630,6 +2586,28 @@
 			)
 		)
 	)
+	(global_label "SCR_QS_KS"
+		(shape input)
+		(at 71.12 52.07 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "b73a25ff-1f5c-43a2-b8e4-eccc5482a996")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 57.4306 52.07 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
 	(global_label "T_RPM"
 		(shape input)
 		(at 71.12 80.01 180)
@@ -2670,6 +2648,28 @@
 					(size 1.27 1.27)
 				)
 				(justify left)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "SSR_IN"
+		(shape input)
+		(at 71.12 54.61 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "e8efaeb4-cc4c-4784-af5a-f2c1f1f10fef")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 61.5429 54.61 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
 				(hide yes)
 			)
 		)
@@ -2838,7 +2838,7 @@
 	)
 	(symbol
 		(lib_id "Connector:TestPoint")
-		(at 71.12 54.61 90)
+		(at 106.68 62.23 270)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -2846,7 +2846,7 @@
 		(dnp yes)
 		(uuid "104a247d-a568-4224-82be-7c5796835847")
 		(property "Reference" "TP303"
-			(at 66.548 54.61 90)
+			(at 111.252 62.23 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2855,7 +2855,7 @@
 			)
 		)
 		(property "Value" "TestPoint"
-			(at 69.0879 52.07 0)
+			(at 108.7121 64.77 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2865,7 +2865,7 @@
 			)
 		)
 		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x01_P2.54mm_Vertical"
-			(at 71.12 49.53 0)
+			(at 106.68 67.31 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2874,7 +2874,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 71.12 49.53 0)
+			(at 106.68 67.31 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2883,7 +2883,7 @@
 			)
 		)
 		(property "Description" "test point"
-			(at 71.12 54.61 0)
+			(at 106.68 62.23 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3038,7 +3038,7 @@
 	)
 	(symbol
 		(lib_id "Connector:TestPoint")
-		(at 71.12 52.07 90)
+		(at 106.68 52.07 270)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -3046,7 +3046,7 @@
 		(dnp yes)
 		(uuid "4c0ecfaf-87fc-4e2b-b1f1-12480bf16981")
 		(property "Reference" "TP302"
-			(at 66.294 52.07 90)
+			(at 111.506 52.07 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3055,7 +3055,7 @@
 			)
 		)
 		(property "Value" "TestPoint"
-			(at 69.0879 49.53 0)
+			(at 108.7121 54.61 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3065,7 +3065,7 @@
 			)
 		)
 		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x01_P2.54mm_Vertical"
-			(at 71.12 46.99 0)
+			(at 106.68 57.15 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3074,7 +3074,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 71.12 46.99 0)
+			(at 106.68 57.15 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3083,7 +3083,7 @@
 			)
 		)
 		(property "Description" "test point"
-			(at 71.12 52.07 0)
+			(at 106.68 52.07 0)
 			(effects
 				(font
 					(size 1.27 1.27)
