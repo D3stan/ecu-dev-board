@@ -8132,7 +8132,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "OPA2376xxD"
+		(property "Value" "OPA2376AIDR"
 			(at 116.84 184.1499 0)
 			(effects
 				(font
@@ -9676,7 +9676,7 @@
 				)
 			)
 		)
-		(property "Value" "OPA2376xxD"
+		(property "Value" "OPA2376AIDR"
 			(at 130.81 121.92 0)
 			(effects
 				(font
@@ -10244,7 +10244,7 @@
 				)
 			)
 		)
-		(property "Value" "OPA2376xxD"
+		(property "Value" "OPA2376AIDR"
 			(at 64.77 171.45 0)
 			(effects
 				(font

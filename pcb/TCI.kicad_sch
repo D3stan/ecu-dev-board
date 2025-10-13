@@ -3031,7 +3031,7 @@
 		(dnp no)
 		(uuid "03c0c615-90d4-46bd-9d1c-625121ee8117")
 		(property "Reference" "Z701"
-			(at 51.054 59.182 90)
+			(at 46.736 59.436 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3039,8 +3039,8 @@
 				(justify left)
 			)
 		)
-		(property "Value" "BZT52B5V1-E3-08"
-			(at 34.798 61.722 90)
+		(property "Value" "BZT52C4V7"
+			(at 40.894 61.722 90)
 			(effects
 				(font
 					(size 1.27 1.27)

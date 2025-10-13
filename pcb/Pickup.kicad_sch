@@ -6547,10 +6547,12 @@
 		(fields_autoplaced yes)
 		(uuid "55f34c0f-a108-4b2b-b6c9-63b62c6ce556")
 		(property "Reference" "C205"
-			(at 111.76 41.9099 0)
+			(at 111.76 41.91 0)
 			(effects
 				(font
 					(size 1.27 1.27)
+					(thickness 0.254)
+					(bold yes)
 				)
 				(justify left)
 			)
@@ -7765,7 +7767,7 @@
 		(dnp no)
 		(uuid "7e910cc5-304c-420f-846e-15b86ed3a603")
 		(property "Reference" "Z201"
-			(at 199.644 88.392 90)
+			(at 196.85 88.646 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7773,8 +7775,8 @@
 				(justify left)
 			)
 		)
-		(property "Value" "BZT52B5V1-E3-08"
-			(at 183.388 90.932 90)
+		(property "Value" "BZT52C4V7"
+			(at 191.008 90.678 90)
 			(effects
 				(font
 					(size 1.27 1.27)
