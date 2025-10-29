@@ -25,6 +25,26 @@ enum PickupState {
 PickupState pickupState = IDLE;
 unsigned long pulseStartMicros = 0;
 
+// Frequency measurement variables
+volatile unsigned long lastPulseTime = 0;
+volatile unsigned long pulseInterval = 0;
+volatile bool newPulseDetected = false;
+unsigned long previousPrintMillis = 0;
+const unsigned long printInterval = 500;  // Print frequency every 0.5 seconds
+
+// Interrupt Service Routine for PICKUP_SQUARE pin
+void IRAM_ATTR pickupSquareISR() {
+    unsigned long currentTime = micros();
+    
+    // Calculate interval between rising edges
+    if (lastPulseTime != 0) {
+        pulseInterval = currentTime - lastPulseTime;
+        newPulseDetected = true;
+    }
+    
+    lastPulseTime = currentTime;
+}
+
 // Function to set RGB LED color (0-255 for each channel)
 void setRgbColor(uint8_t r, uint8_t g, uint8_t b) {
     analogWrite(R_LED, r);
@@ -81,6 +101,10 @@ void setup() {
     pinMode(PICKUP_SIM_P, OUTPUT);
     pinMode(PICKUP_SIM_N, OUTPUT);
     
+    // Configure PICKUP_SQUARE as input with interrupt
+    pinMode(PICKUP_SQUARE, INPUT);
+    attachInterrupt(digitalPinToInterrupt(PICKUP_SQUARE), pickupSquareISR, RISING);
+    
     // Initialize LEDs off
     digitalWrite(LED_BUILTIN, LOW);
     setRgbColor(0, 0, 0);
@@ -93,6 +117,8 @@ void setup() {
     Serial.print("Pulse width: ");
     Serial.print(pulseWidth);
     Serial.println("us");
+    Serial.println("Frequency measurement on PICKUP_SQUARE enabled");
+    Serial.println("Waiting for VR sensor signal...");
 }
 
 void loop() {
@@ -100,11 +126,11 @@ void loop() {
     unsigned long currentMicros = micros();
     
     // Blink builtin LED every 0.5 seconds
-    if (currentMillis - previousBlinkMillis >= blinkInterval) {
-        previousBlinkMillis = currentMillis;
-        builtinLedState = !builtinLedState;
-        digitalWrite(LED_BUILTIN, builtinLedState);
-    }
+    // if (currentMillis - previousBlinkMillis >= blinkInterval) {
+    //     previousBlinkMillis = currentMillis;
+    //     builtinLedState = !builtinLedState;
+    //     digitalWrite(LED_BUILTIN, builtinLedState);
+    // }
     
     // Change RGB LED color continuously
     if (currentMillis - previousColorMillis >= colorInterval) {
@@ -124,6 +150,27 @@ void loop() {
     // Creates a positive pulse followed immediately by a negative pulse
     // This simulates a VR sensor passing a tooth
     //pickup(currentMicros);
+    
+    // Print frequency measurement every 0.5 seconds
+    if (currentMillis - previousPrintMillis >= printInterval) {
+        previousPrintMillis = currentMillis;
+        
+        if (newPulseDetected && pulseInterval > 0) {
+            // Calculate frequency from pulse interval
+            float frequency = 1000000.0 / pulseInterval;  // Convert microseconds to Hz
+            
+            // Print frequency and period
+            Serial.print("VR Sensor Frequency: ");
+            Serial.print(frequency, 2);
+            Serial.print(" Hz | Period: ");
+            Serial.print(pulseInterval / 1000.0, 3);
+            Serial.println(" ms");
+            
+            newPulseDetected = false;
+        } else {
+            Serial.println("VR Sensor: No signal detected");
+        }
+    }
 }
 
 void pickup(unsigned long currentMicros)
