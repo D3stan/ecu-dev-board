@@ -1,4 +1,5 @@
 #include <pins.hpp>
+#include "Arduino.h"
 
 // Timing variables
 unsigned long previousBlinkMillis = 0;
@@ -122,41 +123,50 @@ void loop() {
     // Generate VR-style pickup simulation with narrow pulse pairs
     // Creates a positive pulse followed immediately by a negative pulse
     // This simulates a VR sensor passing a tooth
-    switch (pickupState) {
-        case IDLE:
-            // Wait for next period to start new pulse
-            if (currentMicros - previousPickupMillis >= pickupPeriod) {
-                previousPickupMillis = currentMicros;
-                pulseStartMicros = currentMicros;
-                pickupState = PULSE_HIGH;
-                
-                // Start positive pulse (P=HIGH, N=LOW)
-                digitalWrite(PICKUP_SIM_P, HIGH);
-                digitalWrite(PICKUP_SIM_N, LOW);
-            }
-            break;
-            
-        case PULSE_HIGH:
-            // End positive pulse and immediately start negative pulse
-            if (currentMicros - pulseStartMicros >= pulseWidth) {
-                pulseStartMicros = currentMicros;
-                pickupState = PULSE_LOW;
-                
-                // Start negative pulse (P=LOW, N=HIGH)
-                digitalWrite(PICKUP_SIM_P, LOW);
-                digitalWrite(PICKUP_SIM_N, HIGH);
-            }
-            break;
-            
-        case PULSE_LOW:
-            // End negative pulse and return to idle
-            if (currentMicros - pulseStartMicros >= pulseWidth) {
-                pickupState = IDLE;
-                
-                // Return to idle state (both low)
-                digitalWrite(PICKUP_SIM_P, LOW);
-                digitalWrite(PICKUP_SIM_N, LOW);
-            }
-            break;
+    //pickup(currentMicros);
+}
+
+void pickup(unsigned long currentMicros)
+{
+    switch (pickupState)
+    {
+    case IDLE:
+        // Wait for next period to start new pulse
+        if (currentMicros - previousPickupMillis >= pickupPeriod)
+        {
+            previousPickupMillis = currentMicros;
+            pulseStartMicros = currentMicros;
+            pickupState = PULSE_HIGH;
+
+            // Start positive pulse (P=HIGH, N=LOW)
+            digitalWrite(PICKUP_SIM_P, HIGH);
+            digitalWrite(PICKUP_SIM_N, LOW);
+        }
+        break;
+
+    case PULSE_HIGH:
+        // End positive pulse and immediately start negative pulse
+        if (currentMicros - pulseStartMicros >= pulseWidth)
+        {
+            pulseStartMicros = currentMicros;
+            pickupState = PULSE_LOW;
+
+            // Start negative pulse (P=LOW, N=HIGH)
+            digitalWrite(PICKUP_SIM_P, LOW);
+            digitalWrite(PICKUP_SIM_N, HIGH);
+        }
+        break;
+
+    case PULSE_LOW:
+        // End negative pulse and return to idle
+        if (currentMicros - pulseStartMicros >= pulseWidth)
+        {
+            pickupState = IDLE;
+
+            // Return to idle state (both low)
+            digitalWrite(PICKUP_SIM_P, LOW);
+            digitalWrite(PICKUP_SIM_N, LOW);
+        }
+        break;
     }
 }
