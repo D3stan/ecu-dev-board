@@ -5,7 +5,7 @@
 unsigned long previousBlinkMillis = 0;
 unsigned long previousColorMillis = 0;
 unsigned long previousPickupMillis = 0;
-const unsigned long blinkInterval = 500;    // 0.5 seconds for builtin LED
+const unsigned long blinkInterval = 200;
 const unsigned long colorInterval = 10;     // Smooth color transition for RGB
 
 // Pickup simulation timing (VR sensor style)
@@ -90,6 +90,9 @@ void getColorFromWheel(uint16_t pos, uint8_t &r, uint8_t &g, uint8_t &b) {
 void setup() {
     // Initialize serial for debugging
     Serial.begin(115200);
+
+    pinMode(QS_SCR, OUTPUT);
+    //pinMode(PIEZO, ANALOG);
     
     // Configure LED pins
     pinMode(LED_BUILTIN, OUTPUT);
@@ -126,11 +129,12 @@ void loop() {
     unsigned long currentMicros = micros();
     
     // Blink builtin LED every 0.5 seconds
-    // if (currentMillis - previousBlinkMillis >= blinkInterval) {
-    //     previousBlinkMillis = currentMillis;
-    //     builtinLedState = !builtinLedState;
-    //     digitalWrite(LED_BUILTIN, builtinLedState);
-    // }
+    if (currentMillis - previousBlinkMillis >= blinkInterval) {
+        previousBlinkMillis = currentMillis;
+        builtinLedState = !builtinLedState;
+        digitalWrite(LED_BUILTIN, builtinLedState);
+        Serial.println(analogRead(PIEZO));
+    }
     
     // Change RGB LED color continuously
     if (currentMillis - previousColorMillis >= colorInterval) {
@@ -149,28 +153,28 @@ void loop() {
     // Generate VR-style pickup simulation with narrow pulse pairs
     // Creates a positive pulse followed immediately by a negative pulse
     // This simulates a VR sensor passing a tooth
-    //pickup(currentMicros);
+    pickup(currentMicros);
     
     // Print frequency measurement every 0.5 seconds
-    if (currentMillis - previousPrintMillis >= printInterval) {
-        previousPrintMillis = currentMillis;
+    // if (currentMillis - previousPrintMillis >= printInterval) {
+    //     previousPrintMillis = currentMillis;
         
-        if (newPulseDetected && pulseInterval > 0) {
-            // Calculate frequency from pulse interval
-            float frequency = 1000000.0 / pulseInterval;  // Convert microseconds to Hz
+    //     if (newPulseDetected && pulseInterval > 0) {
+    //         // Calculate frequency from pulse interval
+    //         float frequency = 1000000.0 / pulseInterval;  // Convert microseconds to Hz
             
-            // Print frequency and period
-            Serial.print("VR Sensor Frequency: ");
-            Serial.print(frequency, 2);
-            Serial.print(" Hz | Period: ");
-            Serial.print(pulseInterval / 1000.0, 3);
-            Serial.println(" ms");
+    //         // Print frequency and period
+    //         Serial.print("VR Sensor Frequency: ");
+    //         Serial.print(frequency, 2);
+    //         Serial.print(" Hz | Period: ");
+    //         Serial.print(pulseInterval / 1000.0, 3);
+    //         Serial.println(" ms");
             
-            newPulseDetected = false;
-        } else {
-            Serial.println("VR Sensor: No signal detected");
-        }
-    }
+    //         newPulseDetected = false;
+    //     } else {
+    //         Serial.println("VR Sensor: No signal detected");
+    //     }
+    // }
 }
 
 void pickup(unsigned long currentMicros)

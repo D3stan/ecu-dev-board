@@ -1,0 +1,54 @@
+Da testare
+
+- RGB led drive (works)
+- relay drive (works)
+
+- simulazione pickup
+	- da ESP (works)
+	- da NPN (needs modifications)
+- input pickup IC (works on bench)
+- shorting pickup (works on bench)
+
+- piezo sensor
+	- opamp (works on bike)
+	- basic
+
+
+- spark detection from coil pin
+- spark detection from wound wire
+	- opamp
+	- envelope
+
+
+- killswitch closure to GND
+- CDI spark
+
+- batteryless
+
+- TCI spark detection
+- TCI spark interruption
+
+
+
+
+
+
+Next:
+- pick 2 male-female pinheader cables
+- remove seat, ignition cover, tank
+- test VR input from bike with avvitatore a impulsi spinning the flywheel
+- test VR short circuit with SSR
+- prepare cable (coil -> QS_COIL)
+- test CDI spark detection
+
+
+- pickup 12V battery, many cables
+- connect battery, cable from coil to QS_COIL
+- test SCR killswitch to kill spark
+	- first with avvitatore
+	- then start motorcycle
+
+
+- same setup
+- test CDI spark with avvitatore spinning flywheel
+- test CDI with motorcycle
