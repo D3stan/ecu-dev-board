@@ -2,7 +2,6 @@
 #include <Arduino.h>
 
 // LED Pins
-// constexpr uint8_t LED_BUILTIN_PIN = 2;
 constexpr uint8_t R_LED = 21;
 constexpr uint8_t G_LED = 33;
 constexpr uint8_t B_LED = 34;
