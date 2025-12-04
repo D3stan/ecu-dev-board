@@ -1933,6 +1933,31 @@
 			(embedded_fonts no)
 		)
 	)
+	(rectangle
+		(start 22.86 101.6)
+		(end 137.16 154.94)
+		(stroke
+			(width 0)
+			(type solid)
+			(color 255 114 254 1)
+		)
+		(fill
+			(type none)
+		)
+		(uuid d83db721-3d19-4936-9b56-648d1c55ba48)
+	)
+	(text "Same as KS"
+		(exclude_from_sim no)
+		(at 153.67 22.86 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+				(color 255 114 254 1)
+			)
+			(justify left)
+		)
+		(uuid "11c98a7c-2cfb-4895-96ce-e672fe1ee7d5")
+	)
 	(text "SIMULATION"
 		(exclude_from_sim no)
 		(at 217.678 19.812 0)
@@ -1953,6 +1978,18 @@
 			)
 		)
 		(uuid "1b7a79c3-b14f-4cfb-a0e2-65214e5c9e7c")
+	)
+	(text "Errors:\n	- PNP pin connection\n	- very big base resistor for Q501 (10k works well)\n	- very big pull-up resistor for Q502 (1k or similar)\n	- no base resistor for Q502 (4.7k)\nWorks once fixed"
+		(exclude_from_sim no)
+		(at 23.114 94.996 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+				(color 255 114 254 1)
+			)
+			(justify left)
+		)
+		(uuid "a623f4e9-603a-4786-b124-194068b30936")
 	)
 	(junction
 		(at 204.47 133.35)

@@ -3123,9 +3123,84 @@
 		)
 		(uuid 68a29ee4-bcd9-4793-9848-015318185c2a)
 	)
+	(rectangle
+		(start 193.04 33.02)
+		(end 266.7 63.5)
+		(stroke
+			(width 0)
+			(type solid)
+			(color 255 114 254 1)
+		)
+		(fill
+			(type none)
+		)
+		(uuid 84638067-cb5f-4f53-8944-5b7f87e01427)
+	)
+	(rectangle
+		(start 20.32 15.24)
+		(end 149.86 104.14)
+		(stroke
+			(width 0)
+			(type solid)
+			(color 255 114 254 1)
+		)
+		(fill
+			(type none)
+		)
+		(uuid 9e31df70-f03c-4727-b5bf-ac03a1168ba1)
+	)
+	(rectangle
+		(start 172.72 63.5)
+		(end 281.94 109.22)
+		(stroke
+			(width 0)
+			(type solid)
+			(color 255 114 254 1)
+		)
+		(fill
+			(type none)
+		)
+		(uuid f6b75b49-155b-4b31-bcc1-e24dab08610a)
+	)
+	(text "shorts pickup output correctly (tested low rpm)"
+		(exclude_from_sim no)
+		(at 193.04 31.496 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+				(color 255 114 254 1)
+			)
+			(justify left)
+		)
+		(uuid "0e793f02-92b4-4521-ad94-47b8c3d90867")
+	)
+	(text "NPN: bad results, might need to tune RC circuit\nESP GPIO: works almost perfectly, need to test with real CDI"
+		(exclude_from_sim yes)
+		(at 20.574 12.7 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+				(color 255 114 254 1)
+			)
+			(justify left)
+		)
+		(uuid "1cea4eb3-09b1-48cf-bf98-8d8b6f11d95f")
+	)
+	(text "Wrong diodes orientation, tested with reversed orientation and wont work"
+		(exclude_from_sim no)
+		(at 172.72 111.506 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+				(color 255 114 254 1)
+			)
+			(justify left)
+		)
+		(uuid "2ba645c9-599d-4187-a6e5-24760fc56ea0")
+	)
 	(text "BC3223\nLTV-3223\nCTT3223\nAT223-CuH-S"
 		(exclude_from_sim no)
-		(at 228.6 25.654 0)
+		(at 229.108 19.05 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -3145,13 +3220,25 @@
 	)
 	(text "AQY212EHAX\n"
 		(exclude_from_sim no)
-		(at 260.35 26.67 0)
+		(at 260.858 20.066 0)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
 		)
 		(uuid "98343698-be78-48fd-ac05-b6227f69cba6")
+	)
+	(text "Works :D"
+		(exclude_from_sim no)
+		(at 26.162 186.69 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+				(color 255 114 254 1)
+			)
+			(justify left)
+		)
+		(uuid "b01dea31-4d5b-44f3-b017-f96b97511c4d")
 	)
 	(junction
 		(at 219.71 81.28)

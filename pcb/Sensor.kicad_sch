@@ -2356,9 +2356,22 @@
 			(embedded_fonts no)
 		)
 	)
+	(rectangle
+		(start -127 127)
+		(end -53.34 157.48)
+		(stroke
+			(width 0)
+			(type solid)
+			(color 255 114 254 1)
+		)
+		(fill
+			(type none)
+		)
+		(uuid 6daa6fef-0b08-4e87-a0f6-defd9b2135bf)
+	)
 	(text "HW DEBOUNCE"
 		(exclude_from_sim no)
-		(at 214.63 116.332 0)
+		(at 207.264 121.412 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -2386,6 +2399,30 @@
 			)
 		)
 		(uuid "67f002b7-66de-439a-a55c-c26fd0001e61")
+	)
+	(text "Works but R413 must\nbe 4.7k or lower"
+		(exclude_from_sim no)
+		(at 180.594 95.504 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+				(color 255 114 254 1)
+			)
+			(justify left)
+		)
+		(uuid "e016c205-c397-4de8-8a02-c90198d345b9")
+	)
+	(text "Works but needs to be tested\nwith smaller caps"
+		(exclude_from_sim no)
+		(at 18.796 147.32 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+				(color 255 114 254 1)
+			)
+			(justify left)
+		)
+		(uuid "e63994ff-39ec-48a8-9dcc-036f6bee3a74")
 	)
 	(junction
 		(at 167.64 34.29)
@@ -7510,7 +7547,7 @@
 		(dnp no)
 		(uuid "7455a792-89a5-40c3-8026-e35ee7ce7455")
 		(property "Reference" "R414"
-			(at 192.532 124.46 0)
+			(at 191.262 124.46 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7519,7 +7556,7 @@
 			)
 		)
 		(property "Value" "10k"
-			(at 192.532 127 0)
+			(at 191.262 127 0)
 			(effects
 				(font
 					(size 1.27 1.27)

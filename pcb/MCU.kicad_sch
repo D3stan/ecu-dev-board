@@ -1968,6 +1968,18 @@
 			(embedded_fonts no)
 		)
 	)
+	(text "Wrong footprint (GND must be at the center, not far left)"
+		(exclude_from_sim no)
+		(at 214.63 35.052 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+				(color 255 114 254 1)
+			)
+			(justify left)
+		)
+		(uuid "31268217-c4a5-45db-8e5a-189a322d2a56")
+	)
 	(text "RISING EDGE"
 		(exclude_from_sim no)
 		(at 130.556 72.898 0)
