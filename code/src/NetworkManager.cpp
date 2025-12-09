@@ -86,7 +86,12 @@ void NetworkManager::generateHardwareId() {
 }
 
 void NetworkManager::switchToApMode() {
+    // Ensure clean state before switching modes
+    WiFi.disconnect(true);
+    delay(100);
+    
     WiFi.mode(WIFI_AP);
+    delay(100);  // Give WiFi time to switch modes
 
     IPAddress apIP(42, 42, 42, 42);
     IPAddress gateway(42, 42, 42, 42);
@@ -98,27 +103,35 @@ void NetworkManager::switchToApMode() {
     StorageHandler::NetworkConfig netConfig;
     _storage.loadNetworkConfig(netConfig);
     
+    Serial.printf("[Network] Starting AP mode with SSID: %s\n", netConfig.ssid);
+    
     bool success;
     if (strlen(netConfig.password) > 0) {
         success = WiFi.softAP(netConfig.ssid, netConfig.password);
+        Serial.printf("[Network] AP password length: %d\n", strlen(netConfig.password));
     } else {
         success = WiFi.softAP(netConfig.ssid);
+        Serial.println("[Network] AP started without password (open network)");
     }
     
     if (success) {
         Serial.printf("[Network] AP Mode: SSID=%s, IP=%s\n", 
+                     netConfig.ssid, apIP.toString().c_str());
+        Serial.printf("[Network] Connect to '%s' and navigate to http://%s\n",
                      netConfig.ssid, apIP.toString().c_str());
         
         // Start DNS server for captive portal
         _dnsServer = new DNSServer();
         _dnsServer->start(53, "*", apIP);
         Serial.println("[Network] DNS Server started (Captive Portal enabled)");
-        Serial.println("[Network] DNS Server started (Captive Portal enabled)");
         
         _state = State::AP_MODE;
         _led.setStatus(LedController::Status::WIFI_AP);
+        _lastError = "";  // Clear any previous errors
     } else {
-        Serial.println("[Network] Failed to start AP");
+        Serial.println("[Network] CRITICAL: Failed to start AP mode!");
+        Serial.flush();  // Ensure message is printed
+        _lastError = "Failed to start AP mode";
         _state = State::ERROR;
         _led.setStatus(LedController::Status::ERROR);
         _led.setBlinking(true);
@@ -126,6 +139,10 @@ void NetworkManager::switchToApMode() {
 }
 
 bool NetworkManager::switchToStaMode(const char* ssid, const char* password) {
+    // Ensure clean state before switching modes
+    WiFi.disconnect(true);
+    delay(100);
+    
     WiFi.mode(WIFI_STA);
     WiFi.begin(ssid, password);
     
@@ -146,7 +163,11 @@ bool NetworkManager::switchToStaMode(const char* ssid, const char* password) {
         _led.setStatus(LedController::Status::WIFI_STA);
         return true;
     } else {
-        Serial.println("[Network] Failed to connect");
+        Serial.println("[Network] Failed to connect - disconnecting and cleaning up");
+        _lastError = "Failed to connect to WiFi: " + String(ssid);
+        // Disconnect and clear WiFi state before falling back
+        WiFi.disconnect(true);
+        delay(100);
         return false;
     }
 }
@@ -369,32 +390,39 @@ void NetworkManager::startOtaUpdate() {
     
     // First, update firmware
     Serial.println("[Network] Starting firmware update...");
+    Serial.flush();
     bool firmwareSuccess = performOtaUpdate(true);
     
     if (!firmwareSuccess) {
         Serial.println("[Network] Firmware update failed, rebooting to AP mode...");
+        Serial.printf("[Network] Error: %s\n", _lastError.c_str());
+        Serial.flush();  // Ensure error message is printed
         _lastError = "Firmware update failed. Check firmware server and try again.";
         _led.setStatus(LedController::Status::ERROR);
         _led.setBlinking(true);
-        delay(2000);
+        delay(3000);  // Give more time to read error
         ESP.restart();
         return;
     }
     
     Serial.println("[Network] Firmware update successful, starting filesystem update...");
+    Serial.flush();
     
     // Then, update filesystem
     bool filesystemSuccess = performOtaUpdate(false);
     
     if (filesystemSuccess) {
         Serial.println("[Network] Both updates successful, rebooting...");
+        Serial.flush();
         _lastError = "";  // Clear any previous error
         delay(1000);
         ESP.restart();
     } else {
         Serial.println("[Network] Filesystem update failed, but firmware was updated. Rebooting...");
+        Serial.printf("[Network] Error: %s\n", _lastError.c_str());
+        Serial.flush();
         _lastError = "Filesystem update failed, but firmware is updated.";
-        delay(1000);
+        delay(2000);
         ESP.restart();
     }
 }

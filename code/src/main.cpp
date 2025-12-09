@@ -71,10 +71,16 @@ void setup() {
     
     // 4. Initialize Network Manager (dependency injection)
     Serial.println("[Main] Initializing Network Manager...");
+    Serial.flush();
     networkManager = new NetworkManager(storage, qsEngine, led);
     if (!networkManager->begin()) {
         Serial.println("[Main] WARNING: Network initialization failed!");
+        Serial.printf("[Main] Network Error: %s\n", networkManager->getLastError().c_str());
+        Serial.flush();
         // Continue anyway - system can run without network
+    } else {
+        Serial.println("[Main] Network Manager initialized successfully");
+        Serial.flush();
     }
     
     Serial.println("\n========================================");
@@ -92,7 +98,22 @@ void setup() {
     }
     Serial.println("] ms");
     Serial.printf("  Hardware ID: %s\n", networkManager->getHardwareId().c_str());
+    
+    // Print network status
+    Serial.println("\nNetwork Status:");
+    if (networkManager->getState() == NetworkManager::State::AP_MODE) {
+        Serial.println("  Mode: Access Point");
+        Serial.printf("  SSID: Check WiFi networks for AP\n");
+        Serial.printf("  IP: %s\n", WiFi.softAPIP().toString().c_str());
+    } else if (networkManager->getState() == NetworkManager::State::STA_MODE) {
+        Serial.println("  Mode: Station (Connected to WiFi)");
+        Serial.printf("  IP: %s\n", WiFi.localIP().toString().c_str());
+    } else if (networkManager->getState() == NetworkManager::State::ERROR) {
+        Serial.println("  Mode: ERROR");
+        Serial.printf("  Error: %s\n", networkManager->getLastError().c_str());
+    }
     Serial.println();
+    Serial.flush();
 }
 
 void loop() {
