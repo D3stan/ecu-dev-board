@@ -367,68 +367,110 @@ void NetworkManager::startOtaUpdate() {
     _state = State::OTA_UPDATE;
     _led.setStatus(LedController::Status::OTA_UPDATE);
     
-    // Perform update
-    bool success = performOtaUpdate();
+    // First, update firmware
+    Serial.println("[Network] Starting firmware update...");
+    bool firmwareSuccess = performOtaUpdate(true);
     
-    if (success) {
-        Serial.println("[Network] OTA update successful, rebooting...");
+    if (!firmwareSuccess) {
+        Serial.println("[Network] Firmware update failed, rebooting to AP mode...");
+        _lastError = "Firmware update failed. Check firmware server and try again.";
+        _led.setStatus(LedController::Status::ERROR);
+        _led.setBlinking(true);
+        delay(2000);
+        ESP.restart();
+        return;
+    }
+    
+    Serial.println("[Network] Firmware update successful, starting filesystem update...");
+    
+    // Then, update filesystem
+    bool filesystemSuccess = performOtaUpdate(false);
+    
+    if (filesystemSuccess) {
+        Serial.println("[Network] Both updates successful, rebooting...");
         _lastError = "";  // Clear any previous error
         delay(1000);
         ESP.restart();
     } else {
-        Serial.println("[Network] OTA update failed, rebooting to AP mode...");
-        _lastError = "OTA update failed. Check firmware server and try again.";
-        _led.setStatus(LedController::Status::ERROR);
-        _led.setBlinking(true);
-        delay(2000);  // Show error state briefly
-        ESP.restart();  // Reboot to let user access device in AP mode
+        Serial.println("[Network] Filesystem update failed, but firmware was updated. Rebooting...");
+        _lastError = "Filesystem update failed, but firmware is updated.";
+        delay(1000);
+        ESP.restart();
     }
 }
 
-bool NetworkManager::performOtaUpdate() {
-    HTTPClient http;
+bool NetworkManager::performOtaUpdate(bool updateFirmware) {
+    if (WiFi.status() != WL_CONNECTED) {
+        Serial.println("[Network] Not connected to WiFi");
+        _lastError = "Not connected to WiFi";
+        return false;
+    }
     
-    // Add hardware ID as query parameter for server-side validation
-    String url = String(OTA_UPDATE_URL) + "?hwid=" + _hardwareId;
+    // Create secure WiFi client and HTTP client
+    WiFiClientSecure wifiClient;
+    HTTPClient httpClient;
     
-    Serial.printf("[Network] Fetching update from: %s\n", url.c_str());
+    // Set SSL certificate for HTTPS
+    wifiClient.setCACert(GITHUB_ROOT_CERT);
     
-    http.begin(url);
-    int httpCode = http.GET();
+    // Begin HTTPS connection
+    String url = String(OTA_UPDATE_URL);
+    if (!updateFirmware) {
+        // Change URL to filesystem.bin for filesystem update
+        url.replace("firmware.bin", "filesystem.bin");
+    }
+    
+    Serial.printf("[Network] Fetching %s update from: %s\n", 
+                  updateFirmware ? "firmware" : "filesystem", url.c_str());
+    
+    httpClient.begin(wifiClient, url);
+    httpClient.setTimeout(15000);  // 15 second timeout
+    
+    // Add security and functionality headers (not query parameters)
+    httpClient.addHeader("hwid", _hardwareId);
+    httpClient.addHeader("fwid", FIRMWARE_VERSION);
+    httpClient.addHeader("fsid", FILESYSTEM_VERSION);
+    httpClient.addHeader("device", "QuickShifter");
+    httpClient.addHeader("platform", "ESP32-S2");
+    httpClient.addHeader("mode", updateFirmware ? "firmware" : "filesystem");
+    
+    int httpCode = httpClient.GET();
     
     if (httpCode != HTTP_CODE_OK) {
         Serial.printf("[Network] HTTP GET failed: %d\n", httpCode);
         _lastError = "OTA failed: HTTP error " + String(httpCode);
-        http.end();
+        httpClient.end();
         return false;
     }
     
-    int contentLength = http.getSize();
+    int contentLength = httpClient.getSize();
     if (contentLength <= 0) {
         Serial.println("[Network] Invalid content length");
-        _lastError = "OTA failed: Invalid firmware file";
-        http.end();
+        _lastError = "OTA failed: Invalid " + String(updateFirmware ? "firmware" : "filesystem") + " file";
+        httpClient.end();
         return false;
     }
     
-    Serial.printf("[Network] Firmware size: %d bytes\n", contentLength);
+    Serial.printf("[Network] %s size: %d bytes\n", 
+                  updateFirmware ? "Firmware" : "Filesystem", contentLength);
     
-    // Begin OTA update
-    if (!Update.begin(contentLength)) {
+    // Begin OTA update (firmware or filesystem)
+    int updateType = updateFirmware ? U_FLASH : U_SPIFFS;
+    if (!Update.begin(contentLength, updateType)) {
         Serial.printf("[Network] Not enough space for OTA: %s\n", Update.errorString());
         _lastError = "OTA failed: " + String(Update.errorString());
-        http.end();
+        httpClient.end();
         return false;
     }
     
-    // Write firmware
-    WiFiClient* stream = http.getStreamPtr();
+    // Write firmware/filesystem
+    WiFiClient* stream = httpClient.getStreamPtr();
     size_t written = Update.writeStream(*stream);
     
     if (written != contentLength) {
         Serial.printf("[Network] Written %d of %d bytes\n", written, contentLength);
         _lastError = "OTA failed: Incomplete write (" + String(written) + "/" + String(contentLength) + " bytes)";
-        http.end();
+        httpClient.end();
         return false;
     }
     
@@ -436,19 +478,20 @@ bool NetworkManager::performOtaUpdate() {
     if (!Update.end()) {
         Serial.printf("[Network] Update error: %s\n", Update.errorString());
         _lastError = "OTA failed: " + String(Update.errorString());
-        http.end();
+        httpClient.end();
         return false;
     }
     
     if (!Update.isFinished()) {
         Serial.println("[Network] Update not finished");
         _lastError = "OTA failed: Update incomplete";
-        http.end();
+        httpClient.end();
         return false;
     }
     
-    http.end();
-    Serial.println("[Network] OTA update completed successfully");
+    httpClient.end();
+    Serial.printf("[Network] %s OTA update completed successfully\n", 
+                  updateFirmware ? "Firmware" : "Filesystem");
     return true;
 }
 
