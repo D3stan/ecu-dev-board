@@ -48,6 +48,9 @@ bool NetworkManager::begin() {
         switchToApMode();
     }
     
+    // Setup mDNS
+    setupMdns();
+    
     // Start server
     _server.begin();
     Serial.println("[Network] HTTP server started");
@@ -84,6 +87,13 @@ void NetworkManager::generateHardwareId() {
 
 void NetworkManager::switchToApMode() {
     WiFi.mode(WIFI_AP);
+
+    IPAddress apIP(42, 42, 42, 42);
+    IPAddress gateway(42, 42, 42, 42);
+    IPAddress subnet(255, 255, 255, 0);
+    
+    // Configure AP with custom IP before starting
+    WiFi.softAPConfig(apIP, gateway, subnet);
     
     StorageHandler::NetworkConfig netConfig;
     _storage.loadNetworkConfig(netConfig);
@@ -96,13 +106,13 @@ void NetworkManager::switchToApMode() {
     }
     
     if (success) {
-        IPAddress apIP = WiFi.softAPIP();
         Serial.printf("[Network] AP Mode: SSID=%s, IP=%s\n", 
                      netConfig.ssid, apIP.toString().c_str());
         
         // Start DNS server for captive portal
         _dnsServer = new DNSServer();
         _dnsServer->start(53, "*", apIP);
+        Serial.println("[Network] DNS Server started (Captive Portal enabled)");
         Serial.println("[Network] DNS Server started (Captive Portal enabled)");
         
         _state = State::AP_MODE;
@@ -360,10 +370,11 @@ void NetworkManager::startOtaUpdate() {
         delay(1000);
         ESP.restart();
     } else {
-        Serial.println("[Network] OTA update failed");
-        _state = State::ERROR;
+        Serial.println("[Network] OTA update failed, rebooting to AP mode...");
         _led.setStatus(LedController::Status::ERROR);
         _led.setBlinking(true);
+        delay(2000);  // Show error state briefly
+        ESP.restart();  // Reboot to let user access device in AP mode
     }
 }
 
@@ -426,4 +437,18 @@ bool NetworkManager::performOtaUpdate() {
     http.end();
     Serial.println("[Network] OTA update completed successfully");
     return true;
+}
+
+void NetworkManager::setupMdns() {
+    // Start mDNS with hostname "rspqs"
+    if (MDNS.begin("rspqs")) {
+        Serial.println("[Network] mDNS responder started at rspqs.local");
+        
+        // Add service to advertise HTTP server
+        MDNS.addService("http", "tcp", 80);
+        MDNS.addServiceTxt("http", "tcp", "hwid", _hardwareId.c_str());
+        MDNS.addServiceTxt("http", "tcp", "device", "QuickShifter");
+    } else {
+        Serial.println("[Network] Failed to start mDNS responder");
+    }
 }

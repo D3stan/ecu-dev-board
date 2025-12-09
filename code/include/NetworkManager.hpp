@@ -5,6 +5,7 @@
 #include <AsyncTCP.h>
 #include <DNSServer.h>
 #include <Update.h>
+#include <ESPmDNS.h>
 #include "StorageHandler.hpp"
 #include "QuickShifterEngine.hpp"
 #include "LedController.hpp"
@@ -121,4 +122,9 @@ private:
      * @brief Perform OTA update from server
      */
     bool performOtaUpdate();
+    
+    /**
+     * @brief Setup mDNS responder
+     */
+    void setupMdns();
 };
