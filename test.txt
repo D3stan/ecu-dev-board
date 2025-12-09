@@ -52,3 +52,16 @@ Next:
 - same setup
 - test CDI spark with avvitatore spinning flywheel
 - test CDI with motorcycle
+
+
+
+
+
+
+
+Final to test:
+- different values for piezo OPAMP
+- piezo basic
+- ac_coup for spark detection (both bias and opamp)
+- digital qs hw debounce
+- battery less with test bench
