@@ -250,15 +250,24 @@
     <div class="section">
         <h2>Network Configuration</h2>
         <div class="form-group">
-            <label>WiFi SSID (for STA mode)</label>
-            <input type="text" id="wifiSsid" maxlength="31">
+            <label>WiFi Mode</label>
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <button id="apModeBtn" onclick="toggleMode(false)" style="flex: 1;">AP Mode (Hotspot)</button>
+                <button id="staModeBtn" onclick="toggleMode(true)" style="flex: 1;">STA Mode (Client)</button>
+            </div>
+            <p id="modeDescription" style="color: #aaa; font-size: 0.9em; margin-top: 5px;"></p>
         </div>
-        <div class="form-group">
-            <label>WiFi Password</label>
-            <input type="password" id="wifiPassword" maxlength="63">
+        <div id="staConfig" style="display: none;">
+            <div class="form-group">
+                <label>WiFi SSID (network to join)</label>
+                <input type="text" id="wifiSsid" maxlength="31">
+            </div>
+            <div class="form-group">
+                <label>WiFi Password</label>
+                <input type="password" id="wifiPassword" maxlength="63">
+            </div>
         </div>
-        <button onclick="saveNetworkConfig()">Save</button>
-        <button class="secondary" onclick="reboot()">Reboot</button>
+        <button onclick="saveNetworkConfig()">Save & Reboot</button>
     </div>
     
     <!-- OTA Update -->
@@ -271,6 +280,7 @@
     <script>
         let ws;
         let reconnectInterval;
+        let currentStaMode = false;
         
         function connect() {
             ws = new WebSocket('ws://' + window.location.hostname + '/ws');
@@ -373,6 +383,8 @@
                     
                     // Load network config
                     document.getElementById('wifiSsid').value = data.network.ssid;
+                    currentStaMode = data.network.staMode;
+                    updateModeUI(currentStaMode);
                     
                     // Display error if present
                     if (data.lastError) {
@@ -411,16 +423,50 @@
             alert('Telemetry configuration saved!');
         }
         
+        function toggleMode(staMode) {
+            currentStaMode = staMode;
+            updateModeUI(staMode);
+        }
+        
+        function updateModeUI(staMode) {
+            const apBtn = document.getElementById('apModeBtn');
+            const staBtn = document.getElementById('staModeBtn');
+            const staConfig = document.getElementById('staConfig');
+            const modeDescription = document.getElementById('modeDescription');
+            
+            if (staMode) {
+                apBtn.classList.add('secondary');
+                staBtn.classList.remove('secondary');
+                staConfig.style.display = 'block';
+                modeDescription.textContent = 'STA Mode: Device connects to your existing WiFi network. Enter network credentials below.';
+            } else {
+                apBtn.classList.remove('secondary');
+                staBtn.classList.add('secondary');
+                staConfig.style.display = 'none';
+                modeDescription.textContent = 'AP Mode: Device creates its own WiFi hotspot. Connect directly to the device.';
+            }
+        }
+        
         function saveNetworkConfig() {
             const config = {
                 type: 'network',
                 ssid: document.getElementById('wifiSsid').value,
                 password: document.getElementById('wifiPassword').value,
-                staMode: true
+                staMode: currentStaMode
             };
             
+            // Validate STA mode configuration
+            if (currentStaMode && !config.ssid) {
+                alert('Please enter a WiFi SSID for STA mode.');
+                return;
+            }
+            
             ws.send(JSON.stringify(config));
-            alert('Network configuration saved! Use Reboot button to apply changes.');
+            
+            if (confirm('Network configuration saved. Device will reboot to apply changes. Continue?')) {
+                fetch('/api/reboot', { method: 'POST' });
+                alert('Rebooting... If in STA mode, reconnect to your network and access the device via mDNS (rspqs.local) or check your router for the IP address.');
+            }
         }
         
         function startOta() {

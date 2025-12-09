@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RPM Dashboard Gauge</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            background-color: #0f0f0f;
+            color: white;
+            font-family: 'Share Tech Mono', monospace;
+            overflow: hidden;
+        }
+
+        /* Background Context - Blurred Dashboard feel */
+        .dashboard-bg {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 50% 50%, #1a1a1a 0%, #000000 100%);
+            z-index: -2;
+        }
+        
+        .dashboard-texture {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: 
+                radial-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                radial-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 20px 20px;
+            background-position: 0 0, 10px 10px;
+            filter: blur(1px);
+            z-index: -1;
+        }
+
+        /* Gauge Bezel & Container */
+        .gauge-container {
+            width: 800px;
+            height: 350px;
+            background: #000;
+            border-radius: 20px;
+            position: relative;
+            box-shadow: 
+                0 20px 50px rgba(0,0,0,0.8),
+                inset 0 0 0 12px #1c1c1c, /* Metallic Bezel */
+                inset 0 0 20px 15px #000;
+            overflow: hidden;
+            border: 2px solid #333;
+        }
+
+        /* Glass Reflection Overlay */
+        .gauge-reflection {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(135deg, 
+                rgba(255,255,255,0.08) 0%, 
+                rgba(255,255,255,0.01) 35%, 
+                rgba(255,255,255,0) 40%, 
+                rgba(255,255,255,0) 100%);
+            pointer-events: none;
+            z-index: 10;
+            border-radius: 16px;
+        }
+
+        /* Typography & Glows */
+        .rpm-value {
+            font-family: 'Orbitron', sans-serif;
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.6), 0 0 30px rgba(255, 255, 255, 0.2);
+        }
+
+        .label-text {
+            color: rgba(255,255,255,0.7);
+            font-size: 14px;
+            font-weight: bold;
+            text-shadow: 0 0 2px rgba(255,255,255,0.2);
+        }
+
+        /* SVG Segment Styles */
+        .segment {
+            transition: fill 0.1s, filter 0.1s;
+        }
+
+        /* Specific Glow Colors based on state */
+        .glow-red {
+            filter: drop-shadow(0 0 4px rgba(255, 0, 0, 0.8));
+        }
+        .glow-orange {
+            filter: drop-shadow(0 0 4px rgba(255, 165, 0, 0.8));
+        }
+        .glow-yellow {
+            filter: drop-shadow(0 0 4px rgba(255, 255, 0, 0.8));
+        }
+        .glow-green {
+            filter: drop-shadow(0 0 5px rgba(50, 255, 50, 0.9));
+        }
+        .glow-redline {
+            filter: drop-shadow(0 0 6px rgba(255, 0, 0, 1));
+        }
+
+        .inactive {
+            fill: #1a1a1a !important; /* Dim grey/black */
+            stroke: #2a0000; /* Very faint red outline */
+            stroke-width: 0.5px;
+            filter: none !important;
+        }
+
+        /* Baseline Glow */
+        .baseline-path {
+            fill: none;
+            stroke: #00ff00;
+            stroke-width: 2;
+            opacity: 0.3;
+            filter: drop-shadow(0 0 4px #00ff00);
+        }
+
+        /* Controls Area */
+        .controls {
+            margin-top: 40px;
+            background: rgba(0,0,0,0.6);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #333;
+            backdrop-filter: blur(10px);
+        }
+        
+        input[type=range] {
+            -webkit-appearance: none; 
+            background: transparent; 
+        }
+        
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            background: #0f0;
+            cursor: pointer;
+            margin-top: -8px;
+            box-shadow: 0 0 10px #0f0;
+        }
+        
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: #333;
+            border-radius: 2px;
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen">
+
+    <div class="dashboard-bg"></div>
+    <div class="dashboard-texture"></div>
+
+    <!-- Main Gauge Container -->
+    <div class="gauge-container flex items-center justify-center">
+        <!-- Glass Effect -->
+        <div class="gauge-reflection"></div>
+
+        <!-- SVG Layer -->
+        <!-- viewBox 0 0 800 350 matches container -->
+        <svg id="rpm-svg" width="800" height="350" viewBox="0 0 800 350" class="absolute top-0 left-0 z-0">
+            <!-- Definitions for gradients if needed -->
+            <defs>
+                <linearGradient id="baselineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" style="stop-color:rgb(100,0,0);stop-opacity:1" />
+                    <stop offset="20%" style="stop-color:rgb(255,165,0);stop-opacity:1" />
+                    <stop offset="40%" style="stop-color:rgb(50,255,50);stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:rgb(255,0,0);stop-opacity:1" />
+                </linearGradient>
+            </defs>
+
+            <!-- The continuous baseline glow -->
+            <path id="guide-path" d="" fill="none" stroke="none" /> 
+            <path id="baseline-display" d="" class="baseline-path" stroke="url(#baselineGradient)" />
+            
+            <!-- Segments Group -->
+            <g id="segments-group"></g>
+        </svg>
+
+        <!-- Dynamic Text Layer -->
+        <div class="relative z-10 w-full h-full pointer-events-none">
+            <!-- 0 Label -->
+            <div class="absolute bottom-12 left-12 label-text">0</div>
+            
+            <!-- RPM Main Label -->
+            <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 label-text text-gray-400">
+                RPM x1000
+            </div>
+
+            <!-- 15000 Label -->
+            <div class="absolute top-[110px] right-12 label-text">15000</div>
+
+            <!-- Main Digital Value -->
+            <div class="absolute top-[130px] left-1/2 transform -translate-x-1/2 text-center">
+                <div id="rpm-display" class="rpm-value text-7xl font-black text-white tracking-widest">
+                    0
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const MAX_RPM = 15000;
+        const SEGMENT_COUNT = 70; // Number of ticks
+        const SEGMENT_WIDTH = 6;
+        const SEGMENT_HEIGHT = 20; // Height of the tick marks
+        
+        // The Path Definition
+        // Starts bottom left, curves up sharply, flattens out to the right
+        // Coordinate system: 0,0 is top left. 
+        // 800x350 container.
+        // Start: x=50, y=300
+        // Curve Control 1: x=50, y=100 (pulls it up)
+        // Curve Control 2: x=150, y=100 (pulls it right)
+        // End Curve / Start Line: x=250, y=100
+        // Line End: x=750, y=100
+        const pathData = `M 50,300 C 50,150 120,100 250,100 L 750,100`;
+
+        const svg = document.getElementById('rpm-svg');
+        const guidePath = document.getElementById('guide-path');
+        const baselineDisplay = document.getElementById('baseline-display');
+        const segmentsGroup = document.getElementById('segments-group');
+        const rpmDisplay = document.getElementById('rpm-display');
+
+        // Set path data
+        guidePath.setAttribute('d', pathData);
+        baselineDisplay.setAttribute('d', pathData);
+
+        // Pre-calculate segments
+        const pathLength = guidePath.getTotalLength();
+        const segments = [];
+
+        function initGauge() {
+            segmentsGroup.innerHTML = '';
+            
+            for (let i = 0; i < SEGMENT_COUNT; i++) {
+                // Determine position along path
+                // We leave a little padding at start and end
+                const distance = (i / (SEGMENT_COUNT - 1)) * pathLength;
+                const point = guidePath.getPointAtLength(distance);
+                
+                // Calculate rotation (tangent)
+                // Get a point slightly ahead to calculate angle
+                const nextPoint = guidePath.getPointAtLength(Math.min(distance + 1, pathLength));
+                const angle = Math.atan2(nextPoint.y - point.y, nextPoint.x - point.x) * (180 / Math.PI);
+
+                // Create rectangle
+                const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+                
+                // Center the rect on the path point
+                // We want the rect to sit "above" the baseline line, so we offset Y by -SEGMENT_HEIGHT
+                // Actually, let's have the baseline be the bottom of the ticks.
+                
+                rect.setAttribute("x", -SEGMENT_WIDTH / 2);
+                rect.setAttribute("y", -SEGMENT_HEIGHT - 5); // 5px gap from baseline
+                rect.setAttribute("width", SEGMENT_WIDTH);
+                rect.setAttribute("height", SEGMENT_HEIGHT);
+                rect.setAttribute("rx", 1); // Rounded corners slightly
+                
+                // Transform: Translate to point, then Rotate
+                // Note: SVG transforms are applied right-to-left usually, but in attribute string it reads logically
+                rect.setAttribute("transform", `translate(${point.x}, ${point.y}) rotate(${angle})`);
+                
+                segmentsGroup.appendChild(rect);
+                segments.push(rect);
+            }
+            
+            updateGauge(0);
+        }
+
+        // Color Mapping Function based on prompt requirements
+        // Start: Deep Red -> Orange -> Yellow -> Green -> Red (End)
+        function getColorForIndex(index, total) {
+            const pct = index / total;
+            
+            if (pct < 0.15) return { color: '#8B0000', glow: 'glow-red' }; // Deep Red
+            if (pct < 0.25) return { color: '#FF4500', glow: 'glow-orange' }; // Orange
+            if (pct < 0.35) return { color: '#FFD700', glow: 'glow-yellow' }; // Yellow
+            if (pct < 0.85) return { color: '#39FF14', glow: 'glow-green' }; // Neon Green (Main)
+            return { color: '#FF0000', glow: 'glow-redline' }; // Redline
+        }
+
+        function updateGauge(rpm) {
+            // Update Text
+            rpmDisplay.innerText = rpm;
+
+            // Calculate active segments
+            const activeCount = Math.floor((rpm / MAX_RPM) * SEGMENT_COUNT);
+
+            segments.forEach((rect, index) => {
+                const styleData = getColorForIndex(index, SEGMENT_COUNT);
+                
+                // Clear previous classes
+                rect.setAttribute('class', 'segment');
+                
+                if (index <= activeCount) {
+                    rect.style.fill = styleData.color;
+                    rect.style.stroke = 'none';
+                    rect.classList.add(styleData.glow);
+                } else {
+                    rect.classList.add('inactive');
+                    rect.style.fill = ''; // Reset inline style to allow class to take over
+                    rect.style.stroke = '';
+                }
+            });
+        }
+
+        // Initialize
+        initGauge();
+
+        // WebSocket Connection
+        let ws;
+        let reconnectInterval;
+
+        function connectWebSocket() {
+            ws = new WebSocket(`ws://${window.location.hostname}/ws`);
+            
+            ws.onopen = () => {
+                console.log('WebSocket connected');
+                if (reconnectInterval) {
+                    clearInterval(reconnectInterval);
+                    reconnectInterval = null;
+                }
+            };
+            
+            ws.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    if (data.rpm !== undefined) {
+                        updateGauge(data.rpm);
+                    }
+                } catch (e) {
+                    console.error('Error parsing WebSocket message:', e);
+                }
+            };
+            
+            ws.onerror = (error) => {
+                console.error('WebSocket error:', error);
+            };
+            
+            ws.onclose = () => {
+                console.log('WebSocket disconnected, attempting to reconnect...');
+                if (!reconnectInterval) {
+                    reconnectInterval = setInterval(() => {
+                        connectWebSocket();
+                    }, 3000);
+                }
+            };
+        }
+
+        // Start WebSocket connection
+        connectWebSocket();
+        
+    </script>
+</body>
+</html>
