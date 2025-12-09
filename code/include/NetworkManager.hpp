@@ -53,6 +53,11 @@ public:
     String getHardwareId() const { return _hardwareId; }
     
     /**
+     * @brief Get last error message
+     */
+    String getLastError() const { return _lastError; }
+    
+    /**
      * @brief Switch to AP mode
      */
     void switchToApMode();
@@ -83,6 +88,9 @@ private:
     // Telemetry timing
     unsigned long _lastTelemetryUpdate;
     uint16_t _telemetryUpdateRate;
+    
+    // Error tracking
+    String _lastError;
     
     // OTA update server URL (placeholder)
     static constexpr const char* OTA_UPDATE_URL = "https://github.com/D3stan/ecu-dev-board/releases/latest/download/firmware.bin";

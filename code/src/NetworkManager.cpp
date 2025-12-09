@@ -325,6 +325,11 @@ void NetworkManager::setupHttpRoutes() {
         doc["hwid"] = _hardwareId;
         doc["uptime"] = millis();
         
+        // Error info
+        if (_lastError.length() > 0) {
+            doc["lastError"] = _lastError;
+        }
+        
         String json;
         serializeJson(doc, json);
         request->send(200, "application/json", json);
@@ -367,10 +372,12 @@ void NetworkManager::startOtaUpdate() {
     
     if (success) {
         Serial.println("[Network] OTA update successful, rebooting...");
+        _lastError = "";  // Clear any previous error
         delay(1000);
         ESP.restart();
     } else {
         Serial.println("[Network] OTA update failed, rebooting to AP mode...");
+        _lastError = "OTA update failed. Check firmware server and try again.";
         _led.setStatus(LedController::Status::ERROR);
         _led.setBlinking(true);
         delay(2000);  // Show error state briefly
@@ -391,6 +398,7 @@ bool NetworkManager::performOtaUpdate() {
     
     if (httpCode != HTTP_CODE_OK) {
         Serial.printf("[Network] HTTP GET failed: %d\n", httpCode);
+        _lastError = "OTA failed: HTTP error " + String(httpCode);
         http.end();
         return false;
     }
@@ -398,6 +406,7 @@ bool NetworkManager::performOtaUpdate() {
     int contentLength = http.getSize();
     if (contentLength <= 0) {
         Serial.println("[Network] Invalid content length");
+        _lastError = "OTA failed: Invalid firmware file";
         http.end();
         return false;
     }
@@ -407,6 +416,7 @@ bool NetworkManager::performOtaUpdate() {
     // Begin OTA update
     if (!Update.begin(contentLength)) {
         Serial.printf("[Network] Not enough space for OTA: %s\n", Update.errorString());
+        _lastError = "OTA failed: " + String(Update.errorString());
         http.end();
         return false;
     }
@@ -417,6 +427,7 @@ bool NetworkManager::performOtaUpdate() {
     
     if (written != contentLength) {
         Serial.printf("[Network] Written %d of %d bytes\n", written, contentLength);
+        _lastError = "OTA failed: Incomplete write (" + String(written) + "/" + String(contentLength) + " bytes)";
         http.end();
         return false;
     }
@@ -424,12 +435,14 @@ bool NetworkManager::performOtaUpdate() {
     // Finalize update
     if (!Update.end()) {
         Serial.printf("[Network] Update error: %s\n", Update.errorString());
+        _lastError = "OTA failed: " + String(Update.errorString());
         http.end();
         return false;
     }
     
     if (!Update.isFinished()) {
         Serial.println("[Network] Update not finished");
+        _lastError = "OTA failed: Update incomplete";
         http.end();
         return false;
     }
