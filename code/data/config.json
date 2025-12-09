@@ -1,0 +1,15 @@
+{
+  "qs": {
+    "minRpm": 3000,
+    "debounce": 50,
+    "cutTimeMap": [80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80]
+  },
+  "network": {
+    "ssid": "GiuseppeBagnile",
+    "password": "MikroTik2020",
+    "staMode": true
+  },
+  "telemetry": {
+    "updateRate": 100
+  }
+}

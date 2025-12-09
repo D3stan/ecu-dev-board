@@ -32,7 +32,6 @@ constexpr unsigned long STATUS_UPDATE_INTERVAL = 500;  // Update LED status ever
 void setup() {
     // Initialize serial for debugging
     Serial.begin(115200);
-    delay(100);  // Let serial stabilize
     
     Serial.println("\n\n========================================");
     Serial.println("   ESP32-S2 QuickShifter System");

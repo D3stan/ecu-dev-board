@@ -37,14 +37,21 @@ bool NetworkManager::begin() {
     
     // Start in appropriate mode
     if (netConfig.staMode && strlen(netConfig.ssid) > 0) {
+        Serial.println("[Network] Config requests STA mode");
+        Serial.flush();
+        
         if (switchToStaMode(netConfig.ssid, netConfig.password)) {
             _state = State::STA_MODE;
             _led.setStatus(LedController::Status::WIFI_STA);
         } else {
             // Fall back to AP mode if STA fails
+            Serial.println("[Network] STA mode failed, falling back to AP");
+            Serial.flush();
             switchToApMode();
         }
     } else {
+        Serial.println("[Network] Config requests AP mode");
+        Serial.flush();
         switchToApMode();
     }
     
@@ -86,12 +93,18 @@ void NetworkManager::generateHardwareId() {
 }
 
 void NetworkManager::switchToApMode() {
+    Serial.println("[Network] ========== AP MODE START ==========");
+    Serial.flush();
+    
     // Ensure clean state before switching modes
     WiFi.disconnect(true);
     delay(100);
     
     WiFi.mode(WIFI_AP);
     delay(100);  // Give WiFi time to switch modes
+    
+    Serial.println("[Network] WiFi mode set to AP");
+    Serial.flush();
 
     IPAddress apIP(42, 42, 42, 42);
     IPAddress gateway(42, 42, 42, 42);
@@ -139,35 +152,65 @@ void NetworkManager::switchToApMode() {
 }
 
 bool NetworkManager::switchToStaMode(const char* ssid, const char* password) {
+    Serial.println("[Network] ========== STA MODE START ==========");
+    Serial.printf("[Network] SSID: %s\n", ssid);
+    Serial.printf("[Network] Password length: %d\n", strlen(password));
+    Serial.flush();
+    
     // Ensure clean state before switching modes
-    WiFi.disconnect(true);
+    // Use disconnect(false) to keep credentials - we'll handle cleanup on failure
+    WiFi.disconnect(false);
     delay(100);
     
     WiFi.mode(WIFI_STA);
+    delay(100);
+    
+    Serial.println("[Network] Starting WiFi connection...");
+    Serial.flush();
+    
     WiFi.begin(ssid, password);
+    delay(100);
     
-    Serial.printf("[Network] Connecting to %s...\n", ssid);
+    Serial.printf("[Network] Connecting to %s", ssid);
+    Serial.flush();
     
-    // Wait up to 10 seconds for connection
+    // Wait up to 15 seconds for connection with better feedback
     int attempts = 0;
-    while (WiFi.status() != WL_CONNECTED && attempts < 20) {
+    while (WiFi.status() != WL_CONNECTED && attempts < 30) {
         delay(500);
         Serial.print(".");
+        if (attempts % 10 == 9) {
+            Serial.printf(" [Status: %d]\n", WiFi.status());
+        }
+        Serial.flush();
         attempts++;
     }
     Serial.println();
+    Serial.flush();
     
     if (WiFi.status() == WL_CONNECTED) {
-        Serial.printf("[Network] Connected! IP: %s\n", WiFi.localIP().toString().c_str());
+        Serial.printf("[Network] ✓ Connected! IP: %s\n", WiFi.localIP().toString().c_str());
+        Serial.printf("[Network] Gateway: %s\n", WiFi.gatewayIP().toString().c_str());
+        Serial.printf("[Network] DNS: %s\n", WiFi.dnsIP().toString().c_str());
+        Serial.flush();
         _state = State::STA_MODE;
         _led.setStatus(LedController::Status::WIFI_STA);
+        _lastError = "";  // Clear any previous error
         return true;
     } else {
-        Serial.println("[Network] Failed to connect - disconnecting and cleaning up");
+        Serial.println("[Network] ✗ Failed to connect to WiFi");
+        Serial.printf("[Network] WiFi Status: %d\n", WiFi.status());
+        Serial.flush();
+        
         _lastError = "Failed to connect to WiFi: " + String(ssid);
-        // Disconnect and clear WiFi state before falling back
-        WiFi.disconnect(true);
+        
+        // Disconnect but keep credentials stored for next attempt
+        // Use disconnect(false) to preserve the config
+        WiFi.disconnect(false);
         delay(100);
+        
+        Serial.println("[Network] Will fall back to AP mode...");
+        Serial.flush();
         return false;
     }
 }
@@ -330,6 +373,15 @@ void NetworkManager::setupHttpRoutes() {
             html += "<p>Web interface not installed. Upload index.html to LittleFS.</p>";
             html += "</body></html>";
             request->send(200, "text/html", html);
+        }
+    });
+    
+    // Serve telemetry page
+    _server.on("/telemetry.html", HTTP_GET, [this](AsyncWebServerRequest* request) {
+        if (_storage.hasWebInterface()) {
+            request->send(LittleFS, "/telemetry.html", "text/html");
+        } else {
+            request->send(404, "text/plain", "Telemetry page not found");
         }
     });
     
