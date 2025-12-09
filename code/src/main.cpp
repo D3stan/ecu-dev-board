@@ -1,160 +1,140 @@
+/**
+ * @file main.cpp
+ * @brief ESP32-S2 QuickShifter - Component-Based Architecture
+ * 
+ * This system uses dependency injection to separate concerns:
+ * - QuickShifterEngine: Real-time ignition cut logic (hard real-time)
+ * - NetworkManager: WiFi, HTTP server, WebSockets, OTA (soft real-time)
+ * - StorageHandler: LittleFS persistence layer
+ * - LedController: Visual feedback abstraction
+ * 
+ * All components are initialized in setup() and updated in loop().
+ * Static allocation is used throughout to prevent heap fragmentation.
+ */
+
+#include <Arduino.h>
 #include <pins.hpp>
-#include "Arduino.h"
+#include "QuickShifterEngine.hpp"
+#include "NetworkManager.hpp"
+#include "StorageHandler.hpp"
+#include "LedController.hpp"
 
-// Timing variables
-unsigned long previousPickupMillis = 0;
+// Component instances (static allocation)
+QuickShifterEngine qsEngine;
+StorageHandler storage;
+LedController led;
+NetworkManager* networkManager = nullptr;  // Initialized after storage
 
-// Frequency measurement variables
-volatile unsigned long lastPulseTime = 0;
-volatile unsigned long pulseInterval = 0;
-volatile unsigned long lastQsSwitchPressed = 0;
-volatile bool newPulseDetected = false;
-unsigned long previousPrintMillis = 0;
-const unsigned long printInterval = 500;  // Print frequency every 0.5 seconds
-const unsigned long signalTimeout = 1000; // Consider signal lost after 1 second
-bool signalActive = false;
-
-TimerHandle_t cdiOffTimer;
-
-void cdiTimerCallback(TimerHandle_t xTimer) {
-    digitalWrite(QS_SCR, LOW);
-    digitalWrite(LED_BUILTIN, LOW);
-}
-
-// Interrupt Service Routine for PICKUP_SQUARE pin
-void IRAM_ATTR pickupSquareISR() {
-    unsigned long currentTime = micros();
-    
-    // Calculate interval between rising edges
-    if (lastPulseTime != 0) {
-        pulseInterval = currentTime - lastPulseTime;
-        newPulseDetected = true;
-        // digitalWrite(CDI, HIGH);
-        // digitalWrite(LED_BUILTIN, HIGH);
-        // BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-        // xTimerStartFromISR(cdiOffTimer, &xHigherPriorityTaskWoken);
-
-        // // If starting the timer woke up the timer task, yield
-        // if (xHigherPriorityTaskWoken) {
-        //     portYIELD_FROM_ISR();
-        // }
-    }
-    
-    lastPulseTime = currentTime;
-}
-
-void IRAM_ATTR buttonISR() {
-    digitalWrite(QS_SCR, HIGH);
-    digitalWrite(LED_BUILTIN, HIGH);
-    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-    xTimerStartFromISR(cdiOffTimer, &xHigherPriorityTaskWoken);
-
-    // If starting the timer woke up the timer task, yield
-    if (xHigherPriorityTaskWoken) {
-        portYIELD_FROM_ISR();
-    }
-}
-
-void IRAM_ATTR digitalSensorPressed() {
-    unsigned long currentTime = micros();
-    if (lastQsSwitchPressed != 0 && (currentTime - lastQsSwitchPressed) > 500) {
-        // Ignore if pressed within 50ms of last press (debounce)
-        Serial.println("Quickshift Switch Pressed");
-        digitalWrite(QS_SCR, HIGH);
-        digitalWrite(LED_BUILTIN, HIGH);
-        BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-        xTimerStartFromISR(cdiOffTimer, &xHigherPriorityTaskWoken);
-
-        // If starting the timer woke up the timer task, yield
-        if (xHigherPriorityTaskWoken) {
-            portYIELD_FROM_ISR();
-        }
-    }
-    lastQsSwitchPressed = currentTime;    
-
-}
-
-// Function to set RGB LED color (0-255 for each channel)
-void setRgbColor(uint8_t r, uint8_t g, uint8_t b) {
-    analogWrite(R_LED, r);
-    analogWrite(G_LED, g);
-    analogWrite(B_LED, b);
-}
+// Timing for status updates
+unsigned long lastStatusUpdate = 0;
+constexpr unsigned long STATUS_UPDATE_INTERVAL = 500;  // Update LED status every 500ms
 
 void setup() {
     // Initialize serial for debugging
     Serial.begin(115200);
-
-    pinMode(QS_SCR, OUTPUT);
-    pinMode(0, INPUT_PULLUP);
+    delay(100);  // Let serial stabilize
     
-    // Configure LED pins
-    pinMode(LED_BUILTIN, OUTPUT);
-    pinMode(R_LED, OUTPUT);
-    pinMode(G_LED, OUTPUT);
-    pinMode(B_LED, OUTPUT);
+    Serial.println("\n\n========================================");
+    Serial.println("   ESP32-S2 QuickShifter System");
+    Serial.println("   Component-Based Architecture");
+    Serial.println("========================================\n");
     
-    // Configure PICKUP_SQUARE as input with interrupt
-    pinMode(SPARK_CDI, INPUT);
-    pinMode(QS_SW, INPUT);
-    attachInterrupt(digitalPinToInterrupt(QS_SW), digitalSensorPressed, RISING);
-    attachInterrupt(digitalPinToInterrupt(SPARK_CDI), pickupSquareISR, RISING);
-    attachInterrupt(digitalPinToInterrupt(0), buttonISR, FALLING);
-
-    // Create the one-shot timer
-    // It has a 10ms period (pdMS_TO_TICKS(10))
-    // pdFALSE means it's a one-shot timer, not auto-reloading
-    // The ID is 0, and the callback is cdiTimerCallback
-    cdiOffTimer = xTimerCreate(
-        "CDI_Off_Timer",      // Name for debugging
-        pdMS_TO_TICKS(500),    // Timer period in ticks
-        pdFALSE,              // Don't auto-reload (one-shot)
-        (void *)0,            // Timer ID (not used here)
-        cdiTimerCallback      // Callback function
-    );
+    // 1. Initialize LED Controller first for visual feedback
+    Serial.println("[Main] Initializing LED Controller...");
+    led.begin(R_LED, G_LED, B_LED, LED_BUILTIN);
+    led.setStatus(LedController::Status::NO_SIGNAL);
     
-    // Initialize All off
-    digitalWrite(LED_BUILTIN, LOW);
-    digitalWrite(CDI, LOW);
-    setRgbColor(255, 0, 0);  // Start with red (no signal)
+    // 2. Initialize Storage Handler
+    Serial.println("[Main] Initializing Storage Handler...");
+    if (!storage.begin()) {
+        Serial.println("[Main] ERROR: Storage initialization failed!");
+        led.setStatus(LedController::Status::ERROR);
+        led.setBlinking(true);
+        while (1) { delay(1000); }  // Halt on critical error
+    }
     
-    Serial.println("ECU Dev Board - Started");
+    // 3. Initialize QuickShifter Engine
+    Serial.println("[Main] Initializing QuickShifter Engine...");
+    qsEngine.begin(SPARK_CDI, QS_SW, QS_SCR);
+    
+    // Load configuration from storage
+    QuickShifterEngine::Config qsConfig;
+    if (storage.loadQsConfig(qsConfig)) {
+        qsEngine.setConfig(qsConfig);
+        Serial.println("[Main] QuickShifter config loaded from storage");
+    } else {
+        Serial.println("[Main] Using default QuickShifter config");
+        // Save default config for next boot
+        qsConfig = qsEngine.getConfig();
+        storage.saveQsConfig(qsConfig);
+    }
+    
+    // 4. Initialize Network Manager (dependency injection)
+    Serial.println("[Main] Initializing Network Manager...");
+    networkManager = new NetworkManager(storage, qsEngine, led);
+    if (!networkManager->begin()) {
+        Serial.println("[Main] WARNING: Network initialization failed!");
+        // Continue anyway - system can run without network
+    }
+    
+    Serial.println("\n========================================");
+    Serial.println("   System Initialization Complete");
+    Serial.println("========================================\n");
+    
+    // Print system info
+    Serial.println("Configuration:");
+    Serial.printf("  Min RPM Threshold: %d RPM\n", qsConfig.minRpmThreshold);
+    Serial.printf("  Debounce Time: %d ms\n", qsConfig.debounceTimeMs);
+    Serial.print("  Cut Time Map: [");
+    for (size_t i = 0; i < qsConfig.cutTimeMap.size(); i++) {
+        Serial.print(qsConfig.cutTimeMap[i]);
+        if (i < qsConfig.cutTimeMap.size() - 1) Serial.print(", ");
+    }
+    Serial.println("] ms");
+    Serial.printf("  Hardware ID: %s\n", networkManager->getHardwareId().c_str());
+    Serial.println();
 }
 
 void loop() {
+    // Update all components
+    // QuickShifterEngine handles its own interrupts, just needs periodic update for signal timeout
+    qsEngine.update();
+    
+    // Update network (WebSocket broadcasts, etc.)
+    if (networkManager) {
+        networkManager->update();
+    }
+    
+    // Update LED controller (for blinking effects)
+    led.update();
+    
+    // Periodic status updates based on system state
     unsigned long currentMillis = millis();
-    unsigned long currentMicros = micros();
-    
-    // Check if signal is active (received pulse within timeout period)
-    if (lastPulseTime > 0 && (currentMicros - lastPulseTime) < (signalTimeout * 1000)) {
-        if (!signalActive) {
-            signalActive = true;
-            setRgbColor(0, 255, 0);  // Green when signal is active
-        }
-    } else {
-        if (signalActive) {
-            signalActive = false;
-            setRgbColor(255, 0, 0);  // Red when no signal
-        }
-    }
-    
-    // Print frequency measurement every 0.5 seconds
-    if (currentMillis - previousPrintMillis >= printInterval) {
-        previousPrintMillis = currentMillis;
+    if (currentMillis - lastStatusUpdate >= STATUS_UPDATE_INTERVAL) {
+        lastStatusUpdate = currentMillis;
         
-        if (newPulseDetected && pulseInterval > 0) {
-            // Calculate frequency from pulse interval
-            float frequency = 1000000.0 / pulseInterval;  // Convert microseconds to Hz
-            float RPM = frequency * 60.0;  // Convert Hz to RPM
-            
-            // Print frequency and period
-            Serial.print("RPM: ");
-            Serial.print(RPM, 2);
-            Serial.println();
-            newPulseDetected = false;
-
-        } else if (!signalActive) {
-            Serial.println("VR Sensor: No signal detected");
+        // Update LED status based on system state
+        if (qsEngine.isCutActive()) {
+            led.setStatus(LedController::Status::IGNITION_CUT);
+            led.setBuiltinLed(true);
+        } else if (qsEngine.isSignalActive()) {
+            led.setStatus(LedController::Status::SIGNAL_OK);
+            led.setBuiltinLed(false);
+        } else {
+            led.setStatus(LedController::Status::NO_SIGNAL);
+            led.setBuiltinLed(false);
+        }
+        
+        // Debug output to serial
+        uint16_t rpm = qsEngine.getCurrentRpm();
+        if (rpm > 0) {
+            Serial.printf("[Status] RPM: %d, Signal: %s, Cut: %s\n",
+                         rpm,
+                         qsEngine.isSignalActive() ? "Active" : "Lost",
+                         qsEngine.isCutActive() ? "Active" : "Inactive");
         }
     }
+    
+    // Small yield to prevent watchdog triggers
+    yield();
 }

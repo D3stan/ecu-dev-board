@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuickShifter Control</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #1a1a1a;
+            color: #ffffff;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #00ff88;
+        }
+        
+        .section {
+            background: #2a2a2a;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        
+        .section h2 {
+            margin-bottom: 15px;
+            color: #00ff88;
+            font-size: 1.2em;
+        }
+        
+        .rpm-display {
+            text-align: center;
+            font-size: 4em;
+            font-weight: bold;
+            color: #00ff88;
+            margin: 20px 0;
+            text-shadow: 0 0 20px rgba(0,255,136,0.5);
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-indicator.active {
+            background: #00ff88;
+            box-shadow: 0 0 10px #00ff88;
+        }
+        
+        .status-indicator.inactive {
+            background: #ff4444;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #3a3a3a;
+        }
+        
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #aaa;
+        }
+        
+        input[type="number"],
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            background: #1a1a1a;
+            border: 1px solid #444;
+            border-radius: 5px;
+            color: #fff;
+            font-size: 1em;
+        }
+        
+        button {
+            background: #00ff88;
+            color: #000;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            margin-right: 10px;
+            margin-top: 10px;
+            transition: background 0.3s;
+        }
+        
+        button:hover {
+            background: #00dd77;
+        }
+        
+        button.secondary {
+            background: #444;
+            color: #fff;
+        }
+        
+        button.secondary:hover {
+            background: #555;
+        }
+        
+        .map-editor {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .map-entry {
+            text-align: center;
+        }
+        
+        .map-entry label {
+            font-size: 0.8em;
+            margin-bottom: 3px;
+        }
+        
+        .map-entry input {
+            width: 100%;
+            padding: 5px;
+            text-align: center;
+        }
+        
+        .connection-status {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            padding: 5px 10px;
+            background: #2a2a2a;
+            border-radius: 5px;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="connection-status">
+        <span class="status-indicator" id="wsStatus"></span>
+        <span id="wsStatusText">Connecting...</span>
+    </div>
+
+    <h1>🏍️ QuickShifter Control</h1>
+    
+    <!-- Telemetry Section -->
+    <div class="section">
+        <h2>Live Telemetry</h2>
+        <div class="rpm-display" id="rpmDisplay">0</div>
+        <div class="info-row">
+            <span>Pickup Signal:</span>
+            <span><span class="status-indicator" id="signalStatus"></span><span id="signalText">No Signal</span></span>
+        </div>
+        <div class="info-row">
+            <span>Ignition Cut:</span>
+            <span><span class="status-indicator" id="cutStatus"></span><span id="cutText">Inactive</span></span>
+        </div>
+        <div class="info-row">
+            <span>Hardware ID:</span>
+            <span id="hwid">-</span>
+        </div>
+        <div class="info-row">
+            <span>Uptime:</span>
+            <span id="uptime">0s</span>
+        </div>
+    </div>
+    
+    <!-- QuickShifter Configuration -->
+    <div class="section">
+        <h2>QuickShifter Configuration</h2>
+        <div class="form-group">
+            <label>Minimum RPM Threshold</label>
+            <input type="number" id="minRpm" min="0" max="20000" step="100">
+        </div>
+        <div class="form-group">
+            <label>Shift Sensor Debounce (ms)</label>
+            <input type="number" id="debounce" min="0" max="500" step="10">
+        </div>
+        <div class="form-group">
+            <label>Cut Time Map (5k-15k RPM, 1k steps)</label>
+            <div class="map-editor" id="cutTimeMap"></div>
+        </div>
+        <button onclick="saveQsConfig()">Save QS Config</button>
+    </div>
+    
+    <!-- Telemetry Configuration -->
+    <div class="section">
+        <h2>Telemetry Configuration</h2>
+        <div class="form-group">
+            <label>Update Rate (ms)</label>
+            <input type="number" id="updateRate" min="50" max="1000" step="50">
+        </div>
+        <button onclick="saveTelemetryConfig()">Save Telemetry Config</button>
+    </div>
+    
+    <!-- Network Configuration -->
+    <div class="section">
+        <h2>Network Configuration</h2>
+        <div class="form-group">
+            <label>WiFi SSID (for STA mode)</label>
+            <input type="text" id="wifiSsid" maxlength="31">
+        </div>
+        <div class="form-group">
+            <label>WiFi Password</label>
+            <input type="password" id="wifiPassword" maxlength="63">
+        </div>
+        <button onclick="saveNetworkConfig()">Save & Reboot</button>
+        <button class="secondary" onclick="reboot()">Reboot</button>
+    </div>
+    
+    <!-- OTA Update -->
+    <div class="section">
+        <h2>Firmware Update</h2>
+        <p style="color: #aaa; margin-bottom: 10px;">Update firmware from configured server</p>
+        <button onclick="startOta()">Start OTA Update</button>
+    </div>
+
+    <script>
+        let ws;
+        let reconnectInterval;
+        
+        function connect() {
+            ws = new WebSocket('ws://' + window.location.hostname + '/ws');
+            
+            ws.onopen = function() {
+                console.log('WebSocket connected');
+                document.getElementById('wsStatus').classList.add('active');
+                document.getElementById('wsStatus').classList.remove('inactive');
+                document.getElementById('wsStatusText').textContent = 'Connected';
+                clearInterval(reconnectInterval);
+            };
+            
+            ws.onclose = function() {
+                console.log('WebSocket disconnected');
+                document.getElementById('wsStatus').classList.remove('active');
+                document.getElementById('wsStatus').classList.add('inactive');
+                document.getElementById('wsStatusText').textContent = 'Disconnected';
+                
+                // Attempt reconnection every 3 seconds
+                reconnectInterval = setInterval(connect, 3000);
+            };
+            
+            ws.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+                updateTelemetry(data);
+            };
+        }
+        
+        function updateTelemetry(data) {
+            // Update RPM display
+            document.getElementById('rpmDisplay').textContent = data.rpm || 0;
+            
+            // Update signal status
+            const signalStatus = document.getElementById('signalStatus');
+            const signalText = document.getElementById('signalText');
+            if (data.signalActive) {
+                signalStatus.classList.add('active');
+                signalStatus.classList.remove('inactive');
+                signalText.textContent = 'Active';
+            } else {
+                signalStatus.classList.remove('active');
+                signalStatus.classList.add('inactive');
+                signalText.textContent = 'No Signal';
+            }
+            
+            // Update cut status
+            const cutStatus = document.getElementById('cutStatus');
+            const cutText = document.getElementById('cutText');
+            if (data.cutActive) {
+                cutStatus.classList.add('active');
+                cutStatus.classList.remove('inactive');
+                cutText.textContent = 'Active';
+            } else {
+                cutStatus.classList.remove('active');
+                cutStatus.classList.add('inactive');
+                cutText.textContent = 'Inactive';
+            }
+            
+            // Update hardware ID and uptime
+            if (data.hwid) {
+                document.getElementById('hwid').textContent = data.hwid;
+            }
+            if (data.uptime) {
+                const seconds = Math.floor(data.uptime / 1000);
+                document.getElementById('uptime').textContent = formatUptime(seconds);
+            }
+        }
+        
+        function formatUptime(seconds) {
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            const secs = seconds % 60;
+            return `${hours}h ${minutes}m ${secs}s`;
+        }
+        
+        function loadConfig() {
+            fetch('/api/config')
+                .then(response => response.json())
+                .then(data => {
+                    // Load QS config
+                    document.getElementById('minRpm').value = data.qs.minRpm;
+                    document.getElementById('debounce').value = data.qs.debounce;
+                    
+                    // Load cut time map
+                    const mapContainer = document.getElementById('cutTimeMap');
+                    mapContainer.innerHTML = '';
+                    data.qs.cutTimeMap.forEach((value, index) => {
+                        const rpm = 5000 + (index * 1000);
+                        const entry = document.createElement('div');
+                        entry.className = 'map-entry';
+                        entry.innerHTML = `
+                            <label>${rpm/1000}k</label>
+                            <input type="number" id="map${index}" value="${value}" min="0" max="500" step="5">
+                        `;
+                        mapContainer.appendChild(entry);
+                    });
+                    
+                    // Load telemetry config
+                    document.getElementById('updateRate').value = data.telemetry.updateRate;
+                    
+                    // Load network config
+                    document.getElementById('wifiSsid').value = data.network.ssid;
+                });
+        }
+        
+        function saveQsConfig() {
+            const cutTimeMap = [];
+            for (let i = 0; i < 11; i++) {
+                cutTimeMap.push(parseInt(document.getElementById('map' + i).value));
+            }
+            
+            const config = {
+                type: 'config',
+                minRpm: parseInt(document.getElementById('minRpm').value),
+                debounce: parseInt(document.getElementById('debounce').value),
+                cutTimeMap: cutTimeMap
+            };
+            
+            ws.send(JSON.stringify(config));
+            alert('QuickShifter configuration saved!');
+        }
+        
+        function saveTelemetryConfig() {
+            const config = {
+                type: 'telemetry',
+                updateRate: parseInt(document.getElementById('updateRate').value)
+            };
+            
+            ws.send(JSON.stringify(config));
+            alert('Telemetry configuration saved!');
+        }
+        
+        function saveNetworkConfig() {
+            const config = {
+                type: 'network',
+                ssid: document.getElementById('wifiSsid').value,
+                password: document.getElementById('wifiPassword').value,
+                staMode: true
+            };
+            
+            if (confirm('Save network configuration and reboot?')) {
+                ws.send(JSON.stringify(config));
+                setTimeout(() => {
+                    window.location.reload();
+                }, 3000);
+            }
+        }
+        
+        function startOta() {
+            if (confirm('Start OTA firmware update? Device will reboot after update.')) {
+                const msg = { type: 'ota' };
+                ws.send(JSON.stringify(msg));
+                alert('OTA update started. Device will reboot automatically.');
+            }
+        }
+        
+        function reboot() {
+            if (confirm('Reboot device?')) {
+                fetch('/api/reboot', { method: 'POST' });
+                setTimeout(() => {
+                    window.location.reload();
+                }, 3000);
+            }
+        }
+        
+        // Initialize
+        connect();
+        loadConfig();
+    </script>
+</body>
+</html>
