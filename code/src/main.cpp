@@ -7,6 +7,7 @@ unsigned long previousPickupMillis = 0;
 // Frequency measurement variables
 volatile unsigned long lastPulseTime = 0;
 volatile unsigned long pulseInterval = 0;
+volatile unsigned long lastQsSwitchPressed = 0;
 volatile bool newPulseDetected = false;
 unsigned long previousPrintMillis = 0;
 const unsigned long printInterval = 500;  // Print frequency every 0.5 seconds
@@ -16,7 +17,7 @@ bool signalActive = false;
 TimerHandle_t cdiOffTimer;
 
 void cdiTimerCallback(TimerHandle_t xTimer) {
-    digitalWrite(CDI, LOW);
+    digitalWrite(QS_SCR, LOW);
     digitalWrite(LED_BUILTIN, LOW);
 }
 
@@ -28,7 +29,38 @@ void IRAM_ATTR pickupSquareISR() {
     if (lastPulseTime != 0) {
         pulseInterval = currentTime - lastPulseTime;
         newPulseDetected = true;
-        digitalWrite(CDI, HIGH);
+        // digitalWrite(CDI, HIGH);
+        // digitalWrite(LED_BUILTIN, HIGH);
+        // BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+        // xTimerStartFromISR(cdiOffTimer, &xHigherPriorityTaskWoken);
+
+        // // If starting the timer woke up the timer task, yield
+        // if (xHigherPriorityTaskWoken) {
+        //     portYIELD_FROM_ISR();
+        // }
+    }
+    
+    lastPulseTime = currentTime;
+}
+
+void IRAM_ATTR buttonISR() {
+    digitalWrite(QS_SCR, HIGH);
+    digitalWrite(LED_BUILTIN, HIGH);
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+    xTimerStartFromISR(cdiOffTimer, &xHigherPriorityTaskWoken);
+
+    // If starting the timer woke up the timer task, yield
+    if (xHigherPriorityTaskWoken) {
+        portYIELD_FROM_ISR();
+    }
+}
+
+void IRAM_ATTR digitalSensorPressed() {
+    unsigned long currentTime = micros();
+    if (lastQsSwitchPressed != 0 && (currentTime - lastQsSwitchPressed) > 500) {
+        // Ignore if pressed within 50ms of last press (debounce)
+        Serial.println("Quickshift Switch Pressed");
+        digitalWrite(QS_SCR, HIGH);
         digitalWrite(LED_BUILTIN, HIGH);
         BaseType_t xHigherPriorityTaskWoken = pdFALSE;
         xTimerStartFromISR(cdiOffTimer, &xHigherPriorityTaskWoken);
@@ -38,20 +70,8 @@ void IRAM_ATTR pickupSquareISR() {
             portYIELD_FROM_ISR();
         }
     }
-    
-    lastPulseTime = currentTime;
-}
+    lastQsSwitchPressed = currentTime;    
 
-void IRAM_ATTR buttonISR() {
-    digitalWrite(CDI, HIGH);
-    digitalWrite(LED_BUILTIN, HIGH);
-    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-    xTimerStartFromISR(cdiOffTimer, &xHigherPriorityTaskWoken);
-
-    // If starting the timer woke up the timer task, yield
-    if (xHigherPriorityTaskWoken) {
-        portYIELD_FROM_ISR();
-    }
 }
 
 // Function to set RGB LED color (0-255 for each channel)
@@ -65,7 +85,7 @@ void setup() {
     // Initialize serial for debugging
     Serial.begin(115200);
 
-    pinMode(CDI, OUTPUT);
+    pinMode(QS_SCR, OUTPUT);
     pinMode(0, INPUT_PULLUP);
     
     // Configure LED pins
@@ -75,8 +95,10 @@ void setup() {
     pinMode(B_LED, OUTPUT);
     
     // Configure PICKUP_SQUARE as input with interrupt
-    pinMode(PICKUP_SQUARE, INPUT);
-    attachInterrupt(digitalPinToInterrupt(PICKUP_SQUARE), pickupSquareISR, RISING);
+    pinMode(SPARK_CDI, INPUT);
+    pinMode(QS_SW, INPUT);
+    attachInterrupt(digitalPinToInterrupt(QS_SW), digitalSensorPressed, RISING);
+    attachInterrupt(digitalPinToInterrupt(SPARK_CDI), pickupSquareISR, RISING);
     attachInterrupt(digitalPinToInterrupt(0), buttonISR, FALLING);
 
     // Create the one-shot timer
@@ -85,7 +107,7 @@ void setup() {
     // The ID is 0, and the callback is cdiTimerCallback
     cdiOffTimer = xTimerCreate(
         "CDI_Off_Timer",      // Name for debugging
-        pdMS_TO_TICKS(10),    // Timer period in ticks
+        pdMS_TO_TICKS(500),    // Timer period in ticks
         pdFALSE,              // Don't auto-reload (one-shot)
         (void *)0,            // Timer ID (not used here)
         cdiTimerCallback      // Callback function
