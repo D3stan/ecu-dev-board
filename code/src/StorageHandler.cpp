@@ -58,14 +58,21 @@ bool StorageHandler::loadConfig(SystemConfig& config) {
         return false;
     }
     
-    // Parse JSON
-    JsonDocument doc;
+    // Parse JSON with fixed-size buffer
+    StaticJsonDocument<1024> doc;
     DeserializationError error = deserializeJson(doc, file);
     file.close();
     
     if (error) {
         Serial.print("[Storage] JSON parse error: ");
         Serial.println(error.c_str());
+        getDefaultConfig(config);
+        return false;
+    }
+    
+    // Check if document overflowed
+    if (doc.overflowed()) {
+        Serial.println("[Storage] JSON document overflow - config too large");
         getDefaultConfig(config);
         return false;
     }
@@ -103,8 +110,8 @@ bool StorageHandler::saveConfig(const SystemConfig& config) {
         return false;
     }
     
-    // Create JSON document
-    JsonDocument doc;
+    // Create JSON document with fixed size
+    StaticJsonDocument<1024> doc;
     
     // QuickShifter config
     JsonObject qs = doc.createNestedObject("qs");
@@ -126,12 +133,28 @@ bool StorageHandler::saveConfig(const SystemConfig& config) {
     JsonObject telemetry = doc.createNestedObject("telemetry");
     telemetry["updateRate"] = config.telemetryConfig.updateRateMs;
     
-    // Serialize to string
-    String jsonString;
-    serializeJson(doc, jsonString);
+    // Check if document overflowed
+    if (doc.overflowed()) {
+        Serial.println("[Storage] JSON document overflow - config too large");
+        return false;
+    }
+    
+    // Serialize to fixed buffer
+    char jsonBuffer[1024];
+    size_t jsonSize = serializeJson(doc, jsonBuffer, sizeof(jsonBuffer));
+    
+    if (jsonSize == 0) {
+        Serial.println("[Storage] JSON serialization failed");
+        return false;
+    }
+    
+    if (jsonSize >= sizeof(jsonBuffer)) {
+        Serial.println("[Storage] JSON buffer too small");
+        return false;
+    }
     
     // Atomic write
-    bool success = atomicWrite(CONFIG_FILE, jsonString.c_str(), jsonString.length());
+    bool success = atomicWrite(CONFIG_FILE, jsonBuffer, jsonSize);
     
     if (success) {
         Serial.println("[Storage] Configuration saved successfully");
@@ -208,6 +231,7 @@ bool StorageHandler::atomicWrite(const char* filename, const char* data, size_t 
     }
     
     size_t written = tmpFile.write((const uint8_t*)data, len);
+    tmpFile.flush();  // Ensure data is written to flash
     tmpFile.close();
     
     if (written != len) {

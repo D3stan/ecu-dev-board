@@ -212,26 +212,42 @@ void NetworkManager::onWebSocketEvent(AsyncWebSocket* server, AsyncWebSocketClie
 void NetworkManager::broadcastTelemetry() {
     if (_ws.count() == 0) return;  // No clients connected
     
-    // Create telemetry JSON
-    JsonDocument doc;
+    // Create telemetry JSON with fixed buffer
+    StaticJsonDocument<256> doc;
     doc["rpm"] = _qsEngine.getCurrentRpm();
     doc["signalActive"] = _qsEngine.isSignalActive();
     doc["cutActive"] = _qsEngine.isCutActive();
     doc["hwid"] = _hardwareId;
     doc["uptime"] = millis();
     
-    String json;
-    serializeJson(doc, json);
+    // Check for overflow
+    if (doc.overflowed()) {
+        Serial.println("[Network] Telemetry JSON overflow");
+        return;
+    }
     
-    _ws.textAll(json);
+    char jsonBuffer[256];
+    size_t jsonSize = serializeJson(doc, jsonBuffer, sizeof(jsonBuffer));
+    
+    if (jsonSize == 0 || jsonSize >= sizeof(jsonBuffer)) {
+        Serial.println("[Network] Telemetry serialization failed");
+        return;
+    }
+    
+    _ws.textAll(jsonBuffer, jsonSize);
 }
 
 void NetworkManager::handleConfigUpdate(const char* jsonData) {
-    JsonDocument doc;
+    StaticJsonDocument<512> doc;
     DeserializationError error = deserializeJson(doc, jsonData);
     
     if (error) {
         Serial.printf("[Network] JSON parse error: %s\n", error.c_str());
+        return;
+    }
+    
+    if (doc.overflowed()) {
+        Serial.println("[Network] JSON document overflow");
         return;
     }
     
@@ -319,7 +335,7 @@ void NetworkManager::setupHttpRoutes() {
     
     // Get current configuration
     _server.on("/api/config", HTTP_GET, [this](AsyncWebServerRequest* request) {
-        JsonDocument doc;
+        StaticJsonDocument<1024> doc;
         
         // QuickShifter config
         auto qsConfig = _qsEngine.getConfig();
@@ -351,9 +367,21 @@ void NetworkManager::setupHttpRoutes() {
             doc["lastError"] = _lastError;
         }
         
-        String json;
-        serializeJson(doc, json);
-        request->send(200, "application/json", json);
+        // Check for overflow
+        if (doc.overflowed()) {
+            request->send(500, "text/plain", "Config too large");
+            return;
+        }
+        
+        char jsonBuffer[1024];
+        size_t jsonSize = serializeJson(doc, jsonBuffer, sizeof(jsonBuffer));
+        
+        if (jsonSize == 0 || jsonSize >= sizeof(jsonBuffer)) {
+            request->send(500, "text/plain", "Serialization failed");
+            return;
+        }
+        
+        request->send(200, "application/json", jsonBuffer);
     });
     
     // Reboot endpoint
