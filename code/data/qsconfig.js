@@ -133,6 +133,8 @@ function onPointerDown(e) {
     const graphWidth = canvas.width - 2 * padding;
     const graphHeight = canvas.height - 2 * padding;
     
+    let pointClicked = false;
+    
     // Check if clicking/touching a point
     for (let i = 0; i < graphPoints.length; i++) {
         const point = graphPoints[i];
@@ -144,10 +146,18 @@ function onPointerDown(e) {
         
         if (distance < hitRadius) {
             selectedPointIndex = i;
+            showingTooltipIndex = i; // Show tooltip for this point
             isDragging = true;
+            pointClicked = true;
             drawGraph();
             return;
         }
+    }
+    
+    // If clicked somewhere else, hide all tooltips
+    if (!pointClicked) {
+        showingTooltipIndex = -1;
+        drawGraph();
     }
 }
 
@@ -179,6 +189,7 @@ function onPointerMove(e) {
 function onPointerUp() {
     isDragging = false;
     selectedPointIndex = -1;
+    // Keep tooltip visible after dragging
     drawGraph();
 }
 
@@ -232,38 +243,30 @@ function drawGraph() {
     ctx.lineTo(width - padding, height - padding);
     ctx.stroke();
     
-    // Draw labels
+    // Draw tick marks
     const fontSize = Math.max(10, Math.min(14, width * 0.018));
-    ctx.fillStyle = '#888';
-    ctx.font = `${fontSize}px sans-serif`;
-    ctx.textAlign = 'center';
+    ctx.strokeStyle = '#444';
+    ctx.lineWidth = 2;
     
-    // RPM labels (X-axis)
+    // RPM tick marks (X-axis)
     const rpmStep = graphWidth < 400 ? 5000 : 2500;
     for (let rpm = 5000; rpm <= 15000; rpm += rpmStep) {
         const x = padding + ((rpm - 5000) / 10000) * graphWidth;
-        ctx.fillText(rpm / 1000 + 'k', x, height - padding + fontSize + 5);
+        ctx.beginPath();
+        ctx.moveTo(x, height - padding);
+        ctx.lineTo(x, height - padding + 8);
+        ctx.stroke();
     }
     
-    // Cut Time labels (Y-axis)
-    ctx.textAlign = 'right';
+    // Cut Time tick marks (Y-axis)
     const cutTimeStep = graphHeight < 300 ? 80 : 40;
     for (let cutTime = 0; cutTime <= 200; cutTime += cutTimeStep) {
         const y = height - padding - (cutTime / 200) * graphHeight;
-        ctx.fillText(cutTime + 'ms', padding - 8, y + fontSize / 3);
+        ctx.beginPath();
+        ctx.moveTo(padding - 8, y);
+        ctx.lineTo(padding, y);
+        ctx.stroke();
     }
-    
-    // Axis labels
-    ctx.fillStyle = '#00ff88';
-    ctx.font = `bold ${fontSize + 2}px sans-serif`;
-    ctx.textAlign = 'center';
-    ctx.fillText('RPM', width / 2, height - 5);
-    
-    ctx.save();
-    ctx.translate(fontSize, height / 2);
-    ctx.rotate(-Math.PI / 2);
-    ctx.fillText('Cut Time (ms)', 0, 0);
-    ctx.restore();
     
     // Sort points for drawing
     const sorted = [...graphPoints].sort((a, b) => a.rpm - b.rpm);
@@ -320,16 +323,42 @@ function drawGraph() {
         ctx.lineWidth = 2;
         ctx.stroke();
         
-        // Draw label (only if enough space)
-        if (width > 500) {
+        // Draw tooltip only for the selected point
+        if (index === showingTooltipIndex) {
+            const tooltipText = Math.round(point.rpm) + ' RPM / ' + Math.round(point.cutTime) + ' ms';
+            const tooltipFontSize = Math.max(11, Math.min(13, width * 0.016));
+            ctx.font = `bold ${tooltipFontSize}px sans-serif`;
+            
+            // Measure text
+            const textMetrics = ctx.measureText(tooltipText);
+            const textWidth = textMetrics.width;
+            const tooltipPadding = 8;
+            const tooltipHeight = tooltipFontSize + tooltipPadding * 2;
+            const tooltipWidth = textWidth + tooltipPadding * 2;
+            
+            // Position tooltip above point
+            let tooltipX = x - tooltipWidth / 2;
+            let tooltipY = y - pointRadius - tooltipHeight - 10;
+            
+            // Keep tooltip within bounds
+            if (tooltipX < padding) tooltipX = padding;
+            if (tooltipX + tooltipWidth > width - padding) tooltipX = width - padding - tooltipWidth;
+            if (tooltipY < padding) tooltipY = y + pointRadius + 10; // Show below if no space above
+            
+            // Draw tooltip background
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.9)';
+            ctx.strokeStyle = '#00ff88';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.roundRect(tooltipX, tooltipY, tooltipWidth, tooltipHeight, 5);
+            ctx.fill();
+            ctx.stroke();
+            
+            // Draw tooltip text
             ctx.fillStyle = '#fff';
-            ctx.font = `bold ${fontSize}px sans-serif`;
             ctx.textAlign = 'center';
-            ctx.fillText(
-                Math.round(point.rpm) + ' / ' + Math.round(point.cutTime) + 'ms',
-                x,
-                y - pointRadius - 5
-            );
+            ctx.textBaseline = 'middle';
+            ctx.fillText(tooltipText, x, tooltipY + tooltipHeight / 2);
         }
     });
 }
@@ -361,10 +390,64 @@ function addGraphPoint() {
         return;
     }
     
-    const avgRpm = (5000 + 15000) / 2;
+    // Calculate average cut time
     const avgCutTime = graphPoints.reduce((sum, p) => sum + p.cutTime, 0) / graphPoints.length;
     
-    graphPoints.push({ rpm: avgRpm, cutTime: avgCutTime });
+    // Find a good RPM position that doesn't overlap with existing points
+    const sorted = [...graphPoints].sort((a, b) => a.rpm - b.rpm);
+    let newRpm = (5000 + 15000) / 2; // Start with middle
+    
+    // Try to find the largest gap between existing points
+    let largestGap = 0;
+    let gapMidpoint = newRpm;
+    
+    for (let i = 0; i < sorted.length - 1; i++) {
+        const gap = sorted[i + 1].rpm - sorted[i].rpm;
+        if (gap > largestGap) {
+            largestGap = gap;
+            gapMidpoint = (sorted[i].rpm + sorted[i + 1].rpm) / 2;
+        }
+    }
+    
+    // Check gap before first point
+    const gapBefore = sorted[0].rpm - 5000;
+    if (gapBefore > largestGap && gapBefore > 500) {
+        largestGap = gapBefore;
+        gapMidpoint = (5000 + sorted[0].rpm) / 2;
+    }
+    
+    // Check gap after last point
+    const gapAfter = 15000 - sorted[sorted.length - 1].rpm;
+    if (gapAfter > largestGap && gapAfter > 500) {
+        gapMidpoint = (sorted[sorted.length - 1].rpm + 15000) / 2;
+    }
+    
+    newRpm = gapMidpoint;
+    
+    // Ensure at least 500 RPM from any existing point
+    let tooClose = true;
+    let offset = 0;
+    while (tooClose && offset < 5000) {
+        tooClose = false;
+        for (let point of graphPoints) {
+            if (Math.abs(newRpm - point.rpm) < 500) {
+                tooClose = true;
+                break;
+            }
+        }
+        if (tooClose) {
+            offset += 500;
+            newRpm = gapMidpoint + (offset % 2 === 0 ? offset : -offset);
+            // Keep within bounds
+            if (newRpm < 5000) newRpm = 5000 + offset;
+            if (newRpm > 15000) newRpm = 15000 - offset;
+        }
+    }
+    
+    // Clamp to bounds
+    newRpm = Math.max(5000, Math.min(15000, newRpm));
+    
+    graphPoints.push({ rpm: Math.round(newRpm), cutTime: Math.round(avgCutTime) });
     updateGraphPointCount();
     drawGraph();
 }
