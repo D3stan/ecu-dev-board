@@ -263,18 +263,34 @@
                 </label>
             </div>
         </div>
+        
+        <!-- AP Mode Configuration -->
+        <div id="apConfigSection" style="display: none;">
+            <p style="color: #aaa; margin: 15px 0; font-size: 0.9em;">Configure the Access Point that the ESP will create:</p>
+            <div class="form-group">
+                <label>AP SSID (Network Name)</label>
+                <input type="text" id="apSsid" maxlength="31" placeholder="e.g., rspqs">
+            </div>
+            <div class="form-group">
+                <label>AP Password (leave empty for open network)</label>
+                <input type="password" id="apPassword" maxlength="63" placeholder="Optional password">
+            </div>
+        </div>
+        
+        <!-- STA Mode Configuration -->
         <div id="staConfigSection" style="display: none;">
             <p style="color: #aaa; margin: 15px 0; font-size: 0.9em;">Enter the WiFi network credentials you want the ESP to connect to:</p>
             <div class="form-group">
                 <label>WiFi Network SSID</label>
-                <input type="text" id="wifiSsid" maxlength="31" placeholder="Your WiFi network name">
+                <input type="text" id="staSsid" maxlength="31" placeholder="Your WiFi network name">
             </div>
             <div class="form-group">
                 <label>WiFi Network Password</label>
-                <input type="password" id="wifiPassword" maxlength="63" placeholder="Your WiFi password">
+                <input type="password" id="staPassword" maxlength="63" placeholder="Your WiFi password">
             </div>
         </div>
-        <p style="color: #ff8800; margin: 15px 0; font-size: 0.9em;">⚠️ Note: Changes require a reboot to take effect. Default AP name is "rspqs".</p>
+        
+        <p style="color: #ff8800; margin: 15px 0; font-size: 0.9em;">⚠️ Note: Changes require a reboot to take effect.</p>
         <button onclick="saveNetworkConfig()">Save Network Config</button>
         <button class="secondary" onclick="reboot()">Reboot</button>
     </div>
@@ -393,10 +409,12 @@
                     const staMode = data.network.staMode || false;
                     if (staMode) {
                         document.getElementById('modeSTA').checked = true;
-                        document.getElementById('wifiSsid').value = data.network.ssid;
+                        document.getElementById('staSsid').value = data.network.staSsid || '';
                     } else {
                         document.getElementById('modeAP').checked = true;
+                        document.getElementById('apSsid').value = data.network.apSsid || 'rspqs';
                     }
+                    updateWifiModeFields();
                     updateWifiModeFields();
                     
                     // Display error if present
@@ -440,16 +458,22 @@
             const staMode = document.getElementById('modeSTA').checked;
             const config = {
                 type: 'network',
-                staMode: staMode
+                staMode: staMode,
+                apSsid: document.getElementById('apSsid').value || 'rspqs',
+                apPassword: document.getElementById('apPassword').value || '',
+                staSsid: document.getElementById('staSsid').value || '',
+                staPassword: document.getElementById('staPassword').value || ''
             };
             
-            // Only include SSID/password if in STA mode
+            // Validate based on mode
             if (staMode) {
-                config.ssid = document.getElementById('wifiSsid').value;
-                config.password = document.getElementById('wifiPassword').value;
-                
-                if (!config.ssid) {
+                if (!config.staSsid) {
                     alert('Please enter a WiFi SSID for STA mode.');
+                    return;
+                }
+            } else {
+                if (!config.apSsid) {
+                    alert('Please enter an AP SSID for AP mode.');
                     return;
                 }
             }
@@ -460,12 +484,19 @@
         
         function updateWifiModeFields() {
             const staMode = document.getElementById('modeSTA').checked;
+            const apMode = document.getElementById('modeAP').checked;
             const staSection = document.getElementById('staConfigSection');
+            const apSection = document.getElementById('apConfigSection');
             
             if (staMode) {
                 staSection.style.display = 'block';
+                apSection.style.display = 'none';
+            } else if (apMode) {
+                staSection.style.display = 'none';
+                apSection.style.display = 'block';
             } else {
                 staSection.style.display = 'none';
+                apSection.style.display = 'none';
             }
         }
         

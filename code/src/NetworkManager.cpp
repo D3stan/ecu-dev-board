@@ -258,6 +258,9 @@ void NetworkManager::handleConfigUpdate(const char* jsonData) {
         return;
     }
     
+    // Debug: Print received JSON
+    Serial.printf("[Network] Received config: %s\n", jsonData);
+    
     // Check message type
     const char* type = doc["type"];
     if (!type) return;
@@ -296,20 +299,36 @@ void NetworkManager::handleConfigUpdate(const char* jsonData) {
             netConfig.staMode = doc["staMode"];
         }
         
-        // Update AP credentials (always available for customization)
+        // Update AP credentials
         if (doc.containsKey("apSsid")) {
-            strlcpy(netConfig.apSsid, doc["apSsid"], sizeof(netConfig.apSsid));
+            const char* apSsid = doc["apSsid"];
+            if (apSsid) {
+                strlcpy(netConfig.apSsid, apSsid, sizeof(netConfig.apSsid));
+                Serial.printf("[Network] Updated AP SSID: %s\n", netConfig.apSsid);
+            }
         }
         if (doc.containsKey("apPassword")) {
-            strlcpy(netConfig.apPassword, doc["apPassword"], sizeof(netConfig.apPassword));
+            const char* apPassword = doc["apPassword"];
+            if (apPassword) {
+                strlcpy(netConfig.apPassword, apPassword, sizeof(netConfig.apPassword));
+                Serial.printf("[Network] Updated AP Password: [%d chars]\n", strlen(netConfig.apPassword));
+            }
         }
         
         // Update STA credentials
         if (doc.containsKey("staSsid")) {
-            strlcpy(netConfig.staSsid, doc["staSsid"], sizeof(netConfig.staSsid));
+            const char* staSsid = doc["staSsid"];
+            if (staSsid) {
+                strlcpy(netConfig.staSsid, staSsid, sizeof(netConfig.staSsid));
+                Serial.printf("[Network] Updated STA SSID: %s\n", netConfig.staSsid);
+            }
         }
         if (doc.containsKey("staPassword")) {
-            strlcpy(netConfig.staPassword, doc["staPassword"], sizeof(netConfig.staPassword));
+            const char* staPassword = doc["staPassword"];
+            if (staPassword) {
+                strlcpy(netConfig.staPassword, staPassword, sizeof(netConfig.staPassword));
+                Serial.printf("[Network] Updated STA Password: [%d chars]\n", strlen(netConfig.staPassword));
+            }
         }
         
         _storage.saveNetworkConfig(netConfig);
@@ -390,13 +409,13 @@ void NetworkManager::setupHttpRoutes() {
         StorageHandler::NetworkConfig netConfig;
         _storage.loadNetworkConfig(netConfig);
         JsonObject net = doc.createNestedObject("network");
-        net["apSsid"] = netConfig.apSsid;
-        net["staSsid"] = netConfig.staSsid;
+        net["apSsid"] = String(netConfig.apSsid);
+        net["staSsid"] = String(netConfig.staSsid);
         net["staMode"] = netConfig.staMode;
         
         // Include stored error if present
         if (strlen(netConfig.lastError) > 0) {
-            net["lastError"] = netConfig.lastError;
+            net["lastError"] = String(netConfig.lastError);
         }
         
         // Telemetry config

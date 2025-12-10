@@ -124,12 +124,12 @@ bool StorageHandler::saveConfig(const SystemConfig& config) {
     
     // Network config
     JsonObject network = doc.createNestedObject("network");
-    network["apSsid"] = config.networkConfig.apSsid;
-    network["apPassword"] = config.networkConfig.apPassword;
-    network["staSsid"] = config.networkConfig.staSsid;
-    network["staPassword"] = config.networkConfig.staPassword;
+    network["apSsid"] = String(config.networkConfig.apSsid);
+    network["apPassword"] = String(config.networkConfig.apPassword);
+    network["staSsid"] = String(config.networkConfig.staSsid);
+    network["staPassword"] = String(config.networkConfig.staPassword);
     network["staMode"] = config.networkConfig.staMode;
-    network["lastError"] = config.networkConfig.lastError;
+    network["lastError"] = String(config.networkConfig.lastError);
     
     // Telemetry config
     JsonObject telemetry = doc.createNestedObject("telemetry");
