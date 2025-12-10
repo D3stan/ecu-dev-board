@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Cut Time Map Configuration</title>
+    <script src="qsconfig.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            touch-action: manipulation;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a0a;
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+        
+        /* Landscape orientation hint */
+        .orientation-hint {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 170, 0, 0.95);
+            color: #000;
+            padding: 8px;
+            text-align: center;
+            font-size: 0.85em;
+            font-weight: bold;
+            z-index: 10000;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+        
+        /* Show hint only in portrait mode */
+        @media (orientation: portrait) {
+            .orientation-hint {
+                display: block;
+            }
+        }
+        
+        .container {
+            max-width: 100%;
+            padding: 10px;
+            padding-top: 50px;
+        }
+        
+        @media (orientation: portrait) {
+            .container {
+                padding-top: 60px;
+            }
+        }
+        
+        @media (orientation: landscape) {
+            .container {
+                padding-top: 10px;
+            }
+        }
+        
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #1a1a1a;
+            border-radius: 8px;
+        }
+        
+        .header h1 {
+            font-size: 1.3em;
+            color: #00ff88;
+        }
+        
+        @media (orientation: portrait) {
+            .header h1 {
+                font-size: 1.1em;
+            }
+        }
+        
+        /* Sliders Section */
+        .sliders-section {
+            background: #1a1a1a;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+        }
+        
+        .slider-container {
+            margin-bottom: 15px;
+        }
+        
+        .slider-container:last-child {
+            margin-bottom: 0;
+        }
+        
+        .slider-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .slider-label {
+            color: #aaa;
+            font-size: 0.9em;
+        }
+        
+        .slider-value {
+            background: #0a0a0a;
+            padding: 4px 12px;
+            border-radius: 5px;
+            font-weight: bold;
+            color: #00ff88;
+            font-size: 0.9em;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #0a0a0a;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #00ff88;
+            cursor: pointer;
+            box-shadow: 0 0 5px rgba(0, 255, 136, 0.5);
+        }
+        
+        input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #00ff88;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 0 5px rgba(0, 255, 136, 0.5);
+        }
+        
+        /* Graph Section */
+        .graph-section {
+            background: #1a1a1a;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+        }
+        
+        .graph-section h2 {
+            color: #00ff88;
+            font-size: 1.1em;
+            margin-bottom: 10px;
+        }
+        
+        .graph-canvas-wrapper {
+            position: relative;
+            width: 100%;
+            background: #0a0a0a;
+            border-radius: 5px;
+            border: 1px solid #333;
+            margin-bottom: 10px;
+            overflow: hidden;
+        }
+        
+        /* Landscape: more height for graph */
+        @media (orientation: landscape) {
+            .graph-canvas-wrapper {
+                height: calc(100vh - 280px);
+                min-height: 300px;
+            }
+        }
+        
+        /* Portrait: less height */
+        @media (orientation: portrait) {
+            .graph-canvas-wrapper {
+                height: 350px;
+            }
+        }
+        
+        #cutTimeGraph {
+            width: 100%;
+            height: 100%;
+            touch-action: none; /* Disable browser touch gestures */
+            cursor: crosshair;
+        }
+        
+        /* Controls */
+        .graph-controls {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .graph-info {
+            color: #888;
+            font-size: 0.8em;
+            text-align: center;
+            line-height: 1.4;
+        }
+        
+        /* Buttons */
+        button {
+            background: #00ff88;
+            color: #000;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: bold;
+            transition: background 0.2s;
+            flex: 1;
+            min-width: 80px;
+        }
+        
+        button:active {
+            background: #00dd77;
+            transform: scale(0.98);
+        }
+        
+        button.secondary {
+            background: #333;
+            color: #fff;
+        }
+        
+        button.secondary:active {
+            background: #444;
+        }
+        
+        button.small {
+            padding: 8px 12px;
+            font-size: 0.85em;
+            flex: 0 1 auto;
+        }
+        
+        /* Action buttons */
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            padding: 10px;
+            background: #1a1a1a;
+            border-radius: 8px;
+        }
+        
+        /* Status indicator */
+        .status-bar {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            padding: 6px 12px;
+            background: rgba(42, 42, 42, 0.95);
+            border-radius: 6px;
+            font-size: 0.8em;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+        
+        .status-indicator.active {
+            background: #00ff88;
+            box-shadow: 0 0 8px #00ff88;
+        }
+        
+        .status-indicator.inactive {
+            background: #ff4444;
+        }
+        
+        /* Toast notification */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(42, 42, 42, 0.95);
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 0.9em;
+            z-index: 2000;
+            opacity: 0;
+            transition: opacity 0.3s;
+            backdrop-filter: blur(10px);
+            border: 1px solid #444;
+            max-width: 90%;
+        }
+        
+        .toast.show {
+            opacity: 1;
+        }
+        
+        /* Loading overlay */
+        .loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 5000;
+        }
+        
+        .loading.show {
+            display: flex;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #333;
+            border-top-color: #00ff88;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Orientation hint -->
+    <div class="orientation-hint">
+        🔄 For best experience, rotate your device to landscape mode
+    </div>
+    
+    <!-- Status bar -->
+    <div class="status-bar">
+        <span class="status-indicator" id="wsStatus"></span>
+        <span id="wsStatusText">Connecting...</span>
+    </div>
+    
+    <!-- Toast notification -->
+    <div class="toast" id="toast"></div>
+    
+    <!-- Loading overlay -->
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+    </div>
+    
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>⚙️ Cut Time Map Configuration</h1>
+            <button class="small secondary" onclick="goBack()">← Back</button>
+        </div>
+        
+        <!-- Sliders -->
+        <div class="sliders-section">
+            <div class="slider-container">
+                <div class="slider-header">
+                    <span class="slider-label">Minimum RPM Threshold</span>
+                    <span class="slider-value" id="minRpmValue">3000 RPM</span>
+                </div>
+                <input type="range" id="minRpmSlider" min="1000" max="10000" step="100" value="3000" oninput="updateSliderValue('minRpm')">
+            </div>
+            
+            <div class="slider-container">
+                <div class="slider-header">
+                    <span class="slider-label">Shift Sensor Debounce</span>
+                    <span class="slider-value" id="debounceValue">50 ms</span>
+                </div>
+                <input type="range" id="debounceSlider" min="10" max="200" step="5" value="50" oninput="updateSliderValue('debounce')">
+            </div>
+        </div>
+        
+        <!-- Graph -->
+        <div class="graph-section">
+            <h2>Cut Time Map (5k - 15k RPM)</h2>
+            <div class="graph-canvas-wrapper">
+                <canvas id="cutTimeGraph"></canvas>
+            </div>
+            <div class="graph-controls">
+                <button class="small" onclick="addGraphPoint()">+ Add Point</button>
+                <button class="small secondary" onclick="removeGraphPoint()">− Remove</button>
+                <button class="small secondary" onclick="resetGraph()">Reset</button>
+            </div>
+            <div class="graph-info">
+                <p>Drag points to adjust • Points: <span id="graphPointCount">4</span> (Min: 2, Max: 10)</p>
+            </div>
+        </div>
+        
+        <!-- Actions -->
+        <div class="action-buttons">
+            <button class="secondary" onclick="goBack()">Cancel</button>
+            <button onclick="saveConfiguration()">Save Configuration</button>
+        </div>
+    </div>
+
+</body>
+</html>
