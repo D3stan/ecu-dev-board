@@ -2,19 +2,30 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>RPM Dashboard Gauge</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
     
     <style>
+        /* Use system fonts as fallback - works offline */
         body {
             background-color: #0f0f0f;
             color: white;
-            font-family: 'Share Tech Mono', monospace;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, monospace, sans-serif;
             overflow: hidden;
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100vh;
+            position: fixed;
+            -webkit-text-size-adjust: 100%;
+            -moz-text-size-adjust: 100%;
+            -ms-text-size-adjust: 100%;
+            text-size-adjust: 100%;
+        }
+        
+        /* Prevent zoom on double tap */
+        * {
+            touch-action: manipulation;
         }
 
         /* Background Context - Blurred Dashboard feel */
@@ -41,6 +52,7 @@
         .gauge-container {
             width: 800px;
             height: 350px;
+            max-width: 95vw;
             background: #000;
             border-radius: 20px;
             position: relative;
@@ -68,7 +80,9 @@
 
         /* Typography & Glows */
         .rpm-value {
-            font-family: 'Orbitron', sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+            font-weight: 900;
+            letter-spacing: 0.05em;
             text-shadow: 0 0 15px rgba(255, 255, 255, 0.6), 0 0 30px rgba(255, 255, 255, 0.2);
         }
 
@@ -150,12 +164,255 @@
             background: #333;
             border-radius: 2px;
         }
+
+        /* Connection Status */
+        .connection-status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background: rgba(42, 42, 42, 0.9);
+            border-radius: 8px;
+            font-size: 0.9em;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            backdrop-filter: blur(10px);
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-indicator.active {
+            background: #00ff88;
+            box-shadow: 0 0 10px #00ff88;
+        }
+
+        .status-indicator.inactive {
+            background: #ff4444;
+            box-shadow: 0 0 10px #ff4444;
+        }
+
+        .status-indicator.connecting {
+            background: #ffaa00;
+            box-shadow: 0 0 10px #ffaa00;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(42, 42, 42, 0.95);
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 0.95em;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s;
+            backdrop-filter: blur(10px);
+            border: 1px solid #444;
+        }
+
+        .toast.show {
+            opacity: 1;
+        }
+
+        /* Portrait Mode Warning */
+        .portrait-warning {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #0f0f0f;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .portrait-warning.show {
+            display: flex;
+        }
+
+        .rotate-icon {
+            font-size: 5em;
+            margin-bottom: 20px;
+            animation: rotate 2s ease-in-out infinite;
+        }
+
+        @keyframes rotate {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(90deg); }
+        }
+
+        .portrait-warning h2 {
+            font-size: 2em;
+            margin-bottom: 10px;
+            color: #00ff88;
+        }
+
+        .portrait-warning p {
+            font-size: 1.2em;
+            color: #aaa;
+        }
+        
+        /* Layout helpers to replace Tailwind */
+        .flex {
+            display: flex;
+        }
+        
+        .flex-col {
+            flex-direction: column;
+        }
+        
+        .items-center {
+            align-items: center;
+        }
+        
+        .justify-center {
+            justify-content: center;
+        }
+        
+        .min-h-screen {
+            min-height: 100vh;
+        }
+        
+        .absolute {
+            position: absolute;
+        }
+        
+        .relative {
+            position: relative;
+        }
+        
+        .text-center {
+            text-align: center;
+        }
+        
+        .text-7xl {
+            font-size: 4.5rem;
+            line-height: 1;
+        }
+        
+        .font-black {
+            font-weight: 900;
+        }
+        
+        .text-white {
+            color: #ffffff;
+        }
+        
+        .text-gray-400 {
+            color: #9ca3af;
+        }
+        
+        .tracking-widest {
+            letter-spacing: 0.1em;
+        }
+        
+        .transform {
+            transform: translateZ(0);
+        }
+        
+        .-translate-x-1\/2 {
+            transform: translateX(-50%);
+        }
+        
+        .top-0 {
+            top: 0;
+        }
+        
+        .left-0 {
+            left: 0;
+        }
+        
+        .z-0 {
+            z-index: 0;
+        }
+        
+        .z-10 {
+            z-index: 10;
+        }
+        
+        .w-full {
+            width: 100%;
+        }
+        
+        .h-full {
+            height: 100%;
+        }
+        
+        .pointer-events-none {
+            pointer-events: none;
+        }
+        
+        .bottom-12 {
+            bottom: 3rem;
+        }
+        
+        .left-12 {
+            left: 3rem;
+        }
+        
+        .bottom-8 {
+            bottom: 2rem;
+        }
+        
+        .left-1\/2 {
+            left: 50%;
+        }
+        
+        .right-12 {
+            right: 3rem;
+        }
+        
+        /* Custom position styles */
+        .top-110 {
+            top: 110px;
+        }
+        
+        .top-130 {
+            top: 130px;
+        }
     </style>
 </head>
 <body class="flex flex-col items-center justify-center min-h-screen">
 
     <div class="dashboard-bg"></div>
     <div class="dashboard-texture"></div>
+
+    <!-- Portrait Mode Warning -->
+    <div class="portrait-warning" id="portraitWarning">
+        <h2>Rotate Device</h2>
+        <p>Please rotate your device to landscape mode</p>
+    </div>
+
+    <!-- Connection Status -->
+    <div class="connection-status">
+        <span class="status-indicator connecting" id="wsStatus"></span>
+        <span id="wsStatusText">Connecting...</span>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast"></div>
 
     <!-- Main Gauge Container -->
     <div class="gauge-container flex items-center justify-center">
@@ -194,21 +451,15 @@
             </div>
 
             <!-- 8000 Label -->
-            <div class="absolute top-[110px] right-12 label-text">8000</div>
+            <div class="absolute top-110 right-12 label-text">8000</div>
 
             <!-- Main Digital Value -->
-            <div class="absolute top-[130px] left-1/2 transform -translate-x-1/2 text-center">
+            <div class="absolute top-130 left-1/2 transform -translate-x-1/2 text-center">
                 <div id="rpm-display" class="rpm-value text-7xl font-black text-white tracking-widest">
-                    5500
+                    0
                 </div>
             </div>
         </div>
-    </div>
-
-    <!-- Simulator Controls -->
-    <div class="controls w-[800px] flex gap-4 items-center">
-        <label class="text-green-400 font-bold whitespace-nowrap">THROTTLE:</label>
-        <input type="range" id="rpm-slider" min="0" max="8000" value="5500" class="w-full">
     </div>
 
     <script>
@@ -217,6 +468,13 @@
         const SEGMENT_COUNT = 70; // Number of ticks
         const SEGMENT_WIDTH = 6;
         const SEGMENT_HEIGHT = 20; // Height of the tick marks
+        const RPM_TIMEOUT_MS = 2000; // Reset to 0 after 2 seconds of no data
+        
+        // WebSocket connection
+        let ws = null;
+        let reconnectInterval = null;
+        let lastRpmUpdate = Date.now();
+        let rpmTimeoutInterval = null;
         
         // The Path Definition
         // Starts bottom left, curves up sharply, flattens out to the right
@@ -234,7 +492,6 @@
         const baselineDisplay = document.getElementById('baseline-display');
         const segmentsGroup = document.getElementById('segments-group');
         const rpmDisplay = document.getElementById('rpm-display');
-        const slider = document.getElementById('rpm-slider');
 
         // Set path data
         guidePath.setAttribute('d', pathData);
@@ -244,42 +501,39 @@
         const pathLength = guidePath.getTotalLength();
         const segments = [];
 
+        // Initialize gauge
         function initGauge() {
-            segmentsGroup.innerHTML = '';
+            // Clear any existing segments
+            while (segmentsGroup.firstChild) {
+                segmentsGroup.removeChild(segmentsGroup.firstChild);
+            }
+            segments.length = 0;
             
             for (let i = 0; i < SEGMENT_COUNT; i++) {
                 // Determine position along path
-                // We leave a little padding at start and end
                 const distance = (i / (SEGMENT_COUNT - 1)) * pathLength;
                 const point = guidePath.getPointAtLength(distance);
                 
                 // Calculate rotation (tangent)
-                // Get a point slightly ahead to calculate angle
                 const nextPoint = guidePath.getPointAtLength(Math.min(distance + 1, pathLength));
                 const angle = Math.atan2(nextPoint.y - point.y, nextPoint.x - point.x) * (180 / Math.PI);
 
-                // Create rectangle
+                // Create rectangle using proper DOM methods
                 const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
                 
-                // Center the rect on the path point
-                // We want the rect to sit "above" the baseline line, so we offset Y by -SEGMENT_HEIGHT
-                // Actually, let's have the baseline be the bottom of the ticks.
-                
                 rect.setAttribute("x", -SEGMENT_WIDTH / 2);
-                rect.setAttribute("y", -SEGMENT_HEIGHT - 5); // 5px gap from baseline
+                rect.setAttribute("y", -SEGMENT_HEIGHT - 5);
                 rect.setAttribute("width", SEGMENT_WIDTH);
                 rect.setAttribute("height", SEGMENT_HEIGHT);
-                rect.setAttribute("rx", 1); // Rounded corners slightly
-                
-                // Transform: Translate to point, then Rotate
-                // Note: SVG transforms are applied right-to-left usually, but in attribute string it reads logically
+                rect.setAttribute("rx", 1);
                 rect.setAttribute("transform", `translate(${point.x}, ${point.y}) rotate(${angle})`);
+                rect.setAttribute("class", "segment inactive");
                 
                 segmentsGroup.appendChild(rect);
                 segments.push(rect);
             }
             
-            updateGauge(5500);
+            updateGauge(0);
         }
 
         // Color Mapping Function based on prompt requirements
@@ -295,8 +549,11 @@
         }
 
         function updateGauge(rpm) {
+            // Ensure rpm is a number and within bounds
+            rpm = Math.max(0, Math.min(MAX_RPM, parseInt(rpm) || 0));
+            
             // Update Text
-            rpmDisplay.innerText = rpm;
+            rpmDisplay.textContent = rpm;
 
             // Calculate active segments
             const activeCount = Math.floor((rpm / MAX_RPM) * SEGMENT_COUNT);
@@ -313,52 +570,130 @@
                     rect.classList.add(styleData.glow);
                 } else {
                     rect.classList.add('inactive');
-                    rect.style.fill = ''; // Reset inline style to allow class to take over
+                    rect.style.fill = '';
                     rect.style.stroke = '';
                 }
             });
         }
 
-        // Initialize
-        initGauge();
-
-        // Event Listener
-        slider.addEventListener('input', (e) => {
-            updateGauge(e.target.value);
-        });
-
-        // Animation Loop for smooth "startup" effect (Optional fun addition)
-        let startRpm = 0;
-        const targetRpm = 5500;
-        let animationFrame;
-
-        // Simple startup sweep
-        function playStartup() {
-            let tempRpm = 0;
-            const sweepDuration = 1000;
-            const startTime = performance.now();
-
-            function animate(time) {
-                const elapsed = time - startTime;
-                const progress = Math.min(elapsed / sweepDuration, 1);
+        // WebSocket Connection Management
+        function connectWebSocket() {
+            const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${wsProtocol}//${window.location.hostname}/ws`;
+            
+            console.log('Connecting to WebSocket:', wsUrl);
+            updateConnectionStatus('connecting', 'Connecting...');
+            
+            ws = new WebSocket(wsUrl);
+            
+            ws.onopen = function() {
+                console.log('WebSocket connected');
+                updateConnectionStatus('active', 'Connected');
+                showToast('Connected to QuickShifter', 2000);
+                clearInterval(reconnectInterval);
+                reconnectInterval = null;
+            };
+            
+            ws.onclose = function() {
+                console.log('WebSocket disconnected');
+                updateConnectionStatus('inactive', 'Disconnected');
                 
-                // Easing function for cool sweep
-                const ease = 1 - Math.pow(1 - progress, 3); 
+                // Reset RPM to 0 when disconnected
+                updateGauge(0);
                 
-                // Sweep up to max then back to target
-                if (progress < 0.5) {
-                    tempRpm = Math.floor((progress * 2) * MAX_RPM);
-                } else {
-                    // This is a bit complex for a simple request, let's just snap to input for now
-                    // to respect the specific "5500" request states.
-                    // Instead, let's just rely on the slider.
+                // Attempt reconnection every 3 seconds
+                if (!reconnectInterval) {
+                    reconnectInterval = setInterval(connectWebSocket, 3000);
                 }
-                
-                // updateGauge(tempRpm);
-                // if(progress < 1) requestAnimationFrame(animate);
-            }
-            // requestAnimationFrame(animate);
+            };
+            
+            ws.onerror = function(error) {
+                console.error('WebSocket error:', error);
+                updateConnectionStatus('inactive', 'Error');
+            };
+            
+            ws.onmessage = function(event) {
+                try {
+                    const data = JSON.parse(event.data);
+                    
+                    // Update RPM if present
+                    if (data.rpm !== undefined) {
+                        updateGauge(data.rpm);
+                        lastRpmUpdate = Date.now();
+                    }
+                } catch (error) {
+                    console.error('Error parsing WebSocket message:', error);
+                }
+            };
         }
+
+        // Update connection status indicator
+        function updateConnectionStatus(status, text) {
+            const statusIndicator = document.getElementById('wsStatus');
+            const statusText = document.getElementById('wsStatusText');
+            
+            statusIndicator.className = 'status-indicator ' + status;
+            statusText.textContent = text;
+        }
+
+        // Show toast notification
+        function showToast(message, duration = 3000) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, duration);
+        }
+
+        // RPM Timeout Handler - Reset to 0 if no updates for 2 seconds
+        function checkRpmTimeout() {
+            const timeSinceLastUpdate = Date.now() - lastRpmUpdate;
+            
+            if (timeSinceLastUpdate > RPM_TIMEOUT_MS) {
+                // Only update if RPM is not already 0
+                if (parseInt(rpmDisplay.textContent) !== 0) {
+                    console.log('RPM timeout - resetting to 0');
+                    updateGauge(0);
+                }
+            }
+        }
+
+        // Portrait/Landscape Detection
+        function checkOrientation() {
+            const portraitWarning = document.getElementById('portraitWarning');
+            
+            // Check if device is in portrait mode
+            if (window.innerHeight > window.innerWidth) {
+                portraitWarning.classList.add('show');
+            } else {
+                portraitWarning.classList.remove('show');
+            }
+        }
+
+        // Initialize everything
+        function init() {
+            // Initialize gauge
+            initGauge();
+            
+            // Connect to WebSocket
+            connectWebSocket();
+            
+            // Start RPM timeout checker (check every 500ms)
+            rpmTimeoutInterval = setInterval(checkRpmTimeout, 500);
+            
+            // Check orientation on load and on resize/orientation change
+            checkOrientation();
+            window.addEventListener('resize', checkOrientation);
+            window.addEventListener('orientationchange', checkOrientation);
+            
+            // Show initial connecting toast
+            showToast('Connecting to QuickShifter...', 2000);
+        }
+
+        // Initialize
+        init();
         
     </script>
 </body>
