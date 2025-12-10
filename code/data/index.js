@@ -208,13 +208,17 @@ function sendConfig(extraData = {}) {
         cutTimeMap: window.currentQsConfig.cutTimeMap
     };
     
+    const staMode = document.getElementById('modeSTABtn').classList.contains('active');
+    
+    // Only update the network config fields that are relevant to the current mode
     fullConfig.network = {
-        staMode: document.getElementById('modeSTABtn').classList.contains('active'),
-        apSsid: document.getElementById('apSsid').value || 'rspqs',
-        apPassword: document.getElementById('apPassword').value || '',
-        staSsid: document.getElementById('staSsid').value || '',
-        staPassword: document.getElementById('staPassword').value || '',
-        lastError: ''
+        staMode: staMode,
+        // Preserve existing values and only update the fields for the active mode
+        apSsid: staMode ? fullConfig.network.apSsid : (document.getElementById('apSsid').value || 'rspqs'),
+        apPassword: staMode ? fullConfig.network.apPassword : (document.getElementById('apPassword').value || ''),
+        staSsid: staMode ? (document.getElementById('staSsid').value || '') : fullConfig.network.staSsid,
+        staPassword: staMode ? (document.getElementById('staPassword').value || '') : fullConfig.network.staPassword,
+        lastError: fullConfig.network.lastError || ''
     };
     
     fullConfig.telemetry = {

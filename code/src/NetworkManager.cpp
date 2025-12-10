@@ -42,7 +42,7 @@ bool NetworkManager::begin() {
         }
     } else {
         
-        Serial.flush();
+        
         switchToApMode();
     }
     
@@ -80,7 +80,7 @@ void NetworkManager::generateHardwareId() {
 
 void NetworkManager::switchToApMode() {
     
-    Serial.flush();
+    
     
     // Ensure clean state before switching modes
     WiFi.disconnect(true);
@@ -90,7 +90,7 @@ void NetworkManager::switchToApMode() {
     delay(100);  // Give WiFi time to switch modes
     
     
-    Serial.flush();
+    
 
     IPAddress apIP(42, 42, 42, 42);
     IPAddress gateway(42, 42, 42, 42);
@@ -120,7 +120,7 @@ void NetworkManager::switchToApMode() {
         _lastError = "";  // Clear any previous errors
     } else {
         
-        Serial.flush();  // Ensure message is printed
+          // Ensure message is printed
         _lastError = "Failed to start AP mode";
         _state = State::ERROR;
         _led.setStatus(LedController::Status::ERROR);
@@ -132,7 +132,7 @@ bool NetworkManager::switchToStaMode(const char* ssid, const char* password) {
     
     
     
-    Serial.flush();
+    
     
     // Ensure clean state before switching modes
     // Use disconnect(false) to keep credentials - we'll handle cleanup on failure
@@ -143,13 +143,13 @@ bool NetworkManager::switchToStaMode(const char* ssid, const char* password) {
     delay(100);
     
     
-    Serial.flush();
+    
     
     WiFi.begin(ssid, password);
     delay(100);
     
     
-    Serial.flush();
+    
     
     // First attempt: Wait up to 5 seconds for connection
     int attempts = 0;
@@ -159,17 +159,17 @@ bool NetworkManager::switchToStaMode(const char* ssid, const char* password) {
         if (attempts % 10 == 9) {
             
         }
-        Serial.flush();
+        
         attempts++;
     }
     
-    Serial.flush();
+    
     
     if (WiFi.status() == WL_CONNECTED) {
         
         
         
-        Serial.flush();
+        
         _state = State::STA_MODE;
         _led.setStatus(LedController::Status::WIFI_STA);
         
@@ -582,13 +582,13 @@ void NetworkManager::startOtaUpdate() {
     
     // First, update firmware
     
-    Serial.flush();
+    
     bool firmwareSuccess = performOtaUpdate(true);
     
     if (!firmwareSuccess) {
         
         
-        Serial.flush();  // Ensure error message is printed
+          // Ensure error message is printed
         _lastError = "Firmware update failed. Check firmware server and try again.";
         _led.setStatus(LedController::Status::ERROR);
         _led.setBlinking(true);
@@ -598,21 +598,21 @@ void NetworkManager::startOtaUpdate() {
     }
     
     
-    Serial.flush();
+    
     
     // Then, update filesystem
     bool filesystemSuccess = performOtaUpdate(false);
     
     if (filesystemSuccess) {
         
-        Serial.flush();
+        
         _lastError = "";  // Clear any previous error
         delay(1000);
         ESP.restart();
     } else {
         
         
-        Serial.flush();
+        
         _lastError = "Filesystem update failed, but firmware is updated.";
         delay(2000);
         ESP.restart();

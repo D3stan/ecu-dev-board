@@ -243,9 +243,9 @@
         <div class="slider-container">
             <div class="slider-label">
                 <span>RPM Control</span>
-                <span>0 - 8000</span>
+                <span>0 - 15000</span>
             </div>
-            <input type="range" id="rpmSlider" min="0" max="8000" step="50" value="0">
+            <input type="range" id="rpmSlider" min="0" max="15000" step="50" value="0">
         </div>
         
         <div class="controls">
@@ -274,7 +274,7 @@
         
         <p class="info-text">
             This simulator sends RPM data to the WebSocket server.<br>
-            Make sure your Python server is running on port 8000.
+            Make sure your Python server is running on port 15000.
         </p>
     </div>
     
@@ -372,7 +372,7 @@
             let rpm = 0;
             let direction = 1;
             const step = 100;
-            const maxRPM = 8000;
+            const maxRPM = 15000;
             
             autoSweepInterval = setInterval(() => {
                 rpm += step * direction;

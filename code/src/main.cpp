@@ -76,16 +76,16 @@ void setup() {
     
     // 4. Initialize Network Manager (dependency injection)
     
-    Serial.flush();
+    
     networkManager = new NetworkManager(storage, qsEngine, led);
     if (!networkManager->begin()) {
         
         
-        Serial.flush();
+        
         // Continue anyway - system can run without network
     } else {
         
-        Serial.flush();
+        
     }
     
     
@@ -118,7 +118,7 @@ void setup() {
         
     }
     
-    Serial.flush();
+    
 }
 
 void loop() {
