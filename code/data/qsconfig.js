@@ -354,11 +354,11 @@ function drawGraph() {
             ctx.fill();
             ctx.stroke();
             
-            // Draw tooltip text
+            // Draw tooltip text - centered in the tooltip box
             ctx.fillStyle = '#fff';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.fillText(tooltipText, x, tooltipY + tooltipHeight / 2);
+            ctx.fillText(tooltipText, tooltipX + tooltipWidth / 2, tooltipY + tooltipHeight / 2);
         }
     });
 }
