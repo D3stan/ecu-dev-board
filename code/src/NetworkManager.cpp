@@ -405,12 +405,14 @@ void NetworkManager::setupHttpRoutes() {
             cutTimeArray.add(cutTime);
         }
         
-        // Network config (don't send passwords)
+        // Network config (include passwords for owner access)
         StorageHandler::NetworkConfig netConfig;
         _storage.loadNetworkConfig(netConfig);
         JsonObject net = doc.createNestedObject("network");
         net["apSsid"] = String(netConfig.apSsid);
+        net["apPassword"] = String(netConfig.apPassword);
         net["staSsid"] = String(netConfig.staSsid);
+        net["staPassword"] = String(netConfig.staPassword);
         net["staMode"] = netConfig.staMode;
         
         // Include stored error if present
