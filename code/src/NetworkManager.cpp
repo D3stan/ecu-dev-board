@@ -16,7 +16,7 @@ NetworkManager::NetworkManager(StorageHandler& storage, QuickShifterEngine& qsEn
 bool NetworkManager::begin() {
     // Generate hardware ID
     generateHardwareId();
-    Serial.printf("[Network] Hardware ID: %s\n", _hardwareId.c_str());
+    
     
     // Load network configuration
     StorageHandler::NetworkConfig netConfig;
@@ -41,7 +41,7 @@ bool NetworkManager::begin() {
             _led.setStatus(LedController::Status::WIFI_STA);
         }
     } else {
-        Serial.println("[Network] Config requests AP mode");
+        
         Serial.flush();
         switchToApMode();
     }
@@ -51,7 +51,7 @@ bool NetworkManager::begin() {
     
     // Start server
     _server.begin();
-    Serial.println("[Network] HTTP server started");
+    
     
     return true;
 }
@@ -79,7 +79,7 @@ void NetworkManager::generateHardwareId() {
 }
 
 void NetworkManager::switchToApMode() {
-    Serial.println("[Network] ========== AP MODE START ==========");
+    
     Serial.flush();
     
     // Ensure clean state before switching modes
@@ -89,7 +89,7 @@ void NetworkManager::switchToApMode() {
     WiFi.mode(WIFI_AP);
     delay(100);  // Give WiFi time to switch modes
     
-    Serial.println("[Network] WiFi mode set to AP");
+    
     Serial.flush();
 
     IPAddress apIP(42, 42, 42, 42);
@@ -102,7 +102,7 @@ void NetworkManager::switchToApMode() {
     StorageHandler::NetworkConfig netConfig;
     _storage.loadNetworkConfig(netConfig);
     
-    Serial.printf("[Network] Starting AP mode with SSID: %s\n", netConfig.apSsid);
+    
     
     bool success;
     if (strlen(netConfig.apPassword) > 0) {
@@ -119,7 +119,7 @@ void NetworkManager::switchToApMode() {
         _led.setStatus(LedController::Status::WIFI_AP);
         _lastError = "";  // Clear any previous errors
     } else {
-        Serial.println("[Network] CRITICAL: Failed to start AP mode!");
+        
         Serial.flush();  // Ensure message is printed
         _lastError = "Failed to start AP mode";
         _state = State::ERROR;
@@ -129,9 +129,9 @@ void NetworkManager::switchToApMode() {
 }
 
 bool NetworkManager::switchToStaMode(const char* ssid, const char* password) {
-    Serial.println("[Network] ========== STA MODE START ==========");
-    Serial.printf("[Network] SSID: %s\n", ssid);
-    Serial.printf("[Network] Password length: %d\n", strlen(password));
+    
+    
+    
     Serial.flush();
     
     // Ensure clean state before switching modes
@@ -142,33 +142,33 @@ bool NetworkManager::switchToStaMode(const char* ssid, const char* password) {
     WiFi.mode(WIFI_STA);
     delay(100);
     
-    Serial.println("[Network] Starting WiFi connection...");
+    
     Serial.flush();
     
     WiFi.begin(ssid, password);
     delay(100);
     
-    Serial.printf("[Network] Connecting to %s", ssid);
+    
     Serial.flush();
     
     // First attempt: Wait up to 5 seconds for connection
     int attempts = 0;
     while (WiFi.status() != WL_CONNECTED && attempts < 10) {
         delay(500);
-        Serial.print(".");
+        
         if (attempts % 10 == 9) {
-            Serial.printf(" [Status: %d]\n", WiFi.status());
+            
         }
         Serial.flush();
         attempts++;
     }
-    Serial.println();
+    
     Serial.flush();
     
     if (WiFi.status() == WL_CONNECTED) {
-        Serial.printf("[Network] ✓ Connected! IP: %s\n", WiFi.localIP().toString().c_str());
-        Serial.printf("[Network] Gateway: %s\n", WiFi.gatewayIP().toString().c_str());
-        Serial.printf("[Network] DNS: %s\n", WiFi.dnsIP().toString().c_str());
+        
+        
+        
         Serial.flush();
         _state = State::STA_MODE;
         _led.setStatus(LedController::Status::WIFI_STA);
@@ -186,7 +186,7 @@ bool NetworkManager::switchToStaMode(const char* ssid, const char* password) {
     }
     
     // First attempt failed, try one more time with 5s timeout
-    Serial.println("[Network] First attempt failed, retrying...");
+    
     WiFi.disconnect();
     delay(1000);
     WiFi.begin(ssid, password);
@@ -194,13 +194,13 @@ bool NetworkManager::switchToStaMode(const char* ssid, const char* password) {
     attempts = 0;
     while (WiFi.status() != WL_CONNECTED && attempts < 10) {
         delay(500);
-        Serial.print(".");
+        
         attempts++;
     }
-    Serial.println();
+    
     
     if (WiFi.status() == WL_CONNECTED) {
-        Serial.printf("[Network] Connected on retry! IP: %s\n", WiFi.localIP().toString().c_str());
+        
         _state = State::STA_MODE;
         _led.setStatus(LedController::Status::WIFI_STA);
         
@@ -217,7 +217,7 @@ bool NetworkManager::switchToStaMode(const char* ssid, const char* password) {
     }
     
     // Both attempts failed - save error and switch to AP mode
-    Serial.println("[Network] Failed to connect after 2 attempts");
+    
     
     String errorMsg = "Failed to connect to WiFi network '";
     errorMsg += ssid;
@@ -230,7 +230,7 @@ bool NetworkManager::switchToStaMode(const char* ssid, const char* password) {
     strlcpy(netConfig.lastError, errorMsg.c_str(), sizeof(netConfig.lastError));
     _storage.saveNetworkConfig(netConfig);
     
-    Serial.println("[Network] Falling back to AP mode...");
+    
     WiFi.disconnect();
     delay(500);
     switchToApMode();
@@ -249,25 +249,25 @@ void NetworkManager::onWebSocketEvent(AsyncWebSocket* server, AsyncWebSocketClie
                                       AwsEventType type, void* arg, uint8_t* data, size_t len) {
     switch (type) {
         case WS_EVT_CONNECT:
-            Serial.printf("[WebSocket] Client #%u connected\n", client->id());
+            
             break;
             
         case WS_EVT_DISCONNECT:
-            Serial.printf("[WebSocket] Client #%u disconnected\n", client->id());
+            
             break;
             
         case WS_EVT_DATA: {
             AwsFrameInfo* info = (AwsFrameInfo*)arg;
             if (info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT) {
                 data[len] = 0;  // Null terminate
-                Serial.printf("[WebSocket] Received: %s\n", (char*)data);
+                
                 handleConfigUpdate((char*)data);
             }
             break;
         }
             
         case WS_EVT_ERROR:
-            Serial.printf("[WebSocket] Error from client #%u\n", client->id());
+            
             break;
             
         default:
@@ -287,7 +287,7 @@ void NetworkManager::broadcastTelemetry() {
     
     // Check for overflow
     if (doc.overflowed()) {
-        Serial.println("[Network] Telemetry JSON overflow");
+        
         return;
     }
     
@@ -295,7 +295,7 @@ void NetworkManager::broadcastTelemetry() {
     size_t jsonSize = serializeJson(doc, jsonBuffer, sizeof(jsonBuffer));
     
     if (jsonSize == 0 || jsonSize >= sizeof(jsonBuffer)) {
-        Serial.println("[Network] Telemetry serialization failed");
+        
         return;
     }
     
@@ -308,13 +308,13 @@ void NetworkManager::handleConfigUpdate(const char* jsonData) {
     DeserializationError error = deserializeJson(doc, jsonData);
     
     if (error) {
-        Serial.printf("[Network] JSON parse error: %s\n", error.c_str());
+        
         return;
     }
     
     // Check for overflow
     if (doc.overflowed()) {
-        Serial.println("[Network] JSON document overflow - config too large");
+        
         return;
     }
 
@@ -348,7 +348,7 @@ void NetworkManager::handleConfigUpdate(const char* jsonData) {
         
         if (configChanged) {
             _qsEngine.setConfig(sysConfig.qsConfig);
-            Serial.println("[Network] QuickShifter config updated");
+            
         }
     }
     
@@ -367,7 +367,7 @@ void NetworkManager::handleConfigUpdate(const char* jsonData) {
             const char* apSsid = net["apSsid"];
             if (apSsid) {
                 strlcpy(sysConfig.networkConfig.apSsid, apSsid, sizeof(sysConfig.networkConfig.apSsid));
-                Serial.printf("[Network] Updated AP SSID: %s\n", sysConfig.networkConfig.apSsid);
+                
                 configChanged = true;
             }
         }
@@ -375,7 +375,7 @@ void NetworkManager::handleConfigUpdate(const char* jsonData) {
             const char* apPassword = net["apPassword"];
             if (apPassword) {
                 strlcpy(sysConfig.networkConfig.apPassword, apPassword, sizeof(sysConfig.networkConfig.apPassword));
-                Serial.printf("[Network] Updated AP Password: [%d chars]\n", strlen(sysConfig.networkConfig.apPassword));
+                
                 configChanged = true;
             }
         }
@@ -385,7 +385,7 @@ void NetworkManager::handleConfigUpdate(const char* jsonData) {
             const char* staSsid = net["staSsid"];
             if (staSsid) {
                 strlcpy(sysConfig.networkConfig.staSsid, staSsid, sizeof(sysConfig.networkConfig.staSsid));
-                Serial.printf("[Network] Updated STA SSID: %s\n", sysConfig.networkConfig.staSsid);
+                
                 configChanged = true;
             }
         }
@@ -393,19 +393,19 @@ void NetworkManager::handleConfigUpdate(const char* jsonData) {
             const char* staPassword = net["staPassword"];
             if (staPassword) {
                 strlcpy(sysConfig.networkConfig.staPassword, staPassword, sizeof(sysConfig.networkConfig.staPassword));
-                Serial.printf("[Network] Updated STA Password: [%d chars]\n", strlen(sysConfig.networkConfig.staPassword));
+                
                 configChanged = true;
             }
         }
         
         if (doc.containsKey("network")) {
-            Serial.printf("[Network] Network config updated - Mode: %s\n", sysConfig.networkConfig.staMode ? "STA" : "AP");
+            
             if (sysConfig.networkConfig.staMode) {
-                Serial.printf("[Network] Will connect to: %s\n", sysConfig.networkConfig.staSsid);
+                
             } else {
-                Serial.printf("[Network] Will start AP: %s\n", sysConfig.networkConfig.apSsid);
+                
             }
-            Serial.println("[Network] Reboot required for changes to take effect");
+            
         }
     }
     
@@ -417,19 +417,19 @@ void NetworkManager::handleConfigUpdate(const char* jsonData) {
             sysConfig.telemetryConfig.updateRateMs = _telemetryUpdateRate;
             configChanged = true;
             
-            Serial.printf("[Network] Telemetry rate updated: %d ms\n", _telemetryUpdateRate);
+            
         }
     }
     
     // Save all changes in a single write operation
     if (configChanged) {
         _storage.saveConfig(sysConfig);
-        Serial.println("[Network] Configuration saved to flash");
+        
     }
     
     // Check for OTA trigger (legacy support for simple trigger message)
     if (doc.containsKey("ota") && doc["ota"].as<bool>() == true) {
-        Serial.println("[Network] OTA update requested");
+        
         startOtaUpdate();
     }
 }
@@ -539,7 +539,7 @@ void NetworkManager::setupHttpRoutes() {
         netConfig.lastError[0] = '\0';
         _storage.saveNetworkConfig(netConfig);
         _lastError = "";
-        Serial.println("[Network] Error cleared by user");
+        
         request->send(200, "text/plain", "Error cleared");
     });
     
@@ -581,13 +581,13 @@ void NetworkManager::startOtaUpdate() {
     _led.setStatus(LedController::Status::OTA_UPDATE);
     
     // First, update firmware
-    Serial.println("[Network] Starting firmware update...");
+    
     Serial.flush();
     bool firmwareSuccess = performOtaUpdate(true);
     
     if (!firmwareSuccess) {
-        Serial.println("[Network] Firmware update failed, rebooting to AP mode...");
-        Serial.printf("[Network] Error: %s\n", _lastError.c_str());
+        
+        
         Serial.flush();  // Ensure error message is printed
         _lastError = "Firmware update failed. Check firmware server and try again.";
         _led.setStatus(LedController::Status::ERROR);
@@ -597,21 +597,21 @@ void NetworkManager::startOtaUpdate() {
         return;
     }
     
-    Serial.println("[Network] Firmware update successful, starting filesystem update...");
+    
     Serial.flush();
     
     // Then, update filesystem
     bool filesystemSuccess = performOtaUpdate(false);
     
     if (filesystemSuccess) {
-        Serial.println("[Network] Both updates successful, rebooting...");
+        
         Serial.flush();
         _lastError = "";  // Clear any previous error
         delay(1000);
         ESP.restart();
     } else {
-        Serial.println("[Network] Filesystem update failed, but firmware was updated. Rebooting...");
-        Serial.printf("[Network] Error: %s\n", _lastError.c_str());
+        
+        
         Serial.flush();
         _lastError = "Filesystem update failed, but firmware is updated.";
         delay(2000);
@@ -621,7 +621,7 @@ void NetworkManager::startOtaUpdate() {
 
 bool NetworkManager::performOtaUpdate(bool updateFirmware) {
     if (WiFi.status() != WL_CONNECTED) {
-        Serial.println("[Network] Not connected to WiFi");
+        
         _lastError = "Not connected to WiFi";
         return false;
     }
@@ -657,7 +657,7 @@ bool NetworkManager::performOtaUpdate(bool updateFirmware) {
     int httpCode = httpClient.GET();
     
     if (httpCode != HTTP_CODE_OK) {
-        Serial.printf("[Network] HTTP GET failed: %d\n", httpCode);
+        
         _lastError = "OTA failed: HTTP error " + String(httpCode);
         httpClient.end();
         return false;
@@ -665,7 +665,7 @@ bool NetworkManager::performOtaUpdate(bool updateFirmware) {
     
     int contentLength = httpClient.getSize();
     if (contentLength <= 0) {
-        Serial.println("[Network] Invalid content length");
+        
         _lastError = "OTA failed: Invalid " + String(updateFirmware ? "firmware" : "filesystem") + " file";
         httpClient.end();
         return false;
@@ -677,7 +677,7 @@ bool NetworkManager::performOtaUpdate(bool updateFirmware) {
     // Begin OTA update (firmware or filesystem)
     int updateType = updateFirmware ? U_FLASH : U_SPIFFS;
     if (!Update.begin(contentLength, updateType)) {
-        Serial.printf("[Network] Not enough space for OTA: %s\n", Update.errorString());
+        
         _lastError = "OTA failed: " + String(Update.errorString());
         httpClient.end();
         return false;
@@ -688,7 +688,7 @@ bool NetworkManager::performOtaUpdate(bool updateFirmware) {
     size_t written = Update.writeStream(*stream);
     
     if (written != contentLength) {
-        Serial.printf("[Network] Written %d of %d bytes\n", written, contentLength);
+        
         _lastError = "OTA failed: Incomplete write (" + String(written) + "/" + String(contentLength) + " bytes)";
         httpClient.end();
         return false;
@@ -696,14 +696,14 @@ bool NetworkManager::performOtaUpdate(bool updateFirmware) {
     
     // Finalize update
     if (!Update.end()) {
-        Serial.printf("[Network] Update error: %s\n", Update.errorString());
+        
         _lastError = "OTA failed: " + String(Update.errorString());
         httpClient.end();
         return false;
     }
     
     if (!Update.isFinished()) {
-        Serial.println("[Network] Update not finished");
+        
         _lastError = "OTA failed: Update incomplete";
         httpClient.end();
         return false;
@@ -718,13 +718,13 @@ bool NetworkManager::performOtaUpdate(bool updateFirmware) {
 void NetworkManager::setupMdns() {
     // Start mDNS with hostname "rspqs"
     if (MDNS.begin("rspqs")) {
-        Serial.println("[Network] mDNS responder started at rspqs.local");
+        
         
         // Add service to advertise HTTP server
         MDNS.addService("http", "tcp", 80);
         MDNS.addServiceTxt("http", "tcp", "hwid", _hardwareId.c_str());
         MDNS.addServiceTxt("http", "tcp", "device", "QuickShifter");
     } else {
-        Serial.println("[Network] Failed to start mDNS responder");
+        
     }
 }

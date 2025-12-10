@@ -32,7 +32,7 @@ void LedController::begin(uint8_t redPin, uint8_t greenPin, uint8_t bluePin, uin
     setRgb(0, 0, 0);
     setBuiltinLed(false);
     
-    Serial.println("[LED] Initialized");
+    
 }
 
 void LedController::update() {

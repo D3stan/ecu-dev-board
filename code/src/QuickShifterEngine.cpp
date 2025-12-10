@@ -54,12 +54,12 @@ void QuickShifterEngine::begin(uint8_t pickupPin, uint8_t shiftSensorPin, uint8_
         cutTimerCallback
     );
     
-    Serial.println("[QS Engine] Initialized");
+    
 }
 
 void QuickShifterEngine::setConfig(const Config& config) {
     _config = config;
-    Serial.println("[QS Engine] Configuration updated");
+    
 }
 
 void QuickShifterEngine::update() {

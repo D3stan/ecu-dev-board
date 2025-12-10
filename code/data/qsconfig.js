@@ -669,10 +669,6 @@ function saveConfiguration() {
             if (ws && ws.readyState === WebSocket.OPEN) {
                 ws.send(JSON.stringify(fullConfig));
                 showToast('Configuration saved!', 2000);
-                
-                setTimeout(() => {
-                    window.location.href = '/';
-                }, 2000);
             } else {
                 showToast('Cannot save: Not connected to device', 3000);
             }

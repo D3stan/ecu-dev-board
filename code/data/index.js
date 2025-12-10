@@ -227,7 +227,6 @@ function sendConfig(extraData = {}) {
     // Send via WebSocket
     if (ws && ws.readyState === WebSocket.OPEN) {
         ws.send(JSON.stringify(configToSend));
-        console.log('Config sent to device', configToSend);
         console.log(JSON.stringify(configToSend));
         return true;
     } else {

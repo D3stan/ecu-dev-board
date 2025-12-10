@@ -7,12 +7,12 @@ StorageHandler::StorageHandler()
 
 bool StorageHandler::begin() {
     if (!LittleFS.begin(true)) {  // true = format on mount failure
-        Serial.println("[Storage] Failed to mount LittleFS");
+        
         return false;
     }
     
     _initialized = true;
-    Serial.println("[Storage] LittleFS mounted successfully");
+    
     printInfo();
     
     return true;
@@ -40,14 +40,14 @@ void StorageHandler::getDefaultConfig(SystemConfig& config) {
 
 bool StorageHandler::loadConfig(SystemConfig& config) {
     if (!_initialized) {
-        Serial.println("[Storage] Not initialized");
+        
         getDefaultConfig(config);
         return false;
     }
     
     File file = LittleFS.open(CONFIG_FILE, "r");
     if (!file) {
-        Serial.println("[Storage] No config file, using defaults");
+        
         getDefaultConfig(config);
         return false;
     }
@@ -55,7 +55,7 @@ bool StorageHandler::loadConfig(SystemConfig& config) {
     // Read file content
     size_t size = file.size();
     if (size == 0 || size > 2048) {
-        Serial.println("[Storage] Invalid config file size");
+        
         file.close();
         getDefaultConfig(config);
         return false;
@@ -67,15 +67,15 @@ bool StorageHandler::loadConfig(SystemConfig& config) {
     file.close();
     
     if (error) {
-        Serial.print("[Storage] JSON parse error: ");
-        Serial.println(error.c_str());
+        
+        
         getDefaultConfig(config);
         return false;
     }
     
     // Check if document overflowed
     if (doc.overflowed()) {
-        Serial.println("[Storage] JSON document overflow - config too large");
+        
         getDefaultConfig(config);
         return false;
     }
@@ -106,13 +106,13 @@ bool StorageHandler::loadConfig(SystemConfig& config) {
     // Load Telemetry config
     config.telemetryConfig.updateRateMs = doc["telemetry"]["updateRate"] | 100;
     
-    Serial.println("[Storage] Configuration loaded successfully");
+    
     return true;
 }
 
 bool StorageHandler::saveConfig(const SystemConfig& config) {
     if (!_initialized) {
-        Serial.println("[Storage] Not initialized");
+        
         return false;
     }
     
@@ -144,7 +144,7 @@ bool StorageHandler::saveConfig(const SystemConfig& config) {
     
     // Check if document overflowed
     if (doc.overflowed()) {
-        Serial.println("[Storage] JSON document overflow - config too large");
+        
         return false;
     }
     
@@ -153,12 +153,12 @@ bool StorageHandler::saveConfig(const SystemConfig& config) {
     size_t jsonSize = serializeJson(doc, jsonBuffer, sizeof(jsonBuffer));
     
     if (jsonSize == 0) {
-        Serial.println("[Storage] JSON serialization failed");
+        
         return false;
     }
     
     if (jsonSize >= sizeof(jsonBuffer)) {
-        Serial.println("[Storage] JSON buffer too small");
+        
         return false;
     }
     
@@ -166,9 +166,9 @@ bool StorageHandler::saveConfig(const SystemConfig& config) {
     bool success = atomicWrite(CONFIG_FILE, jsonBuffer, jsonSize);
     
     if (success) {
-        Serial.println("[Storage] Configuration saved successfully");
+        
     } else {
-        Serial.println("[Storage] Failed to save configuration");
+        
     }
     
     return success;
@@ -235,7 +235,7 @@ bool StorageHandler::atomicWrite(const char* filename, const char* data, size_t 
     // Write to temporary file first
     File tmpFile = LittleFS.open(CONFIG_TEMP_FILE, "w");
     if (!tmpFile) {
-        Serial.println("[Storage] Failed to open temp file");
+        
         return false;
     }
     
@@ -244,7 +244,7 @@ bool StorageHandler::atomicWrite(const char* filename, const char* data, size_t 
     tmpFile.close();
     
     if (written != len) {
-        Serial.println("[Storage] Failed to write complete data");
+        
         LittleFS.remove(CONFIG_TEMP_FILE);
         return false;
     }
@@ -256,7 +256,7 @@ bool StorageHandler::atomicWrite(const char* filename, const char* data, size_t 
     
     // Rename temp file to actual filename
     if (!LittleFS.rename(CONFIG_TEMP_FILE, filename)) {
-        Serial.println("[Storage] Failed to rename temp file");
+        
         return false;
     }
     
