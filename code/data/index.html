@@ -197,8 +197,8 @@
     </div>
     
     <!-- Telemetry Section -->
-    <div class="section">
-        <h2>Live Telemetry</h2>
+    <div class="section" style="cursor: pointer;" onclick="window.location.href='/dashboard.html'">
+        <h2>Live Telemetry 📊</h2>
         <div class="rpm-display" id="rpmDisplay">0</div>
         <div class="info-row">
             <span>Pickup Signal:</span>
@@ -216,6 +216,7 @@
             <span>Uptime:</span>
             <span id="uptime">0s</span>
         </div>
+        <p style="color: #aaa; margin-top: 10px; font-size: 0.9em; text-align: center;">Click to view full dashboard</p>
     </div>
     
     <!-- QuickShifter Configuration -->
@@ -250,14 +251,31 @@
     <div class="section">
         <h2>Network Configuration</h2>
         <div class="form-group">
-            <label>WiFi SSID (for STA mode)</label>
-            <input type="text" id="wifiSsid" maxlength="31">
+            <label>WiFi Mode</label>
+            <div style="display: flex; gap: 20px; margin-top: 10px;">
+                <label style="display: flex; align-items: center; cursor: pointer;">
+                    <input type="radio" name="wifiMode" value="ap" id="modeAP" style="width: auto; margin-right: 8px;" onchange="updateWifiModeFields()">
+                    <span>Access Point (AP) - Create WiFi network</span>
+                </label>
+                <label style="display: flex; align-items: center; cursor: pointer;">
+                    <input type="radio" name="wifiMode" value="sta" id="modeSTA" style="width: auto; margin-right: 8px;" onchange="updateWifiModeFields()">
+                    <span>Station (STA) - Connect to WiFi</span>
+                </label>
+            </div>
         </div>
-        <div class="form-group">
-            <label>WiFi Password</label>
-            <input type="password" id="wifiPassword" maxlength="63">
+        <div id="staConfigSection" style="display: none;">
+            <p style="color: #aaa; margin: 15px 0; font-size: 0.9em;">Enter the WiFi network credentials you want the ESP to connect to:</p>
+            <div class="form-group">
+                <label>WiFi Network SSID</label>
+                <input type="text" id="wifiSsid" maxlength="31" placeholder="Your WiFi network name">
+            </div>
+            <div class="form-group">
+                <label>WiFi Network Password</label>
+                <input type="password" id="wifiPassword" maxlength="63" placeholder="Your WiFi password">
+            </div>
         </div>
-        <button onclick="saveNetworkConfig()">Save</button>
+        <p style="color: #ff8800; margin: 15px 0; font-size: 0.9em;">⚠️ Note: Changes require a reboot to take effect. Default AP name is "rspqs".</p>
+        <button onclick="saveNetworkConfig()">Save Network Config</button>
         <button class="secondary" onclick="reboot()">Reboot</button>
     </div>
     
@@ -372,7 +390,14 @@
                     document.getElementById('updateRate').value = data.telemetry.updateRate;
                     
                     // Load network config
-                    document.getElementById('wifiSsid').value = data.network.ssid;
+                    const staMode = data.network.staMode || false;
+                    if (staMode) {
+                        document.getElementById('modeSTA').checked = true;
+                        document.getElementById('wifiSsid').value = data.network.ssid;
+                    } else {
+                        document.getElementById('modeAP').checked = true;
+                    }
+                    updateWifiModeFields();
                     
                     // Display error if present
                     if (data.lastError) {
@@ -412,15 +437,36 @@
         }
         
         function saveNetworkConfig() {
+            const staMode = document.getElementById('modeSTA').checked;
             const config = {
                 type: 'network',
-                ssid: document.getElementById('wifiSsid').value,
-                password: document.getElementById('wifiPassword').value,
-                staMode: true
+                staMode: staMode
             };
             
+            // Only include SSID/password if in STA mode
+            if (staMode) {
+                config.ssid = document.getElementById('wifiSsid').value;
+                config.password = document.getElementById('wifiPassword').value;
+                
+                if (!config.ssid) {
+                    alert('Please enter a WiFi SSID for STA mode.');
+                    return;
+                }
+            }
+            
             ws.send(JSON.stringify(config));
-            alert('Network configuration saved! Use Reboot button to apply changes.');
+            alert('Network configuration saved! Click Reboot to apply changes.');
+        }
+        
+        function updateWifiModeFields() {
+            const staMode = document.getElementById('modeSTA').checked;
+            const staSection = document.getElementById('staConfigSection');
+            
+            if (staMode) {
+                staSection.style.display = 'block';
+            } else {
+                staSection.style.display = 'none';
+            }
         }
         
         function startOta() {

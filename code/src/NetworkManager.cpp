@@ -247,18 +247,28 @@ void NetworkManager::handleConfigUpdate(const char* jsonData) {
         StorageHandler::NetworkConfig netConfig;
         _storage.loadNetworkConfig(netConfig);
         
-        if (doc.containsKey("ssid")) {
-            strlcpy(netConfig.ssid, doc["ssid"], sizeof(netConfig.ssid));
-        }
-        if (doc.containsKey("password")) {
-            strlcpy(netConfig.password, doc["password"], sizeof(netConfig.password));
-        }
+        // Update mode
         if (doc.containsKey("staMode")) {
             netConfig.staMode = doc["staMode"];
         }
         
+        // Only update SSID/password if switching to STA mode or already in STA mode
+        if (netConfig.staMode) {
+            if (doc.containsKey("ssid")) {
+                strlcpy(netConfig.ssid, doc["ssid"], sizeof(netConfig.ssid));
+            }
+            if (doc.containsKey("password")) {
+                strlcpy(netConfig.password, doc["password"], sizeof(netConfig.password));
+            }
+        }
+        // If switching to AP mode, keep existing AP credentials (default "rspqs")
+        
         _storage.saveNetworkConfig(netConfig);
-        Serial.println("[Network] Network config updated - reboot required");
+        Serial.printf("[Network] Network config updated - Mode: %s\n", netConfig.staMode ? "STA" : "AP");
+        if (netConfig.staMode) {
+            Serial.printf("[Network] Will connect to: %s\n", netConfig.ssid);
+        }
+        Serial.println("[Network] Reboot required for changes to take effect");
     }
     else if (strcmp(type, "telemetry") == 0) {
         // Update telemetry rate
@@ -293,6 +303,21 @@ void NetworkManager::setupHttpRoutes() {
             html += "<p>Web interface not installed. Upload index.html to LittleFS.</p>";
             html += "</body></html>";
             request->send(200, "text/html", html);
+        }
+    });
+    
+    // Serve dashboard page
+    _server.on("/dashboard.html", HTTP_GET, [this](AsyncWebServerRequest* request) {
+        if (LittleFS.exists("/dashboard.html")) {
+            request->send(LittleFS, "/dashboard.html", "text/html");
+        } else {
+            String html = "<!DOCTYPE html><html><head><title>Dashboard Not Found</title></head>";
+            html += "<body style='background:#1a1a1a;color:#fff;font-family:sans-serif;padding:40px;text-align:center;'>";
+            html += "<h1>Dashboard Not Found</h1>";
+            html += "<p>The dashboard.html file is not uploaded to the filesystem.</p>";
+            html += "<p><a href='/' style='color:#00ff88;'>Return to Main Page</a></p>";
+            html += "</body></html>";
+            request->send(404, "text/html", html);
         }
     });
     
@@ -342,24 +367,42 @@ void NetworkManager::setupHttpRoutes() {
         ESP.restart();
     });
     
-    // Captive portal - redirect all other requests to main page
+    // Captive portal and 404 handler
     _server.onNotFound([this](AsyncWebServerRequest* request) {
-        // For captive portal, redirect to root
-        if (request->host() != WiFi.softAPIP().toString()) {
+        String path = request->url();
+        
+        // For captive portal in AP mode, redirect to root
+        if (_state == State::AP_MODE && request->host() != WiFi.softAPIP().toString()) {
             request->redirect("http://" + WiFi.softAPIP().toString());
-        } else {
-            // Serve main page for any unmatched route
-            if (_storage.hasWebInterface()) {
-                request->send(LittleFS, "/index.html", "text/html");
-            } else {
-                String html = "<!DOCTYPE html><html><head><title>QuickShifter</title></head>";
-                html += "<body><h1>QuickShifter Control</h1>";
-                html += "<p>Hardware ID: " + _hardwareId + "</p>";
-                html += "<p>Access the main page at: http://" + WiFi.softAPIP().toString() + "</p>";
-                html += "</body></html>";
-                request->send(200, "text/html", html);
-            }
+            return;
         }
+        
+        // Try to serve file from LittleFS if it exists
+        if (LittleFS.exists(path)) {
+            String contentType = "text/plain";
+            if (path.endsWith(".html")) contentType = "text/html";
+            else if (path.endsWith(".css")) contentType = "text/css";
+            else if (path.endsWith(".js")) contentType = "application/javascript";
+            else if (path.endsWith(".json")) contentType = "application/json";
+            else if (path.endsWith(".png")) contentType = "image/png";
+            else if (path.endsWith(".jpg")) contentType = "image/jpeg";
+            else if (path.endsWith(".ico")) contentType = "image/x-icon";
+            
+            request->send(LittleFS, path, contentType);
+            return;
+        }
+        
+        // Otherwise send 404 page
+        String html = "<!DOCTYPE html><html><head><title>404 - Not Found</title>";
+        html += "<meta name='viewport' content='width=device-width, initial-scale=1.0'></head>";
+        html += "<body style='background:#1a1a1a;color:#fff;font-family:-apple-system,sans-serif;padding:40px;text-align:center;'>";
+        html += "<h1 style='color:#ff4444;font-size:4em;margin:0;'>404</h1>";
+        html += "<h2 style='color:#aaa;margin:20px 0;'>Page Not Found</h2>";
+        html += "<p style='color:#888;margin:20px 0;'>The requested resource <code style='background:#2a2a2a;padding:5px;border-radius:3px;'>" + path + "</code> was not found.</p>";
+        html += "<p style='margin-top:40px;'><a href='/' style='color:#00ff88;text-decoration:none;font-weight:bold;font-size:1.1em;'>← Back to Home</a></p>";
+        html += "<p style='color:#555;margin-top:60px;font-size:0.9em;'>QuickShifter Control Panel | Hardware ID: " + _hardwareId + "</p>";
+        html += "</body></html>";
+        request->send(404, "text/html", html);
     });
 }
 
