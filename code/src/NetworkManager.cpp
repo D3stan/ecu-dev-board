@@ -283,7 +283,6 @@ void NetworkManager::broadcastTelemetry() {
     doc["rpm"] = _qsEngine.getCurrentRpm();
     doc["signalActive"] = _qsEngine.isSignalActive();
     doc["cutActive"] = _qsEngine.isCutActive();
-    doc["hwid"] = _hardwareId;
     doc["uptime"] = millis();
     
     // Check for overflow
@@ -304,6 +303,7 @@ void NetworkManager::broadcastTelemetry() {
 }
 
 void NetworkManager::handleConfigUpdate(const char* jsonData) {
+    // Use StaticJsonDocument with sufficient buffer size to avoid heap fragmentation
     StaticJsonDocument<512> doc;
     DeserializationError error = deserializeJson(doc, jsonData);
     
@@ -312,102 +312,123 @@ void NetworkManager::handleConfigUpdate(const char* jsonData) {
         return;
     }
     
-    // Debug: Print received JSON
-    Serial.printf("[Network] Received config: %s\n", jsonData);
+    // Check for overflow
+    if (doc.overflowed()) {
+        Serial.println("[Network] JSON document overflow - config too large");
+        return;
+    }
+
+
+    // Load current configuration once
+    StorageHandler::SystemConfig sysConfig;
+    _storage.loadConfig(sysConfig);
+    bool configChanged = false;
     
-    // Check message type
-    const char* type = doc["type"];
-    if (!type) return;
-    
-    if (strcmp(type, "config") == 0) {
-        // Update QuickShifter configuration
-        QuickShifterEngine::Config qsConfig = _qsEngine.getConfig();
+    // Update QuickShifter configuration
+    if (doc.containsKey("qs")) {
+        JsonObject qs = doc["qs"];
         
-        if (doc.containsKey("minRpm")) {
-            qsConfig.minRpmThreshold = doc["minRpm"];
+        if (qs.containsKey("minRpm")) {
+            sysConfig.qsConfig.minRpmThreshold = qs["minRpm"];
+            configChanged = true;
         }
-        if (doc.containsKey("debounce")) {
-            qsConfig.debounceTimeMs = doc["debounce"];
+        if (qs.containsKey("debounce")) {
+            sysConfig.qsConfig.debounceTimeMs = qs["debounce"];
+            configChanged = true;
         }
-        if (doc.containsKey("cutTimeMap")) {
-            JsonArray arr = doc["cutTimeMap"];
+        if (qs.containsKey("cutTimeMap")) {
+            JsonArray arr = qs["cutTimeMap"];
             if (arr.size() == 11) {
                 for (size_t i = 0; i < 11; i++) {
-                    qsConfig.cutTimeMap[i] = arr[i];
+                    sysConfig.qsConfig.cutTimeMap[i] = arr[i];
                 }
+                configChanged = true;
             }
         }
         
-        _qsEngine.setConfig(qsConfig);
-        _storage.saveQsConfig(qsConfig);
-        
-        Serial.println("[Network] QuickShifter config updated");
+        if (configChanged) {
+            _qsEngine.setConfig(sysConfig.qsConfig);
+            Serial.println("[Network] QuickShifter config updated");
+        }
     }
-    else if (strcmp(type, "network") == 0) {
-        // Update network configuration
-        StorageHandler::NetworkConfig netConfig;
-        _storage.loadNetworkConfig(netConfig);
+    
+    // Update network configuration
+    if (doc.containsKey("network")) {
+        JsonObject net = doc["network"];
         
         // Update mode
-        if (doc.containsKey("staMode")) {
-            netConfig.staMode = doc["staMode"];
+        if (net.containsKey("staMode")) {
+            sysConfig.networkConfig.staMode = net["staMode"];
+            configChanged = true;
         }
         
         // Update AP credentials
-        if (doc.containsKey("apSsid")) {
-            const char* apSsid = doc["apSsid"];
+        if (net.containsKey("apSsid")) {
+            const char* apSsid = net["apSsid"];
             if (apSsid) {
-                strlcpy(netConfig.apSsid, apSsid, sizeof(netConfig.apSsid));
-                Serial.printf("[Network] Updated AP SSID: %s\n", netConfig.apSsid);
+                strlcpy(sysConfig.networkConfig.apSsid, apSsid, sizeof(sysConfig.networkConfig.apSsid));
+                Serial.printf("[Network] Updated AP SSID: %s\n", sysConfig.networkConfig.apSsid);
+                configChanged = true;
             }
         }
-        if (doc.containsKey("apPassword")) {
-            const char* apPassword = doc["apPassword"];
+        if (net.containsKey("apPassword")) {
+            const char* apPassword = net["apPassword"];
             if (apPassword) {
-                strlcpy(netConfig.apPassword, apPassword, sizeof(netConfig.apPassword));
-                Serial.printf("[Network] Updated AP Password: [%d chars]\n", strlen(netConfig.apPassword));
+                strlcpy(sysConfig.networkConfig.apPassword, apPassword, sizeof(sysConfig.networkConfig.apPassword));
+                Serial.printf("[Network] Updated AP Password: [%d chars]\n", strlen(sysConfig.networkConfig.apPassword));
+                configChanged = true;
             }
         }
         
         // Update STA credentials
-        if (doc.containsKey("staSsid")) {
-            const char* staSsid = doc["staSsid"];
+        if (net.containsKey("staSsid")) {
+            const char* staSsid = net["staSsid"];
             if (staSsid) {
-                strlcpy(netConfig.staSsid, staSsid, sizeof(netConfig.staSsid));
-                Serial.printf("[Network] Updated STA SSID: %s\n", netConfig.staSsid);
+                strlcpy(sysConfig.networkConfig.staSsid, staSsid, sizeof(sysConfig.networkConfig.staSsid));
+                Serial.printf("[Network] Updated STA SSID: %s\n", sysConfig.networkConfig.staSsid);
+                configChanged = true;
             }
         }
-        if (doc.containsKey("staPassword")) {
-            const char* staPassword = doc["staPassword"];
+        if (net.containsKey("staPassword")) {
+            const char* staPassword = net["staPassword"];
             if (staPassword) {
-                strlcpy(netConfig.staPassword, staPassword, sizeof(netConfig.staPassword));
-                Serial.printf("[Network] Updated STA Password: [%d chars]\n", strlen(netConfig.staPassword));
+                strlcpy(sysConfig.networkConfig.staPassword, staPassword, sizeof(sysConfig.networkConfig.staPassword));
+                Serial.printf("[Network] Updated STA Password: [%d chars]\n", strlen(sysConfig.networkConfig.staPassword));
+                configChanged = true;
             }
         }
         
-        _storage.saveNetworkConfig(netConfig);
-        Serial.printf("[Network] Network config updated - Mode: %s\n", netConfig.staMode ? "STA" : "AP");
-        if (netConfig.staMode) {
-            Serial.printf("[Network] Will connect to: %s\n", netConfig.staSsid);
-        } else {
-            Serial.printf("[Network] Will start AP: %s\n", netConfig.apSsid);
+        if (doc.containsKey("network")) {
+            Serial.printf("[Network] Network config updated - Mode: %s\n", sysConfig.networkConfig.staMode ? "STA" : "AP");
+            if (sysConfig.networkConfig.staMode) {
+                Serial.printf("[Network] Will connect to: %s\n", sysConfig.networkConfig.staSsid);
+            } else {
+                Serial.printf("[Network] Will start AP: %s\n", sysConfig.networkConfig.apSsid);
+            }
+            Serial.println("[Network] Reboot required for changes to take effect");
         }
-        Serial.println("[Network] Reboot required for changes to take effect");
     }
-    else if (strcmp(type, "telemetry") == 0) {
-        // Update telemetry rate
-        if (doc.containsKey("updateRate")) {
-            _telemetryUpdateRate = doc["updateRate"];
-            
-            StorageHandler::TelemetryConfig telConfig;
-            telConfig.updateRateMs = _telemetryUpdateRate;
-            _storage.saveTelemetryConfig(telConfig);
+    
+    // Update telemetry configuration
+    if (doc.containsKey("telemetry")) {
+        JsonObject tel = doc["telemetry"];
+        if (tel.containsKey("updateRate")) {
+            _telemetryUpdateRate = tel["updateRate"];
+            sysConfig.telemetryConfig.updateRateMs = _telemetryUpdateRate;
+            configChanged = true;
             
             Serial.printf("[Network] Telemetry rate updated: %d ms\n", _telemetryUpdateRate);
         }
     }
-    else if (strcmp(type, "ota") == 0) {
-        // Trigger OTA update
+    
+    // Save all changes in a single write operation
+    if (configChanged) {
+        _storage.saveConfig(sysConfig);
+        Serial.println("[Network] Configuration saved to flash");
+    }
+    
+    // Check for OTA trigger (legacy support for simple trigger message)
+    if (doc.containsKey("ota") && doc["ota"].as<bool>() == true) {
         Serial.println("[Network] OTA update requested");
         startOtaUpdate();
     }

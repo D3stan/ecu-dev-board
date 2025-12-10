@@ -638,23 +638,49 @@ function loadConfig() {
 function saveConfiguration() {
     const cutTimeMap = buildCutTimeMapFromPoints();
     
-    const config = {
-        type: 'config',
-        minRpm: parseInt(document.getElementById('minRpmSlider').value),
-        debounce: parseInt(document.getElementById('debounceSlider').value),
-        cutTimeMap: cutTimeMap
-    };
+    // Update current config
+    currentConfig.minRpm = parseInt(document.getElementById('minRpmSlider').value);
+    currentConfig.debounce = parseInt(document.getElementById('debounceSlider').value);
+    currentConfig.cutTimeMap = cutTimeMap;
     
-    if (ws && ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify(config));
-        showToast('Configuration saved!', 2000);
-        
-        setTimeout(() => {
-            window.location.href = '/';
-        }, 2000);
-    } else {
-        showToast('Cannot save: Not connected to device', 3000);
-    }
+    // Load network and telemetry config from API to build full config
+    fetch('/api/config')
+        .then(response => response.json())
+        .then(data => {
+            // Build full config object
+            const fullConfig = {
+                qs: {
+                    minRpm: currentConfig.minRpm,
+                    debounce: currentConfig.debounce,
+                    cutTimeMap: cutTimeMap
+                },
+                network: {
+                    staMode: data.network.staMode,
+                    apSsid: data.network.apSsid,
+                    apPassword: data.network.apPassword,
+                    staSsid: data.network.staSsid,
+                    staPassword: data.network.staPassword
+                },
+                telemetry: {
+                    updateRate: data.telemetry.updateRate
+                }
+            };
+            
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify(fullConfig));
+                showToast('Configuration saved!', 2000);
+                
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 2000);
+            } else {
+                showToast('Cannot save: Not connected to device', 3000);
+            }
+        })
+        .catch(error => {
+            console.error('Failed to load full config:', error);
+            showToast('Error: Could not load configuration', 3000);
+        });
 }
 
 // Go back

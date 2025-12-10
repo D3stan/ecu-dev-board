@@ -13,6 +13,11 @@ let offlineData = {
     cutActive: false,
     uptime: 0
 };
+let fullConfig = {
+    qs: { minRpm: 3000, debounce: 50, cutTimeMap: [] },
+    network: { staMode: false, apSsid: 'rspqs', apPassword: '', staSsid: '', staPassword: '', lastError: '' },
+    telemetry: { updateRate: 100 }
+};
 
 function connect() {
     try {
@@ -118,36 +123,50 @@ function loadConfig() {
             return response.json();
         })
         .then(data => {
-            // Load QS config - store in variables for modal
-            window.currentQsConfig = {
-                minRpm: data.qs.minRpm,
-                debounce: data.qs.debounce,
-                cutTimeMap: data.qs.cutTimeMap
+            // Store full config globally
+            fullConfig = {
+                qs: {
+                    minRpm: data.qs.minRpm,
+                    debounce: data.qs.debounce,
+                    cutTimeMap: data.qs.cutTimeMap
+                },
+                network: {
+                    staMode: data.network.staMode || false,
+                    apSsid: data.network.apSsid || 'rspqs',
+                    apPassword: data.network.apPassword || '',
+                    staSsid: data.network.staSsid || '',
+                    staPassword: data.network.staPassword || '',
+                    lastError: data.lastError || ''
+                },
+                telemetry: {
+                    updateRate: data.telemetry.updateRate || 100
+                }
             };
+            
+            // Load QS config - store in variables for modal
+            window.currentQsConfig = fullConfig.qs;
             
             // Update display summary
             updateConfigSummary();
             
             // Load telemetry config
-            const updateRate = data.telemetry.updateRate || 100;
-            document.getElementById('updateRateSlider').value = updateRate;
-            document.getElementById('updateRateValue').textContent = updateRate + ' ms';
+            document.getElementById('updateRateSlider').value = fullConfig.telemetry.updateRate;
+            document.getElementById('updateRateValue').textContent = fullConfig.telemetry.updateRate + ' ms';
             
             // Load network config
-            const staMode = data.network.staMode || false;
-            if (staMode) {
+            if (fullConfig.network.staMode) {
                 selectWifiMode('sta');
-                document.getElementById('staSsid').value = data.network.staSsid || '';
-                document.getElementById('staPassword').value = data.network.staPassword || '';
+                document.getElementById('staSsid').value = fullConfig.network.staSsid;
+                document.getElementById('staPassword').value = fullConfig.network.staPassword;
             } else {
                 selectWifiMode('ap');
-                document.getElementById('apSsid').value = data.network.apSsid || 'rspqs';
-                document.getElementById('apPassword').value = data.network.apPassword || '';
+                document.getElementById('apSsid').value = fullConfig.network.apSsid;
+                document.getElementById('apPassword').value = fullConfig.network.apPassword;
             }
             
             // Display error if present
-            if (data.lastError) {
-                document.getElementById('errorMessage').textContent = data.lastError;
+            if (fullConfig.network.lastError) {
+                document.getElementById('errorMessage').textContent = fullConfig.network.lastError;
                 document.getElementById('errorSection').classList.add('visible');
             } else {
                 document.getElementById('errorSection').classList.remove('visible');
@@ -181,31 +200,57 @@ function updateConfigSummary() {
     document.getElementById('cutTimePointsDisplay').textContent = config.cutTimeMap.length + ' points';
 }
 
+function sendConfig(extraData = {}) {
+    // Update fullConfig with current UI values
+    fullConfig.qs = {
+        minRpm: window.currentQsConfig.minRpm,
+        debounce: window.currentQsConfig.debounce,
+        cutTimeMap: window.currentQsConfig.cutTimeMap
+    };
+    
+    fullConfig.network = {
+        staMode: document.getElementById('modeSTABtn').classList.contains('active'),
+        apSsid: document.getElementById('apSsid').value || 'rspqs',
+        apPassword: document.getElementById('apPassword').value || '',
+        staSsid: document.getElementById('staSsid').value || '',
+        staPassword: document.getElementById('staPassword').value || '',
+        lastError: ''
+    };
+    
+    fullConfig.telemetry = {
+        updateRate: parseInt(document.getElementById('updateRateSlider').value)
+    };
+    
+    // Merge any extra data (like ota flag)
+    const configToSend = { ...fullConfig, ...extraData };
+    
+    // Send via WebSocket
+    if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify(configToSend));
+        console.log('Config sent to device', configToSend);
+        console.log(JSON.stringify(configToSend));
+        return true;
+    } else {
+        console.log('Offline mode: Config saved locally', configToSend);
+        return false;
+    }
+}
+
 function saveQsConfigFromModal() {
     // Build cut time map from graph points
     const cutTimeMap = buildCutTimeMapFromPoints();
     
-    const config = {
-        type: 'config',
+    // Update current config
+    window.currentQsConfig = {
         minRpm: parseInt(document.getElementById('minRpmSlider').value),
         debounce: parseInt(document.getElementById('debounceSlider').value),
         cutTimeMap: cutTimeMap
     };
     
-    if (ws && ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify(config));
-    } else {
-        console.log('Offline mode: Config saved locally', config);
-    }
+    // Send config
+    sendConfig();
     
-    // Update current config
-    window.currentQsConfig = {
-        minRpm: config.minRpm,
-        debounce: config.debounce,
-        cutTimeMap: cutTimeMap
-    };
     updateConfigSummary();
-    
     closeQsConfigModal();
     alert('QuickShifter configuration saved!');
 }
@@ -253,49 +298,32 @@ function updateTelemetryRate() {
     
     // Set new timer to save after 1 second of no changes
     telemetryUpdateTimer = setTimeout(() => {
-        const config = {
-            type: 'telemetry',
-            updateRate: parseInt(value)
-        };
-        
-        if (ws && ws.readyState === WebSocket.OPEN) {
-            ws.send(JSON.stringify(config));
-            console.log('Telemetry rate updated:', value + 'ms');
-        } else {
-            console.log('Offline mode: Telemetry rate saved locally:', value + 'ms');
-        }
+        sendConfig();
+        console.log('Telemetry rate updated:', value + 'ms');
     }, 1000);
 }
 
 function saveNetworkConfig() {
     const staMode = document.getElementById('modeSTABtn').classList.contains('active');
-    const config = {
-        type: 'network',
-        staMode: staMode,
-        apSsid: document.getElementById('apSsid').value || 'rspqs',
-        apPassword: document.getElementById('apPassword').value || '',
-        staSsid: document.getElementById('staSsid').value || '',
-        staPassword: document.getElementById('staPassword').value || ''
-    };
+    const staSsid = document.getElementById('staSsid').value || '';
+    const apSsid = document.getElementById('apSsid').value || 'rspqs';
     
     // Validate based on mode
     if (staMode) {
-        if (!config.staSsid) {
+        if (!staSsid) {
             alert('Please enter a WiFi SSID for STA mode.');
             return;
         }
     } else {
-        if (!config.apSsid) {
+        if (!apSsid) {
             alert('Please enter an AP SSID for AP mode.');
             return;
         }
     }
     
-    if (ws && ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify(config));
-    } else {
-        console.log('Offline mode: Network config saved locally', config);
-    }
+    // Send config
+    sendConfig();
+    
     alert('Network configuration saved! Click Reboot to apply changes.');
 }
 
@@ -329,9 +357,7 @@ function togglePasswordVisibility(fieldId) {
 
 function startOta() {
     if (confirm('Start OTA firmware update? Device will reboot after update.')) {
-        const msg = { type: 'ota' };
-        if (ws && ws.readyState === WebSocket.OPEN) {
-            ws.send(JSON.stringify(msg));
+        if (sendConfig({ ota: true })) {
             alert('OTA update started. Device will reboot automatically.');
         } else {
             alert('Cannot start OTA update in offline mode.');

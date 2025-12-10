@@ -1,17 +1,30 @@
 {
-  "qs": {
-    "minRpm": 3000,
-    "debounce": 50,
-    "cutTimeMap": [80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80]
-  },
-  "network": {
-    "apSsid": "rspqs",
-    "apPassword": "",
-    "staSsid": "",
-    "staPassword": "",
-    "staMode": false
-  },
-  "telemetry": {
-    "updateRate": 100
-  }
+    "qs": {
+        "minRpm": 3000,
+        "debounce": 50,
+        "cutTimeMap": [
+            80,
+            80,
+            80,
+            80,
+            80,
+            80,
+            80,
+            80,
+            80,
+            80,
+            80
+        ]
+    },
+    "network": {
+        "apSsid": "rspqs",
+        "apPassword": "",
+        "staSsid": "",
+        "staPassword": "",
+        "staMode": false,
+        "lastError": ""
+    },
+    "telemetry": {
+        "updateRate": 100
+    }
 }
