@@ -8,7 +8,6 @@ NetworkManager::NetworkManager(StorageHandler& storage, QuickShifterEngine& qsEn
     , _state(State::INIT)
     , _server(80)
     , _ws("/ws")
-    , _dnsServer(nullptr)
     , _lastTelemetryUpdate(0)
     , _telemetryUpdateRate(100)
 {
@@ -36,18 +35,10 @@ bool NetworkManager::begin() {
     setupHttpRoutes();
     
     // Start in appropriate mode
-    if (netConfig.staMode && strlen(netConfig.ssid) > 0) {
-        Serial.println("[Network] Config requests STA mode");
-        Serial.flush();
-        
-        if (switchToStaMode(netConfig.ssid, netConfig.password)) {
+    if (netConfig.staMode && strlen(netConfig.staSsid) > 0) {
+        if (switchToStaMode(netConfig.staSsid, netConfig.staPassword)) {
             _state = State::STA_MODE;
             _led.setStatus(LedController::Status::WIFI_STA);
-        } else {
-            // Fall back to AP mode if STA fails
-            Serial.println("[Network] STA mode failed, falling back to AP");
-            Serial.flush();
-            switchToApMode();
         }
     } else {
         Serial.println("[Network] Config requests AP mode");
@@ -66,11 +57,6 @@ bool NetworkManager::begin() {
 }
 
 void NetworkManager::update() {
-    // Process DNS requests for captive portal
-    if (_dnsServer) {
-        _dnsServer->processNextRequest();
-    }
-    
     // Clean up WebSocket clients
     _ws.cleanupClients();
     
@@ -119,24 +105,15 @@ void NetworkManager::switchToApMode() {
     Serial.printf("[Network] Starting AP mode with SSID: %s\n", netConfig.ssid);
     
     bool success;
-    if (strlen(netConfig.password) > 0) {
-        success = WiFi.softAP(netConfig.ssid, netConfig.password);
-        Serial.printf("[Network] AP password length: %d\n", strlen(netConfig.password));
+    if (strlen(netConfig.apPassword) > 0) {
+        success = WiFi.softAP(netConfig.apSsid, netConfig.apPassword);
     } else {
-        success = WiFi.softAP(netConfig.ssid);
-        Serial.println("[Network] AP started without password (open network)");
+        success = WiFi.softAP(netConfig.apSsid);
     }
     
     if (success) {
         Serial.printf("[Network] AP Mode: SSID=%s, IP=%s\n", 
-                     netConfig.ssid, apIP.toString().c_str());
-        Serial.printf("[Network] Connect to '%s' and navigate to http://%s\n",
-                     netConfig.ssid, apIP.toString().c_str());
-        
-        // Start DNS server for captive portal
-        _dnsServer = new DNSServer();
-        _dnsServer->start(53, "*", apIP);
-        Serial.println("[Network] DNS Server started (Captive Portal enabled)");
+                     netConfig.apSsid, apIP.toString().c_str());
         
         _state = State::AP_MODE;
         _led.setStatus(LedController::Status::WIFI_AP);
@@ -174,9 +151,9 @@ bool NetworkManager::switchToStaMode(const char* ssid, const char* password) {
     Serial.printf("[Network] Connecting to %s", ssid);
     Serial.flush();
     
-    // Wait up to 15 seconds for connection with better feedback
+    // First attempt: Wait up to 5 seconds for connection
     int attempts = 0;
-    while (WiFi.status() != WL_CONNECTED && attempts < 30) {
+    while (WiFi.status() != WL_CONNECTED && attempts < 10) {
         delay(500);
         Serial.print(".");
         if (attempts % 10 == 9) {
@@ -195,24 +172,70 @@ bool NetworkManager::switchToStaMode(const char* ssid, const char* password) {
         Serial.flush();
         _state = State::STA_MODE;
         _led.setStatus(LedController::Status::WIFI_STA);
-        _lastError = "";  // Clear any previous error
+        
+        // Clear any previous error
+        StorageHandler::NetworkConfig netConfig;
+        _storage.loadNetworkConfig(netConfig);
+        if (strlen(netConfig.lastError) > 0) {
+            netConfig.lastError[0] = '\0';
+            _storage.saveNetworkConfig(netConfig);
+        }
+        _lastError = "";
+        
         return true;
-    } else {
-        Serial.println("[Network] ✗ Failed to connect to WiFi");
-        Serial.printf("[Network] WiFi Status: %d\n", WiFi.status());
-        Serial.flush();
-        
-        _lastError = "Failed to connect to WiFi: " + String(ssid);
-        
-        // Disconnect but keep credentials stored for next attempt
-        // Use disconnect(false) to preserve the config
-        WiFi.disconnect(false);
-        delay(100);
-        
-        Serial.println("[Network] Will fall back to AP mode...");
-        Serial.flush();
-        return false;
     }
+    
+    // First attempt failed, try one more time with 5s timeout
+    Serial.println("[Network] First attempt failed, retrying...");
+    WiFi.disconnect();
+    delay(1000);
+    WiFi.begin(ssid, password);
+    
+    attempts = 0;
+    while (WiFi.status() != WL_CONNECTED && attempts < 10) {
+        delay(500);
+        Serial.print(".");
+        attempts++;
+    }
+    Serial.println();
+    
+    if (WiFi.status() == WL_CONNECTED) {
+        Serial.printf("[Network] Connected on retry! IP: %s\n", WiFi.localIP().toString().c_str());
+        _state = State::STA_MODE;
+        _led.setStatus(LedController::Status::WIFI_STA);
+        
+        // Clear any previous error
+        StorageHandler::NetworkConfig netConfig;
+        _storage.loadNetworkConfig(netConfig);
+        if (strlen(netConfig.lastError) > 0) {
+            netConfig.lastError[0] = '\0';
+            _storage.saveNetworkConfig(netConfig);
+        }
+        _lastError = "";
+        
+        return true;
+    }
+    
+    // Both attempts failed - save error and switch to AP mode
+    Serial.println("[Network] Failed to connect after 2 attempts");
+    
+    String errorMsg = "Failed to connect to WiFi network '";
+    errorMsg += ssid;
+    errorMsg += "'. Check SSID and password.";
+    _lastError = errorMsg;
+    
+    // Save error to persistent storage
+    StorageHandler::NetworkConfig netConfig;
+    _storage.loadNetworkConfig(netConfig);
+    strlcpy(netConfig.lastError, errorMsg.c_str(), sizeof(netConfig.lastError));
+    _storage.saveNetworkConfig(netConfig);
+    
+    Serial.println("[Network] Falling back to AP mode...");
+    WiFi.disconnect();
+    delay(500);
+    switchToApMode();
+    
+    return false;
 }
 
 void NetworkManager::setupWebSocket() {
@@ -289,10 +312,8 @@ void NetworkManager::handleConfigUpdate(const char* jsonData) {
         return;
     }
     
-    if (doc.overflowed()) {
-        Serial.println("[Network] JSON document overflow");
-        return;
-    }
+    // Debug: Print received JSON
+    Serial.printf("[Network] Received config: %s\n", jsonData);
     
     // Check message type
     const char* type = doc["type"];
@@ -327,18 +348,51 @@ void NetworkManager::handleConfigUpdate(const char* jsonData) {
         StorageHandler::NetworkConfig netConfig;
         _storage.loadNetworkConfig(netConfig);
         
-        if (doc.containsKey("ssid")) {
-            strlcpy(netConfig.ssid, doc["ssid"], sizeof(netConfig.ssid));
-        }
-        if (doc.containsKey("password")) {
-            strlcpy(netConfig.password, doc["password"], sizeof(netConfig.password));
-        }
+        // Update mode
         if (doc.containsKey("staMode")) {
             netConfig.staMode = doc["staMode"];
         }
         
+        // Update AP credentials
+        if (doc.containsKey("apSsid")) {
+            const char* apSsid = doc["apSsid"];
+            if (apSsid) {
+                strlcpy(netConfig.apSsid, apSsid, sizeof(netConfig.apSsid));
+                Serial.printf("[Network] Updated AP SSID: %s\n", netConfig.apSsid);
+            }
+        }
+        if (doc.containsKey("apPassword")) {
+            const char* apPassword = doc["apPassword"];
+            if (apPassword) {
+                strlcpy(netConfig.apPassword, apPassword, sizeof(netConfig.apPassword));
+                Serial.printf("[Network] Updated AP Password: [%d chars]\n", strlen(netConfig.apPassword));
+            }
+        }
+        
+        // Update STA credentials
+        if (doc.containsKey("staSsid")) {
+            const char* staSsid = doc["staSsid"];
+            if (staSsid) {
+                strlcpy(netConfig.staSsid, staSsid, sizeof(netConfig.staSsid));
+                Serial.printf("[Network] Updated STA SSID: %s\n", netConfig.staSsid);
+            }
+        }
+        if (doc.containsKey("staPassword")) {
+            const char* staPassword = doc["staPassword"];
+            if (staPassword) {
+                strlcpy(netConfig.staPassword, staPassword, sizeof(netConfig.staPassword));
+                Serial.printf("[Network] Updated STA Password: [%d chars]\n", strlen(netConfig.staPassword));
+            }
+        }
+        
         _storage.saveNetworkConfig(netConfig);
-        Serial.println("[Network] Network config updated - reboot required");
+        Serial.printf("[Network] Network config updated - Mode: %s\n", netConfig.staMode ? "STA" : "AP");
+        if (netConfig.staMode) {
+            Serial.printf("[Network] Will connect to: %s\n", netConfig.staSsid);
+        } else {
+            Serial.printf("[Network] Will start AP: %s\n", netConfig.apSsid);
+        }
+        Serial.println("[Network] Reboot required for changes to take effect");
     }
     else if (strcmp(type, "telemetry") == 0) {
         // Update telemetry rate
@@ -376,12 +430,18 @@ void NetworkManager::setupHttpRoutes() {
         }
     });
     
-    // Serve telemetry page
-    _server.on("/telemetry.html", HTTP_GET, [this](AsyncWebServerRequest* request) {
-        if (_storage.hasWebInterface()) {
-            request->send(LittleFS, "/telemetry.html", "text/html");
+    // Serve dashboard page
+    _server.on("/dashboard.html", HTTP_GET, [this](AsyncWebServerRequest* request) {
+        if (LittleFS.exists("/dashboard.html")) {
+            request->send(LittleFS, "/dashboard.html", "text/html");
         } else {
-            request->send(404, "text/plain", "Telemetry page not found");
+            String html = "<!DOCTYPE html><html><head><title>Dashboard Not Found</title></head>";
+            html += "<body style='background:#1a1a1a;color:#fff;font-family:sans-serif;padding:40px;text-align:center;'>";
+            html += "<h1>Dashboard Not Found</h1>";
+            html += "<p>The dashboard.html file is not uploaded to the filesystem.</p>";
+            html += "<p><a href='/' style='color:#00ff88;'>Return to Main Page</a></p>";
+            html += "</body></html>";
+            request->send(404, "text/html", html);
         }
     });
     
@@ -399,12 +459,20 @@ void NetworkManager::setupHttpRoutes() {
             cutTimeArray.add(cutTime);
         }
         
-        // Network config (don't send password)
+        // Network config (include passwords for owner access)
         StorageHandler::NetworkConfig netConfig;
         _storage.loadNetworkConfig(netConfig);
         JsonObject net = doc.createNestedObject("network");
-        net["ssid"] = netConfig.ssid;
+        net["apSsid"] = String(netConfig.apSsid);
+        net["apPassword"] = String(netConfig.apPassword);
+        net["staSsid"] = String(netConfig.staSsid);
+        net["staPassword"] = String(netConfig.staPassword);
         net["staMode"] = netConfig.staMode;
+        
+        // Include stored error if present
+        if (strlen(netConfig.lastError) > 0) {
+            net["lastError"] = String(netConfig.lastError);
+        }
         
         // Telemetry config
         JsonObject tel = doc.createNestedObject("telemetry");
@@ -443,24 +511,47 @@ void NetworkManager::setupHttpRoutes() {
         ESP.restart();
     });
     
-    // Captive portal - redirect all other requests to main page
+    // Clear error endpoint
+    _server.on("/api/clearError", HTTP_POST, [this](AsyncWebServerRequest* request) {
+        StorageHandler::NetworkConfig netConfig;
+        _storage.loadNetworkConfig(netConfig);
+        netConfig.lastError[0] = '\0';
+        _storage.saveNetworkConfig(netConfig);
+        _lastError = "";
+        Serial.println("[Network] Error cleared by user");
+        request->send(200, "text/plain", "Error cleared");
+    });
+    
+    // 404 handler
     _server.onNotFound([this](AsyncWebServerRequest* request) {
-        // For captive portal, redirect to root
-        if (request->host() != WiFi.softAPIP().toString()) {
-            request->redirect("http://" + WiFi.softAPIP().toString());
-        } else {
-            // Serve main page for any unmatched route
-            if (_storage.hasWebInterface()) {
-                request->send(LittleFS, "/index.html", "text/html");
-            } else {
-                String html = "<!DOCTYPE html><html><head><title>QuickShifter</title></head>";
-                html += "<body><h1>QuickShifter Control</h1>";
-                html += "<p>Hardware ID: " + _hardwareId + "</p>";
-                html += "<p>Access the main page at: http://" + WiFi.softAPIP().toString() + "</p>";
-                html += "</body></html>";
-                request->send(200, "text/html", html);
-            }
+        String path = request->url();
+        
+        // Try to serve file from LittleFS if it exists
+        if (LittleFS.exists(path)) {
+            String contentType = "text/plain";
+            if (path.endsWith(".html")) contentType = "text/html";
+            else if (path.endsWith(".css")) contentType = "text/css";
+            else if (path.endsWith(".js")) contentType = "application/javascript";
+            else if (path.endsWith(".json")) contentType = "application/json";
+            else if (path.endsWith(".png")) contentType = "image/png";
+            else if (path.endsWith(".jpg")) contentType = "image/jpeg";
+            else if (path.endsWith(".ico")) contentType = "image/x-icon";
+            
+            request->send(LittleFS, path, contentType);
+            return;
         }
+        
+        // Otherwise send 404 page
+        String html = "<!DOCTYPE html><html><head><title>404 - Not Found</title>";
+        html += "<meta name='viewport' content='width=device-width, initial-scale=1.0'></head>";
+        html += "<body style='background:#1a1a1a;color:#fff;font-family:-apple-system,sans-serif;padding:40px;text-align:center;'>";
+        html += "<h1 style='color:#ff4444;font-size:4em;margin:0;'>404</h1>";
+        html += "<h2 style='color:#aaa;margin:20px 0;'>Page Not Found</h2>";
+        html += "<p style='color:#888;margin:20px 0;'>The requested resource <code style='background:#2a2a2a;padding:5px;border-radius:3px;'>" + path + "</code> was not found.</p>";
+        html += "<p style='margin-top:40px;'><a href='/' style='color:#00ff88;text-decoration:none;font-weight:bold;font-size:1.1em;'>← Back to Home</a></p>";
+        html += "<p style='color:#555;margin-top:60px;font-size:0.9em;'>QuickShifter Control Panel | Hardware ID: " + _hardwareId + "</p>";
+        html += "</body></html>";
+        request->send(404, "text/html", html);
     });
 }
 

@@ -5,9 +5,11 @@
     "cutTimeMap": [80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80]
   },
   "network": {
-    "ssid": "GiuseppeBagnile",
-    "password": "MikroTik2020",
-    "staMode": true
+    "apSsid": "rspqs",
+    "apPassword": "",
+    "staSsid": "",
+    "staPassword": "",
+    "staMode": false
   },
   "telemetry": {
     "updateRate": 100

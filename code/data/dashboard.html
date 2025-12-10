@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    
+    <!-- iOS PWA Support -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="RPM Gauge">
+    
+    <!-- Android PWA Support -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#0f0f0f">
+    <meta name="application-name" content="RPM Gauge">
+    
+    <title>RPM Dashboard Gauge</title>
+    
+    <style>
+        /* Use system fonts as fallback - works offline */
+        body {
+            background-color: #0f0f0f;
+            color: white;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, monospace, sans-serif;
+            overflow: auto;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            -webkit-text-size-adjust: 100%;
+            -moz-text-size-adjust: 100%;
+            -ms-text-size-adjust: 100%;
+            text-size-adjust: 100%;
+        }
+        
+        /* Prevent zoom on double tap */
+        * {
+            touch-action: manipulation;
+        }
+
+        /* Background Context - Blurred Dashboard feel */
+        .dashboard-bg {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 50% 50%, #1a1a1a 0%, #000000 100%);
+            z-index: -2;
+        }
+        
+        .dashboard-texture {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: 
+                radial-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                radial-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 20px 20px;
+            background-position: 0 0, 10px 10px;
+            filter: blur(1px);
+            z-index: -1;
+        }
+
+        /* Gauge Bezel & Container */
+        .gauge-container {
+            width: 800px;
+            height: 350px;
+            max-width: 95vw;
+            background: #000;
+            border-radius: 20px;
+            position: relative;
+            box-shadow: 
+                0 20px 50px rgba(0,0,0,0.8),
+                inset 0 0 0 12px #1c1c1c, /* Metallic Bezel */
+                inset 0 0 20px 15px #000;
+            overflow: hidden;
+            border: 2px solid #333;
+        }
+
+        /* Glass Reflection Overlay */
+        .gauge-reflection {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(135deg, 
+                rgba(255,255,255,0.08) 0%, 
+                rgba(255,255,255,0.01) 35%, 
+                rgba(255,255,255,0) 40%, 
+                rgba(255,255,255,0) 100%);
+            pointer-events: none;
+            z-index: 10;
+            border-radius: 16px;
+        }
+
+        /* Typography & Glows */
+        .rpm-value {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+            font-weight: 900;
+            letter-spacing: 0.05em;
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.6), 0 0 30px rgba(255, 255, 255, 0.2);
+        }
+
+        .label-text {
+            color: rgba(255,255,255,0.7);
+            font-size: 14px;
+            font-weight: bold;
+            text-shadow: 0 0 2px rgba(255,255,255,0.2);
+        }
+
+        /* SVG Segment Styles */
+        .segment {
+            transition: fill 0.1s, filter 0.1s;
+        }
+
+        /* Specific Glow Colors based on state */
+        .glow-red {
+            filter: drop-shadow(0 0 4px rgba(255, 0, 0, 0.8));
+        }
+        .glow-orange {
+            filter: drop-shadow(0 0 4px rgba(255, 165, 0, 0.8));
+        }
+        .glow-yellow {
+            filter: drop-shadow(0 0 4px rgba(255, 255, 0, 0.8));
+        }
+        .glow-green {
+            filter: drop-shadow(0 0 5px rgba(50, 255, 50, 0.9));
+        }
+        .glow-redline {
+            filter: drop-shadow(0 0 6px rgba(255, 0, 0, 1));
+        }
+
+        .inactive {
+            fill: #1a1a1a !important; /* Dim grey/black */
+            stroke: #2a0000; /* Very faint red outline */
+            stroke-width: 0.5px;
+            filter: none !important;
+        }
+
+        /* Baseline Glow */
+        .baseline-path {
+            fill: none;
+            stroke: #00ff00;
+            stroke-width: 2;
+            opacity: 0.3;
+            filter: drop-shadow(0 0 4px #00ff00);
+        }
+
+        /* Controls Area */
+        .controls {
+            margin-top: 40px;
+            background: rgba(0,0,0,0.6);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #333;
+            backdrop-filter: blur(10px);
+        }
+        
+        input[type=range] {
+            -webkit-appearance: none; 
+            background: transparent; 
+        }
+        
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            background: #0f0;
+            cursor: pointer;
+            margin-top: -8px;
+            box-shadow: 0 0 10px #0f0;
+        }
+        
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: #333;
+            border-radius: 2px;
+        }
+
+        /* Connection Status */
+        .connection-status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background: rgba(42, 42, 42, 0.9);
+            border-radius: 8px;
+            font-size: 0.9em;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            backdrop-filter: blur(10px);
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-indicator.active {
+            background: #00ff88;
+            box-shadow: 0 0 10px #00ff88;
+        }
+
+        .status-indicator.inactive {
+            background: #ff4444;
+            box-shadow: 0 0 10px #ff4444;
+        }
+
+        .status-indicator.connecting {
+            background: #ffaa00;
+            box-shadow: 0 0 10px #ffaa00;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(42, 42, 42, 0.95);
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 0.95em;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s;
+            backdrop-filter: blur(10px);
+            border: 1px solid #444;
+        }
+
+        .toast.show {
+            opacity: 1;
+        }
+
+        /* Portrait Mode Warning */
+        .portrait-warning {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #0f0f0f;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            text-align: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .portrait-warning.show {
+            display: flex;
+        }
+
+        .rotate-icon {
+            font-size: 5em;
+            margin-bottom: 20px;
+            animation: rotate 2s ease-in-out infinite;
+        }
+
+        @keyframes rotate {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(90deg); }
+        }
+
+        .portrait-warning h2 {
+            font-size: clamp(1.5em, 5vw, 2em);
+            margin: 0 0 10px 0;
+            padding: 0 20px;
+            color: #00ff88;
+            max-width: 100%;
+        }
+
+        .portrait-warning p {
+            font-size: clamp(1em, 3vw, 1.2em);
+            margin: 0;
+            padding: 0 20px;
+            color: #aaa;
+            max-width: 100%;
+        }
+        
+        /* Layout helpers to replace Tailwind */
+        .flex {
+            display: flex;
+        }
+        
+        .flex-col {
+            flex-direction: column;
+        }
+        
+        .items-center {
+            align-items: center;
+        }
+        
+        .justify-center {
+            justify-content: center;
+        }
+        
+        .min-h-screen {
+            min-height: 100vh;
+        }
+        
+        .absolute {
+            position: absolute;
+        }
+        
+        .relative {
+            position: relative;
+        }
+        
+        .text-center {
+            text-align: center;
+        }
+        
+        .text-7xl {
+            font-size: 4.5rem;
+            line-height: 1;
+        }
+        
+        .font-black {
+            font-weight: 900;
+        }
+        
+        .text-white {
+            color: #ffffff;
+        }
+        
+        .text-gray-400 {
+            color: #9ca3af;
+        }
+        
+        .tracking-widest {
+            letter-spacing: 0.1em;
+        }
+        
+        .transform {
+            transform: translateZ(0);
+        }
+        
+        .-translate-x-1\/2 {
+            transform: translateX(-50%);
+        }
+        
+        .top-0 {
+            top: 0;
+        }
+        
+        .left-0 {
+            left: 0;
+        }
+        
+        .z-0 {
+            z-index: 0;
+        }
+        
+        .z-10 {
+            z-index: 10;
+        }
+        
+        .w-full {
+            width: 100%;
+        }
+        
+        .h-full {
+            height: 100%;
+        }
+        
+        .pointer-events-none {
+            pointer-events: none;
+        }
+        
+        .bottom-12 {
+            bottom: 3rem;
+        }
+        
+        .left-12 {
+            left: 3rem;
+        }
+        
+        .bottom-8 {
+            bottom: 2rem;
+        }
+        
+        .left-1\/2 {
+            left: 50%;
+        }
+        
+        .right-12 {
+            right: 3rem;
+        }
+        
+        /* Custom position styles */
+        .top-110 {
+            top: 110px;
+        }
+        
+        .top-180 {
+            top: 180px;
+        }
+        
+        /* Flashing animation for high RPM */
+        @keyframes flash {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+        
+        .flashing .segment {
+            animation: flash var(--flash-speed) ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen">
+
+    <div class="dashboard-bg"></div>
+    <div class="dashboard-texture"></div>
+
+    <!-- Portrait Mode Warning -->
+    <div class="portrait-warning" id="portraitWarning">
+        <h2>Rotate Device</h2>
+        <p>Please rotate your device to landscape mode</p>
+    </div>
+
+    <!-- Connection Status -->
+    <div class="connection-status">
+        <span class="status-indicator connecting" id="wsStatus"></span>
+        <span id="wsStatusText">Connecting...</span>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast"></div>
+
+    <!-- Main Gauge Container -->
+    <div class="gauge-container flex items-center justify-center">
+        <!-- Glass Effect -->
+        <div class="gauge-reflection"></div>
+
+        <!-- SVG Layer -->
+        <!-- viewBox 0 0 800 350 matches container -->
+        <svg id="rpm-svg" width="800" height="350" viewBox="0 0 800 350" class="absolute top-0 left-0 z-0">
+            <!-- Definitions for gradients if needed -->
+            <defs>
+                <linearGradient id="baselineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" style="stop-color:rgb(100,0,0);stop-opacity:1" />
+                    <stop offset="20%" style="stop-color:rgb(255,165,0);stop-opacity:1" />
+                    <stop offset="40%" style="stop-color:rgb(50,255,50);stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:rgb(255,0,0);stop-opacity:1" />
+                </linearGradient>
+            </defs>
+
+            <!-- The continuous baseline glow -->
+            <path id="guide-path" d="" fill="none" stroke="none" /> 
+            <path id="baseline-display" d="" class="baseline-path" stroke="url(#baselineGradient)" />
+            
+            <!-- Segments Group -->
+            <g id="segments-group"></g>
+        </svg>
+
+        <!-- Dynamic Text Layer -->
+        <div class="relative z-10 w-full h-full pointer-events-none">
+            <!-- 0 Label -->
+            <div class="absolute bottom-12 left-12 label-text">0</div>
+            
+            <!-- RPM Main Label -->
+            <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 label-text text-gray-400">
+                RPM x1000
+            </div>
+
+            <!-- 15000 Label -->
+            <div class="absolute top-110 right-12 label-text">15000</div>
+
+            <!-- Main Digital Value -->
+            <div class="absolute top-180 left-1/2 transform -translate-x-1/2 text-center">
+                <div id="rpm-display" class="rpm-value text-7xl font-black text-white tracking-widest">
+                    0
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        // TUNABLE CONFIGURATION - Edit these values as needed
+        // ============================================================
+        
+        // RPM Settings
+        const MAX_RPM = 15000;              // Maximum RPM value
+        const RPM_TIMEOUT_MS = 2000;        // Reset to 0 after this many ms of no data
+        
+        // Gauge Visual Settings
+        const SEGMENT_COUNT = 70;           // Number of tick marks on the gauge
+        const SEGMENT_WIDTH = 6;            // Width of each tick mark (px)
+        const SEGMENT_HEIGHT = 20;          // Height of each tick mark (px)
+        
+        // Color Zones Configuration
+        // Colors transition dynamically based on RPM ranges
+        // Format: { rpm: starting_rpm, color: hex_color, glow: glow_class }
+        const COLOR_ZONES = [
+            { rpm: 0,     color: '#8B0000', glow: 'glow-red' },      // Deep Red (0-2000)
+            { rpm: 2000,  color: '#FF4500', glow: 'glow-orange' },   // Orange (2000-3500)
+            { rpm: 3500,  color: '#FFD700', glow: 'glow-yellow' },   // Yellow (3500-5000)
+            { rpm: 5000,  color: '#39FF14', glow: 'glow-green' },    // Neon Green (5000-12500)
+            { rpm: 12500, color: '#FF0000', glow: 'glow-redline' }   // Redline (12500-15000)
+        ];
+        
+        // Flashing Effect Settings
+        const FLASH_THRESHOLD_RPM = 13000;  // Start flashing above this RPM
+        const FLASH_SPEED_MS = 200;         // Flash animation speed (lower = faster)
+        
+        // RPM Display Position (for manual tuning)
+        // To adjust the centered RPM value position:
+        // 1. Find the class 'top-180' in the CSS section above
+        // 2. Change the value (e.g., top: 180px -> top: 200px for lower)
+        // 3. Update the corresponding class name in the HTML if needed
+        
+        // ============================================================
+        // END OF TUNABLE CONFIGURATION
+        // ============================================================
+        
+        // WebSocket connection
+        let ws = null;
+        let reconnectInterval = null;
+        let lastRpmUpdate = Date.now();
+        let rpmTimeoutInterval = null;
+        
+        // The Path Definition
+        // Starts bottom left, curves up sharply, flattens out to the right
+        // Coordinate system: 0,0 is top left. 
+        // 800x350 container.
+        // Start: x=50, y=300
+        // Curve Control 1: x=50, y=100 (pulls it up)
+        // Curve Control 2: x=150, y=100 (pulls it right)
+        // End Curve / Start Line: x=250, y=100
+        // Line End: x=750, y=100
+        const pathData = `M 50,300 C 50,150 120,100 250,100 L 750,100`;
+
+        const svg = document.getElementById('rpm-svg');
+        const guidePath = document.getElementById('guide-path');
+        const baselineDisplay = document.getElementById('baseline-display');
+        const segmentsGroup = document.getElementById('segments-group');
+        const rpmDisplay = document.getElementById('rpm-display');
+
+        // Set path data
+        guidePath.setAttribute('d', pathData);
+        baselineDisplay.setAttribute('d', pathData);
+
+        // Pre-calculate segments
+        const pathLength = guidePath.getTotalLength();
+        const segments = [];
+
+        // Initialize gauge
+        function initGauge() {
+            // Clear any existing segments
+            while (segmentsGroup.firstChild) {
+                segmentsGroup.removeChild(segmentsGroup.firstChild);
+            }
+            segments.length = 0;
+            
+            for (let i = 0; i < SEGMENT_COUNT; i++) {
+                // Determine position along path
+                const distance = (i / (SEGMENT_COUNT - 1)) * pathLength;
+                const point = guidePath.getPointAtLength(distance);
+                
+                // Calculate rotation (tangent)
+                const nextPoint = guidePath.getPointAtLength(Math.min(distance + 1, pathLength));
+                const angle = Math.atan2(nextPoint.y - point.y, nextPoint.x - point.x) * (180 / Math.PI);
+
+                // Create rectangle using proper DOM methods
+                const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+                
+                rect.setAttribute("x", -SEGMENT_WIDTH / 2);
+                rect.setAttribute("y", -SEGMENT_HEIGHT - 5);
+                rect.setAttribute("width", SEGMENT_WIDTH);
+                rect.setAttribute("height", SEGMENT_HEIGHT);
+                rect.setAttribute("rx", 1);
+                rect.setAttribute("transform", `translate(${point.x}, ${point.y}) rotate(${angle})`);
+                rect.setAttribute("class", "segment inactive");
+                
+                segmentsGroup.appendChild(rect);
+                segments.push(rect);
+            }
+            
+            updateGauge(0);
+        }
+
+        // Color Mapping Function - Uses dynamic COLOR_ZONES configuration
+        function getColorForIndex(index, total) {
+            // Calculate RPM for this segment index
+            const segmentRpm = (index / total) * MAX_RPM;
+            
+            // Find the appropriate color zone
+            let zone = COLOR_ZONES[0];
+            for (let i = COLOR_ZONES.length - 1; i >= 0; i--) {
+                if (segmentRpm >= COLOR_ZONES[i].rpm) {
+                    zone = COLOR_ZONES[i];
+                    break;
+                }
+            }
+            
+            return { color: zone.color, glow: zone.glow };
+        }
+
+        function updateGauge(rpm) {
+            // Ensure rpm is a number and within bounds
+            rpm = Math.max(0, Math.min(MAX_RPM, parseInt(rpm) || 0));
+            
+            // Update Text
+            rpmDisplay.textContent = rpm;
+
+            // Calculate active segments
+            const activeCount = Math.floor((rpm / MAX_RPM) * SEGMENT_COUNT);
+            
+            // Enable/disable flashing based on RPM threshold
+            if (rpm >= FLASH_THRESHOLD_RPM) {
+                segmentsGroup.classList.add('flashing');
+                // Set CSS variable for flash speed
+                segmentsGroup.style.setProperty('--flash-speed', `${FLASH_SPEED_MS}ms`);
+            } else {
+                segmentsGroup.classList.remove('flashing');
+            }
+
+            segments.forEach((rect, index) => {
+                const styleData = getColorForIndex(index, SEGMENT_COUNT);
+                
+                // Clear previous classes
+                rect.setAttribute('class', 'segment');
+                
+                if (index <= activeCount) {
+                    rect.style.fill = styleData.color;
+                    rect.style.stroke = 'none';
+                    rect.classList.add(styleData.glow);
+                } else {
+                    rect.classList.add('inactive');
+                    rect.style.fill = '';
+                    rect.style.stroke = '';
+                }
+            });
+        }
+
+        // WebSocket Connection Management
+        function connectWebSocket() {
+            const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${wsProtocol}//${window.location.host}/ws`;
+            
+            console.log('Connecting to WebSocket:', wsUrl);
+            updateConnectionStatus('connecting', 'Connecting...');
+            
+            ws = new WebSocket(wsUrl);
+            
+            ws.onopen = function() {
+                console.log('WebSocket connected');
+                updateConnectionStatus('active', 'Connected');
+                showToast('Connected to QuickShifter', 2000);
+                clearInterval(reconnectInterval);
+                reconnectInterval = null;
+            };
+            
+            ws.onclose = function() {
+                console.log('WebSocket disconnected');
+                updateConnectionStatus('inactive', 'Disconnected');
+                
+                // Reset RPM to 0 when disconnected
+                updateGauge(0);
+                
+                // Attempt reconnection every 3 seconds
+                if (!reconnectInterval) {
+                    reconnectInterval = setInterval(connectWebSocket, 3000);
+                }
+            };
+            
+            ws.onerror = function(error) {
+                console.error('WebSocket error:', error);
+                updateConnectionStatus('inactive', 'Error');
+            };
+            
+            ws.onmessage = function(event) {
+                try {
+                    const data = JSON.parse(event.data);
+                    
+                    // Update RPM if present
+                    if (data.rpm !== undefined) {
+                        updateGauge(data.rpm);
+                        lastRpmUpdate = Date.now();
+                    }
+                } catch (error) {
+                    console.error('Error parsing WebSocket message:', error);
+                }
+            };
+        }
+
+        // Update connection status indicator
+        function updateConnectionStatus(status, text) {
+            const statusIndicator = document.getElementById('wsStatus');
+            const statusText = document.getElementById('wsStatusText');
+            
+            statusIndicator.className = 'status-indicator ' + status;
+            statusText.textContent = text;
+        }
+
+        // Show toast notification
+        function showToast(message, duration = 3000) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, duration);
+        }
+
+        // RPM Timeout Handler - Reset to 0 if no updates for 2 seconds
+        function checkRpmTimeout() {
+            const timeSinceLastUpdate = Date.now() - lastRpmUpdate;
+            
+            if (timeSinceLastUpdate > RPM_TIMEOUT_MS) {
+                // Only update if RPM is not already 0
+                if (parseInt(rpmDisplay.textContent) !== 0) {
+                    console.log('RPM timeout - resetting to 0');
+                    updateGauge(0);
+                }
+            }
+        }
+
+        // Portrait/Landscape Detection
+        function checkOrientation() {
+            const portraitWarning = document.getElementById('portraitWarning');
+            
+            // Check if device is in portrait mode
+            if (window.innerHeight > window.innerWidth) {
+                portraitWarning.classList.add('show');
+            } else {
+                portraitWarning.classList.remove('show');
+            }
+        }
+
+        // Initialize everything
+        function init() {
+            // Initialize gauge
+            initGauge();
+            
+            // Connect to WebSocket
+            connectWebSocket();
+            
+            // Start RPM timeout checker (check every 500ms)
+            rpmTimeoutInterval = setInterval(checkRpmTimeout, 500);
+            
+            // Check orientation on load and on resize/orientation change
+            checkOrientation();
+            window.addEventListener('resize', checkOrientation);
+            window.addEventListener('orientationchange', checkOrientation);
+            
+            // Show initial connecting toast
+            showToast('Connecting to QuickShifter...', 2000);
+        }
+
+        // Initialize
+        init();
+        
+    </script>
+</body>
+</html>

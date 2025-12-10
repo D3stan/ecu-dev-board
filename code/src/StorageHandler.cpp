@@ -27,9 +27,12 @@ void StorageHandler::getDefaultConfig(SystemConfig& config) {
     }
     
     // Network defaults
-    strcpy(config.networkConfig.ssid, "rspqs");
-    config.networkConfig.password[0] = '\0';  // Empty password
+    strcpy(config.networkConfig.apSsid, "rspqs");
+    config.networkConfig.apPassword[0] = '\0';  // Empty password for AP
+    config.networkConfig.staSsid[0] = '\0';     // Empty STA SSID
+    config.networkConfig.staPassword[0] = '\0'; // Empty STA password
     config.networkConfig.staMode = false;  // Start in AP mode
+    config.networkConfig.lastError[0] = '\0';  // No error
     
     // Telemetry defaults
     config.telemetryConfig.updateRateMs = 100;
@@ -93,9 +96,12 @@ bool StorageHandler::loadConfig(SystemConfig& config) {
     }
     
     // Load Network config
-    strlcpy(config.networkConfig.ssid, doc["network"]["ssid"] | "rspqs", sizeof(config.networkConfig.ssid));
-    strlcpy(config.networkConfig.password, doc["network"]["password"] | "", sizeof(config.networkConfig.password));
+    strlcpy(config.networkConfig.apSsid, doc["network"]["apSsid"] | "rspqs", sizeof(config.networkConfig.apSsid));
+    strlcpy(config.networkConfig.apPassword, doc["network"]["apPassword"] | "", sizeof(config.networkConfig.apPassword));
+    strlcpy(config.networkConfig.staSsid, doc["network"]["staSsid"] | "", sizeof(config.networkConfig.staSsid));
+    strlcpy(config.networkConfig.staPassword, doc["network"]["staPassword"] | "", sizeof(config.networkConfig.staPassword));
     config.networkConfig.staMode = doc["network"]["staMode"] | false;
+    strlcpy(config.networkConfig.lastError, doc["network"]["lastError"] | "", sizeof(config.networkConfig.lastError));
     
     // Load Telemetry config
     config.telemetryConfig.updateRateMs = doc["telemetry"]["updateRate"] | 100;
@@ -125,9 +131,12 @@ bool StorageHandler::saveConfig(const SystemConfig& config) {
     
     // Network config
     JsonObject network = doc.createNestedObject("network");
-    network["ssid"] = config.networkConfig.ssid;
-    network["password"] = config.networkConfig.password;
+    network["apSsid"] = String(config.networkConfig.apSsid);
+    network["apPassword"] = String(config.networkConfig.apPassword);
+    network["staSsid"] = String(config.networkConfig.staSsid);
+    network["staPassword"] = String(config.networkConfig.staPassword);
     network["staMode"] = config.networkConfig.staMode;
+    network["lastError"] = String(config.networkConfig.lastError);
     
     // Telemetry config
     JsonObject telemetry = doc.createNestedObject("telemetry");

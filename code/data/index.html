@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QuickShifter Control</title>
+    <title>RSP QuickShifter</title>
+    <script src="index.js" ></script>
     <style>
         * {
             margin: 0;
@@ -180,6 +181,232 @@
             color: #ffaaaa;
             font-size: 1.1em;
         }
+        
+        .password-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        
+        .password-wrapper input {
+            flex: 1;
+            padding-right: 45px;
+        }
+        
+        .password-toggle {
+            position: absolute;
+            right: 10px;
+            background: none;
+            border: none;
+            color: #00ff88;
+            cursor: pointer;
+            padding: 5px;
+            margin: 0;
+            font-size: 1.2em;
+        }
+        
+        .password-toggle:hover {
+            color: #00dd77;
+        }
+        
+        .mode-toggle {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        .mode-button {
+            flex: 1;
+            padding: 15px;
+            background: #333;
+            color: #aaa;
+            border: 2px solid #444;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        .mode-button:hover {
+            background: #3a3a3a;
+            border-color: #555;
+        }
+        
+        .mode-button.active {
+            background: #00ff88;
+            color: #000;
+            border-color: #00ff88;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            overflow-y: auto;
+        }
+        
+        .modal-content {
+            background-color: #2a2a2a;
+            margin: 2% auto;
+            padding: 30px;
+            border: 1px solid #00ff88;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 900px;
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.3);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #00ff88;
+            padding-bottom: 15px;
+        }
+        
+        .modal-header h2 {
+            margin: 0;
+        }
+        
+        .close {
+            color: #aaa;
+            font-size: 35px;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 1;
+        }
+        
+        .close:hover,
+        .close:focus {
+            color: #00ff88;
+        }
+        
+        .slider-container {
+            margin: 20px 0;
+        }
+        
+        .slider-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .slider-value {
+            background: #1a1a1a;
+            padding: 5px 15px;
+            border-radius: 5px;
+            font-weight: bold;
+            color: #00ff88;
+            min-width: 80px;
+            text-align: center;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: #1a1a1a;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #00ff88;
+            cursor: pointer;
+            box-shadow: 0 0 5px rgba(0, 255, 136, 0.5);
+        }
+        
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #00ff88;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 0 5px rgba(0, 255, 136, 0.5);
+        }
+        
+        .graph-container {
+            background: #1a1a1a;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .graph-canvas-wrapper {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            background: #0a0a0a;
+            border-radius: 5px;
+            border: 1px solid #333;
+        }
+        
+        #cutTimeGraph {
+            width: 100%;
+            height: 100%;
+            cursor: crosshair;
+        }
+        
+        .graph-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            justify-content: center;
+        }
+        
+        .graph-info {
+            color: #aaa;
+            font-size: 0.9em;
+            margin-top: 10px;
+            text-align: center;
+        }
+        
+        .config-summary {
+            background: #1a1a1a;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .config-summary:hover {
+            background: #252525;
+        }
+        
+        .config-summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #2a2a2a;
+        }
+        
+        .config-summary-row:last-child {
+            border-bottom: none;
+        }
+        
+        .config-summary-label {
+            color: #aaa;
+        }
+        
+        .config-summary-value {
+            color: #00ff88;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -188,7 +415,7 @@
         <span id="wsStatusText">Connecting...</span>
     </div>
 
-    <h1>🏍️ QuickShifter Control</h1>
+    <h1>QuickShifter Control</h1>
     
     <!-- Error Section (hidden by default) -->
     <div class="error-section" id="errorSection">
@@ -197,7 +424,7 @@
     </div>
     
     <!-- Telemetry Section -->
-    <div class="section" style="cursor: pointer;" onclick="window.location.href='telemetry.html'">
+    <div class="section" style="cursor: pointer;" onclick="window.location.href='/dashboard.html'">
         <h2>Live Telemetry</h2>
         <div class="rpm-display" id="rpmDisplay">0</div>
         <div class="info-row">
@@ -209,41 +436,43 @@
             <span><span class="status-indicator" id="cutStatus"></span><span id="cutText">Inactive</span></span>
         </div>
         <div class="info-row">
-            <span>Hardware ID:</span>
-            <span id="hwid">-</span>
-        </div>
-        <div class="info-row">
             <span>Uptime:</span>
             <span id="uptime">0s</span>
         </div>
+        <p style="color: #aaa; margin-top: 10px; font-size: 0.9em; text-align: center;">Click to view full dashboard</p>
     </div>
     
     <!-- QuickShifter Configuration -->
     <div class="section">
         <h2>QuickShifter Configuration</h2>
-        <div class="form-group">
-            <label>Minimum RPM Threshold</label>
-            <input type="number" id="minRpm" min="0" max="20000" step="100">
+        <div class="config-summary" onclick="window.location.href='/qsconfig.html'">
+            <div class="config-summary-row">
+                <span class="config-summary-label">Minimum RPM Threshold:</span>
+                <span class="config-summary-value" id="minRpmDisplay">-</span>
+            </div>
+            <div class="config-summary-row">
+                <span class="config-summary-label">Shift Sensor Debounce:</span>
+                <span class="config-summary-value" id="debounceDisplay">-</span>
+            </div>
+            <div class="config-summary-row">
+                <span class="config-summary-label">Cut Time Map Points:</span>
+                <span class="config-summary-value" id="cutTimePointsDisplay">-</span>
+            </div>
+            <p style="color: #aaa; margin-top: 10px; font-size: 0.9em; text-align: center;">Click to configure</p>
         </div>
-        <div class="form-group">
-            <label>Shift Sensor Debounce (ms)</label>
-            <input type="number" id="debounce" min="0" max="500" step="10">
-        </div>
-        <div class="form-group">
-            <label>Cut Time Map (5k-15k RPM, 1k steps)</label>
-            <div class="map-editor" id="cutTimeMap"></div>
-        </div>
-        <button onclick="saveQsConfig()">Save QS Config</button>
     </div>
     
     <!-- Telemetry Configuration -->
     <div class="section">
         <h2>Telemetry Configuration</h2>
-        <div class="form-group">
-            <label>Update Rate (ms)</label>
-            <input type="number" id="updateRate" min="50" max="1000" step="50">
+        <div class="slider-container">
+            <div class="slider-header">
+                <label>Update Rate</label>
+                <span class="slider-value" id="updateRateValue">100 ms</span>
+            </div>
+            <input type="range" id="updateRateSlider" min="50" max="1000" step="50" value="100" oninput="updateTelemetryRate()">
+            <p style="color: #aaa; margin-top: 10px; font-size: 0.9em;">Auto-saves after you stop adjusting</p>
         </div>
-        <button onclick="saveTelemetryConfig()">Save Telemetry Config</button>
     </div>
     
     <!-- Network Configuration -->
@@ -251,23 +480,53 @@
         <h2>Network Configuration</h2>
         <div class="form-group">
             <label>WiFi Mode</label>
-            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                <button id="apModeBtn" onclick="toggleMode(false)" style="flex: 1;">AP Mode (Hotspot)</button>
-                <button id="staModeBtn" onclick="toggleMode(true)" style="flex: 1;">STA Mode (Client)</button>
-            </div>
-            <p id="modeDescription" style="color: #aaa; font-size: 0.9em; margin-top: 5px;"></p>
-        </div>
-        <div id="staConfig" style="display: none;">
-            <div class="form-group">
-                <label>WiFi SSID (network to join)</label>
-                <input type="text" id="wifiSsid" maxlength="31">
-            </div>
-            <div class="form-group">
-                <label>WiFi Password</label>
-                <input type="password" id="wifiPassword" maxlength="63">
+            <div class="mode-toggle">
+                <button type="button" class="mode-button" id="modeAPBtn" onclick="selectWifiMode('ap')">
+                    Access Point (AP)<br>
+                    <small style="font-weight: normal; font-size: 0.85em;">Create WiFi network</small>
+                </button>
+                <button type="button" class="mode-button" id="modeSTABtn" onclick="selectWifiMode('sta')">
+                    Station (STA)<br>
+                    <small style="font-weight: normal; font-size: 0.85em;">Connect to WiFi</small>
+                </button>
             </div>
         </div>
-        <button onclick="saveNetworkConfig()">Save & Reboot</button>
+        
+        <!-- AP Mode Configuration -->
+        <div id="apConfigSection" style="display: none;">
+            <p style="color: #aaa; margin: 15px 0; font-size: 0.9em;">Configure the Access Point that the ECU will create:</p>
+            <div class="form-group">
+                <label>AP SSID (Network Name)</label>
+                <input type="text" id="apSsid" maxlength="31" placeholder="e.g., rspqs">
+            </div>
+            <div class="form-group">
+                <label>AP Password (leave empty for open network)</label>
+                <div class="password-wrapper">
+                    <input type="password" id="apPassword" maxlength="63" placeholder="Optional password">
+                    <button type="button" class="password-toggle" onclick="togglePasswordVisibility('apPassword')" title="Show/Hide Password">👁️</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- STA Mode Configuration -->
+        <div id="staConfigSection" style="display: none;">
+            <p style="color: #aaa; margin: 15px 0; font-size: 0.9em;">Enter the WiFi network credentials you want the ECU to connect to:</p>
+            <div class="form-group">
+                <label>WiFi Network SSID</label>
+                <input type="text" id="staSsid" maxlength="31" placeholder="Your WiFi network name">
+            </div>
+            <div class="form-group">
+                <label>WiFi Network Password</label>
+                <div class="password-wrapper">
+                    <input type="password" id="staPassword" maxlength="63" placeholder="Your WiFi password">
+                    <button type="button" class="password-toggle" onclick="togglePasswordVisibility('staPassword')" title="Show/Hide Password">👁️</button>
+                </div>
+            </div>
+        </div>
+        
+        <p style="color: #ff8800; margin: 15px 0; font-size: 0.9em;">⚠️ Note: Changes require a reboot to take effect.</p>
+        <button onclick="saveNetworkConfig()">Save Network Config</button>
+        <button class="secondary" onclick="reboot()">Reboot</button>
     </div>
     
     <!-- OTA Update -->
@@ -276,219 +535,52 @@
         <p style="color: #aaa; margin-bottom: 10px;">Update firmware from configured server</p>
         <button onclick="startOta()">Start OTA Update</button>
     </div>
-
-    <script>
-        let ws;
-        let reconnectInterval;
-        let currentStaMode = false;
-        
-        function connect() {
-            ws = new WebSocket('ws://' + window.location.hostname + '/ws');
+    
+    <!-- QuickShifter Configuration Modal -->
+    <div id="qsConfigModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>QuickShifter Configuration</h2>
+                <span class="close" onclick="closeQsConfigModal()">&times;</span>
+            </div>
             
-            ws.onopen = function() {
-                console.log('WebSocket connected');
-                document.getElementById('wsStatus').classList.add('active');
-                document.getElementById('wsStatus').classList.remove('inactive');
-                document.getElementById('wsStatusText').textContent = 'Connected';
-                clearInterval(reconnectInterval);
-            };
+            <div class="slider-container">
+                <div class="slider-header">
+                    <label>Minimum RPM Threshold</label>
+                    <span class="slider-value" id="minRpmValue">3000 RPM</span>
+                </div>
+                <input type="range" id="minRpmSlider" min="1000" max="10000" step="100" value="3000" oninput="updateSliderValue('minRpm')">
+            </div>
             
-            ws.onclose = function() {
-                console.log('WebSocket disconnected');
-                document.getElementById('wsStatus').classList.remove('active');
-                document.getElementById('wsStatus').classList.add('inactive');
-                document.getElementById('wsStatusText').textContent = 'Disconnected';
-                
-                // Attempt reconnection every 3 seconds
-                reconnectInterval = setInterval(connect, 3000);
-            };
+            <div class="slider-container">
+                <div class="slider-header">
+                    <label>Shift Sensor Debounce</label>
+                    <span class="slider-value" id="debounceValue">50 ms</span>
+                </div>
+                <input type="range" id="debounceSlider" min="10" max="200" step="5" value="50" oninput="updateSliderValue('debounce')">
+            </div>
             
-            ws.onmessage = function(event) {
-                const data = JSON.parse(event.data);
-                updateTelemetry(data);
-            };
-        }
-        
-        function updateTelemetry(data) {
-            // Update RPM display
-            document.getElementById('rpmDisplay').textContent = data.rpm || 0;
+            <div class="graph-container">
+                <h3 style="margin-bottom: 15px; color: #00ff88;">Cut Time Map</h3>
+                <div class="graph-canvas-wrapper">
+                    <canvas id="cutTimeGraph"></canvas>
+                </div>
+                <div class="graph-controls">
+                    <button onclick="addGraphPoint()">Add Point</button>
+                    <button onclick="removeGraphPoint()" class="secondary">Remove Point</button>
+                    <button onclick="resetGraph()" class="secondary">Reset to Default</button>
+                </div>
+                <div class="graph-info">
+                    <p>Drag points to adjust cut time at different RPM ranges (5k-15k RPM)</p>
+                    <p>Current points: <span id="graphPointCount">4</span> | Min: 2, Max: 10</p>
+                </div>
+            </div>
             
-            // Update signal status
-            const signalStatus = document.getElementById('signalStatus');
-            const signalText = document.getElementById('signalText');
-            if (data.signalActive) {
-                signalStatus.classList.add('active');
-                signalStatus.classList.remove('inactive');
-                signalText.textContent = 'Active';
-            } else {
-                signalStatus.classList.remove('active');
-                signalStatus.classList.add('inactive');
-                signalText.textContent = 'No Signal';
-            }
-            
-            // Update cut status
-            const cutStatus = document.getElementById('cutStatus');
-            const cutText = document.getElementById('cutText');
-            if (data.cutActive) {
-                cutStatus.classList.add('active');
-                cutStatus.classList.remove('inactive');
-                cutText.textContent = 'Active';
-            } else {
-                cutStatus.classList.remove('active');
-                cutStatus.classList.add('inactive');
-                cutText.textContent = 'Inactive';
-            }
-            
-            // Update hardware ID and uptime
-            if (data.hwid) {
-                document.getElementById('hwid').textContent = data.hwid;
-            }
-            if (data.uptime) {
-                const seconds = Math.floor(data.uptime / 1000);
-                document.getElementById('uptime').textContent = formatUptime(seconds);
-            }
-        }
-        
-        function formatUptime(seconds) {
-            const hours = Math.floor(seconds / 3600);
-            const minutes = Math.floor((seconds % 3600) / 60);
-            const secs = seconds % 60;
-            return `${hours}h ${minutes}m ${secs}s`;
-        }
-        
-        function loadConfig() {
-            fetch('/api/config')
-                .then(response => response.json())
-                .then(data => {
-                    // Load QS config
-                    document.getElementById('minRpm').value = data.qs.minRpm;
-                    document.getElementById('debounce').value = data.qs.debounce;
-                    
-                    // Load cut time map
-                    const mapContainer = document.getElementById('cutTimeMap');
-                    mapContainer.innerHTML = '';
-                    data.qs.cutTimeMap.forEach((value, index) => {
-                        const rpm = 5000 + (index * 1000);
-                        const entry = document.createElement('div');
-                        entry.className = 'map-entry';
-                        entry.innerHTML = `
-                            <label>${rpm/1000}k</label>
-                            <input type="number" id="map${index}" value="${value}" min="0" max="500" step="5">
-                        `;
-                        mapContainer.appendChild(entry);
-                    });
-                    
-                    // Load telemetry config
-                    document.getElementById('updateRate').value = data.telemetry.updateRate;
-                    
-                    // Load network config
-                    document.getElementById('wifiSsid').value = data.network.ssid;
-                    currentStaMode = data.network.staMode;
-                    updateModeUI(currentStaMode);
-                    
-                    // Display error if present
-                    if (data.lastError) {
-                        document.getElementById('errorMessage').textContent = data.lastError;
-                        document.getElementById('errorSection').classList.add('visible');
-                    } else {
-                        document.getElementById('errorSection').classList.remove('visible');
-                    }
-                });
-        }
-        
-        function saveQsConfig() {
-            const cutTimeMap = [];
-            for (let i = 0; i < 11; i++) {
-                cutTimeMap.push(parseInt(document.getElementById('map' + i).value));
-            }
-            
-            const config = {
-                type: 'config',
-                minRpm: parseInt(document.getElementById('minRpm').value),
-                debounce: parseInt(document.getElementById('debounce').value),
-                cutTimeMap: cutTimeMap
-            };
-            
-            ws.send(JSON.stringify(config));
-            alert('QuickShifter configuration saved!');
-        }
-        
-        function saveTelemetryConfig() {
-            const config = {
-                type: 'telemetry',
-                updateRate: parseInt(document.getElementById('updateRate').value)
-            };
-            
-            ws.send(JSON.stringify(config));
-            alert('Telemetry configuration saved!');
-        }
-        
-        function toggleMode(staMode) {
-            currentStaMode = staMode;
-            updateModeUI(staMode);
-        }
-        
-        function updateModeUI(staMode) {
-            const apBtn = document.getElementById('apModeBtn');
-            const staBtn = document.getElementById('staModeBtn');
-            const staConfig = document.getElementById('staConfig');
-            const modeDescription = document.getElementById('modeDescription');
-            
-            if (staMode) {
-                apBtn.classList.add('secondary');
-                staBtn.classList.remove('secondary');
-                staConfig.style.display = 'block';
-                modeDescription.textContent = 'STA Mode: Device connects to your existing WiFi network. Enter network credentials below.';
-            } else {
-                apBtn.classList.remove('secondary');
-                staBtn.classList.add('secondary');
-                staConfig.style.display = 'none';
-                modeDescription.textContent = 'AP Mode: Device creates its own WiFi hotspot. Connect directly to the device.';
-            }
-        }
-        
-        function saveNetworkConfig() {
-            const config = {
-                type: 'network',
-                ssid: document.getElementById('wifiSsid').value,
-                password: document.getElementById('wifiPassword').value,
-                staMode: currentStaMode
-            };
-            
-            // Validate STA mode configuration
-            if (currentStaMode && !config.ssid) {
-                alert('Please enter a WiFi SSID for STA mode.');
-                return;
-            }
-            
-            ws.send(JSON.stringify(config));
-            
-            if (confirm('Network configuration saved. Device will reboot to apply changes. Continue?')) {
-                fetch('/api/reboot', { method: 'POST' });
-                alert('Rebooting... If in STA mode, reconnect to your network and access the device via mDNS (rspqs.local) or check your router for the IP address.');
-            }
-        }
-        
-        function startOta() {
-            if (confirm('Start OTA firmware update? Device will reboot after update.')) {
-                const msg = { type: 'ota' };
-                ws.send(JSON.stringify(msg));
-                alert('OTA update started. Device will reboot automatically.');
-            }
-        }
-        
-        function reboot() {
-            if (confirm('Reboot device?')) {
-                fetch('/api/reboot', { method: 'POST' });
-                setTimeout(() => {
-                    window.location.reload();
-                }, 3000);
-            }
-        }
-        
-        // Initialize
-        connect();
-        loadConfig();
-    </script>
+            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 25px;">
+                <button class="secondary" onclick="closeQsConfigModal()">Cancel</button>
+                <button onclick="saveQsConfigFromModal()">Save Configuration</button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

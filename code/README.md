@@ -57,7 +57,7 @@ telemetryUpdateRate = 100 ms    // WebSocket broadcast rate
 
 - **Default AP Mode**: SSID `rspqs`, no password
 - **IP Address**: 42.42.42.42 (custom IP to allow iOS cellular data to remain active)
-- **Captive Portal**: DNS server redirects all requests to the web interface
+- **mDNS**: Device accessible via `rspqs.local` hostname
 - **iOS Compatibility**: Gateway configured to keep cellular data active while connected
 - STA mode credentials stored persistently after first configuration
 
@@ -92,8 +92,8 @@ pio run --target uploadfs
 ## Web Interface
 
 Access the web interface:
-- AP Mode: http://42.42.42.42
-- STA Mode: http://[device-ip]
+- AP Mode: http://42.42.42.42 or http://rspqs.local
+- STA Mode: http://rspqs.local or http://[device-ip]
 
 ### Features
 
@@ -113,7 +113,7 @@ Access the web interface:
 
 1. Power on the device
 2. Connect to WiFi AP `rspqs`
-3. Navigate to http://42.42.42.42 (or wait for captive portal to auto-open)
+3. Navigate to http://42.42.42.42 or http://rspqs.local
 4. Configure quickshift parameters
 5. (Optional) Configure WiFi STA credentials and reboot
 
