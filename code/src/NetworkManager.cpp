@@ -266,26 +266,123 @@ void NetworkManager::handleConfigUpdate(const char* jsonData) {
     if (!type) return;
     
     if (strcmp(type, "config") == 0) {
-        // Update QuickShifter configuration
-        QuickShifterEngine::Config qsConfig = _qsEngine.getConfig();
+        // Load current map configuration
+        StorageHandler::QsMapConfig qsMapConfig;
+        _storage.loadQsMapConfig(qsMapConfig);
         
+        // Update global settings
         if (doc.containsKey("minRpm")) {
-            qsConfig.minRpmThreshold = doc["minRpm"];
+            qsMapConfig.minRpmThreshold = doc["minRpm"];
         }
         if (doc.containsKey("debounce")) {
-            qsConfig.debounceTimeMs = doc["debounce"];
+            qsMapConfig.debounceTimeMs = doc["debounce"];
         }
-        if (doc.containsKey("cutTimeMap")) {
+        
+        // Update active map index if specified
+        if (doc.containsKey("activeMapIndex")) {
+            uint8_t newIndex = doc["activeMapIndex"];
+            if (newIndex < qsMapConfig.mapCount) {
+                qsMapConfig.activeMapIndex = newIndex;
+            }
+        }
+        
+        // Update specific map if mapIndex is specified
+        if (doc.containsKey("mapIndex")) {
+            uint8_t mapIndex = doc["mapIndex"];
+            if (mapIndex < qsMapConfig.mapCount && mapIndex < 10) {
+                // Update map name
+                if (doc.containsKey("mapName")) {
+                    const char* mapName = doc["mapName"];
+                    if (mapName && strlen(mapName) > 0) {
+                        strlcpy(qsMapConfig.maps[mapIndex].name, mapName, sizeof(qsMapConfig.maps[mapIndex].name));
+                    }
+                }
+                
+                // Update cut time map
+                if (doc.containsKey("cutTimeMap")) {
+                    JsonArray arr = doc["cutTimeMap"];
+                    if (arr.size() == 11) {
+                        for (size_t i = 0; i < 11; i++) {
+                            qsMapConfig.maps[mapIndex].cutTimeMap[i] = arr[i];
+                        }
+                    }
+                }
+            }
+        } else if (doc.containsKey("cutTimeMap")) {
+            // If no mapIndex specified, update active map
+            uint8_t activeIdx = qsMapConfig.activeMapIndex;
             JsonArray arr = doc["cutTimeMap"];
-            if (arr.size() == 11) {
+            if (arr.size() == 11 && activeIdx < 10) {
                 for (size_t i = 0; i < 11; i++) {
-                    qsConfig.cutTimeMap[i] = arr[i];
+                    qsMapConfig.maps[activeIdx].cutTimeMap[i] = arr[i];
                 }
             }
         }
         
-        _qsEngine.setConfig(qsConfig);
-        _storage.saveQsConfig(qsConfig);
+        // Handle map operations (add, delete, rename)
+        if (doc.containsKey("operation")) {
+            const char* operation = doc["operation"];
+            
+            if (strcmp(operation, "addMap") == 0) {
+                if (qsMapConfig.mapCount < 10) {
+                    // Add new map
+                    uint8_t newIdx = qsMapConfig.mapCount;
+                    const char* mapName = doc["mapName"] | nullptr;
+                    
+                    if (mapName && strlen(mapName) > 0) {
+                        strlcpy(qsMapConfig.maps[newIdx].name, mapName, sizeof(qsMapConfig.maps[newIdx].name));
+                    } else {
+                        snprintf(qsMapConfig.maps[newIdx].name, sizeof(qsMapConfig.maps[newIdx].name), "Map %d", newIdx + 1);
+                    }
+                    
+                    // Initialize with default or provided cut time map
+                    if (doc.containsKey("cutTimeMap")) {
+                        JsonArray arr = doc["cutTimeMap"];
+                        if (arr.size() == 11) {
+                            for (size_t i = 0; i < 11; i++) {
+                                qsMapConfig.maps[newIdx].cutTimeMap[i] = arr[i];
+                            }
+                        } else {
+                            for (auto& cutTime : qsMapConfig.maps[newIdx].cutTimeMap) {
+                                cutTime = 80;
+                            }
+                        }
+                    } else {
+                        for (auto& cutTime : qsMapConfig.maps[newIdx].cutTimeMap) {
+                            cutTime = 80;
+                        }
+                    }
+                    
+                    qsMapConfig.mapCount++;
+                    Serial.printf("[Network] Added new map: %s\n", qsMapConfig.maps[newIdx].name);
+                }
+            }
+            else if (strcmp(operation, "deleteMap") == 0 && doc.containsKey("mapIndex")) {
+                uint8_t deleteIdx = doc["mapIndex"];
+                if (deleteIdx < qsMapConfig.mapCount && qsMapConfig.mapCount > 1) {
+                    // Shift maps down
+                    for (size_t i = deleteIdx; i < qsMapConfig.mapCount - 1; i++) {
+                        qsMapConfig.maps[i] = qsMapConfig.maps[i + 1];
+                    }
+                    qsMapConfig.mapCount--;
+                    
+                    // Adjust active map index if needed
+                    if (qsMapConfig.activeMapIndex >= qsMapConfig.mapCount) {
+                        qsMapConfig.activeMapIndex = qsMapConfig.mapCount - 1;
+                    }
+                    
+                    Serial.printf("[Network] Deleted map at index %d\n", deleteIdx);
+                }
+            }
+        }
+        
+        // Save updated configuration
+        _storage.saveQsMapConfig(qsMapConfig);
+        
+        // Update engine with active map
+        QuickShifterEngine::Config activeConfig;
+        _storage.getActiveMapConfig(activeConfig);
+        _qsEngine.setConfig(activeConfig);
         
         Serial.println("[Network] QuickShifter config updated");
     }
@@ -395,14 +492,27 @@ void NetworkManager::setupHttpRoutes() {
     _server.on("/api/config", HTTP_GET, [this](AsyncWebServerRequest* request) {
         JsonDocument doc;
         
-        // QuickShifter config
-        auto qsConfig = _qsEngine.getConfig();
+        // Load full map configuration
+        StorageHandler::QsMapConfig qsMapConfig;
+        _storage.loadQsMapConfig(qsMapConfig);
+        
+        // QuickShifter config with multi-map support
         JsonObject qs = doc.createNestedObject("qs");
-        qs["minRpm"] = qsConfig.minRpmThreshold;
-        qs["debounce"] = qsConfig.debounceTimeMs;
-        JsonArray cutTimeArray = qs.createNestedArray("cutTimeMap");
-        for (const auto& cutTime : qsConfig.cutTimeMap) {
-            cutTimeArray.add(cutTime);
+        qs["minRpm"] = qsMapConfig.minRpmThreshold;
+        qs["debounce"] = qsMapConfig.debounceTimeMs;
+        qs["activeMapIndex"] = qsMapConfig.activeMapIndex;
+        qs["mapCount"] = qsMapConfig.mapCount;
+        
+        // Add maps array
+        JsonArray mapsArray = qs.createNestedArray("maps");
+        for (size_t i = 0; i < qsMapConfig.mapCount && i < 10; i++) {
+            JsonObject mapObj = mapsArray.createNestedObject();
+            mapObj["name"] = String(qsMapConfig.maps[i].name);
+            
+            JsonArray cutTimeArray = mapObj.createNestedArray("cutTimeMap");
+            for (const auto& cutTime : qsMapConfig.maps[i].cutTimeMap) {
+                cutTimeArray.add(cutTime);
+            }
         }
         
         // Network config (include passwords for owner access)
@@ -454,6 +564,28 @@ void NetworkManager::setupHttpRoutes() {
         _lastError = "";
         Serial.println("[Network] Error cleared by user");
         request->send(200, "text/plain", "Error cleared");
+    });
+    
+    // Set active map endpoint
+    _server.on("/api/setActiveMap", HTTP_POST, [this](AsyncWebServerRequest* request) {
+        if (!request->hasParam("index", true)) {
+            request->send(400, "text/plain", "Missing 'index' parameter");
+            return;
+        }
+        
+        uint8_t mapIndex = request->getParam("index", true)->value().toInt();
+        
+        if (_storage.setActiveMap(mapIndex)) {
+            // Update engine with new active map
+            QuickShifterEngine::Config qsConfig;
+            _storage.getActiveMapConfig(qsConfig);
+            _qsEngine.setConfig(qsConfig);
+            
+            Serial.printf("[Network] Active map set to index %d\n", mapIndex);
+            request->send(200, "text/plain", "Active map updated");
+        } else {
+            request->send(400, "text/plain", "Invalid map index");
+        }
     });
     
     // 404 handler

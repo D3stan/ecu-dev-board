@@ -13,6 +13,21 @@
  */
 class StorageHandler {
 public:
+    // Cut map structure
+    struct CutMap {
+        char name[32];                      // Map name (user-defined)
+        std::array<uint16_t, 11> cutTimeMap; // Cut time in ms for RPM ranges 5k-15k (step 1k)
+    };
+    
+    // QuickShifter configuration with multiple maps
+    struct QsMapConfig {
+        uint16_t minRpmThreshold;           // Minimum RPM to enable quickshift
+        uint16_t debounceTimeMs;            // Shift sensor debounce time
+        uint8_t activeMapIndex;             // Index of currently active map (0-9)
+        uint8_t mapCount;                   // Number of configured maps (1-10)
+        std::array<CutMap, 10> maps;        // Up to 10 cut maps
+    };
+    
     // Network configuration structure
     struct NetworkConfig {
         char apSsid[32];        // AP mode SSID
@@ -30,7 +45,7 @@ public:
     
     // Complete system configuration
     struct SystemConfig {
-        QuickShifterEngine::Config qsConfig;
+        QsMapConfig qsMapConfig;
         NetworkConfig networkConfig;
         TelemetryConfig telemetryConfig;
     };
@@ -66,6 +81,29 @@ public:
      * @brief Save QuickShifter configuration only
      */
     bool saveQsConfig(const QuickShifterEngine::Config& config);
+    
+    /**
+     * @brief Load QuickShifter map configuration (multi-map support)
+     */
+    bool loadQsMapConfig(QsMapConfig& config);
+    
+    /**
+     * @brief Save QuickShifter map configuration (multi-map support)
+     */
+    bool saveQsMapConfig(const QsMapConfig& config);
+    
+    /**
+     * @brief Get active map as QuickShifterEngine::Config
+     * @return Current active map configuration with validation
+     */
+    bool getActiveMapConfig(QuickShifterEngine::Config& config);
+    
+    /**
+     * @brief Set active map by index (with validation)
+     * @param mapIndex Index of map to activate (0-9)
+     * @return true if successful, false if invalid index
+     */
+    bool setActiveMap(uint8_t mapIndex);
     
     /**
      * @brief Load network configuration only

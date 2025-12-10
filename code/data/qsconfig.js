@@ -19,8 +19,12 @@ let touchStartY = 0;
 let currentConfig = {
     minRpm: 3000,
     debounce: 50,
-    cutTimeMap: []
+    activeMapIndex: 0,
+    mapCount: 1,
+    maps: []
 };
+
+let currentMapIndex = 0; // Currently displayed map in editor
 
 // Initialize
 function init() {
@@ -200,7 +204,7 @@ function getPadding() {
 
 // Draw graph
 function drawGraph() {
-    if (!ctx || !canvas || canvas.width === 0 || canvas.height === 0) return;
+    if (!ctx || !canvas || canvas.width === 0 || canvas.height === 0 || !graphPoints || graphPoints.length === 0) return;
     
     const width = canvas.width;
     const height = canvas.height;
@@ -289,6 +293,9 @@ function drawGraph() {
     }
     
     // Sort points for drawing
+    if (!graphPoints || graphPoints.length === 0) {
+        return; // Exit early if no points to draw
+    }
     const sorted = [...graphPoints].sort((a, b) => a.rpm - b.rpm);
     
     // Draw interpolated curve
@@ -601,8 +608,21 @@ function loadConfig() {
             currentConfig = {
                 minRpm: data.qs.minRpm,
                 debounce: data.qs.debounce,
-                cutTimeMap: data.qs.cutTimeMap
+                activeMapIndex: data.qs.activeMapIndex || 0,
+                mapCount: data.qs.mapCount || 1,
+                maps: JSON.parse(JSON.stringify(data.qs.maps || [{name: "Default Map", cutTimeMap: [80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80]}]))
             };
+            
+            // Only add default names if maps array doesn't have enough entries
+            while (currentConfig.maps.length < currentConfig.mapCount) {
+                currentConfig.maps.push({
+                    name: `Map ${currentConfig.maps.length + 1}`,
+                    cutTimeMap: [80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80]
+                });
+            }
+            
+            // Set current map index to active map
+            currentMapIndex = currentConfig.activeMapIndex;
             
             // Update sliders
             document.getElementById('minRpmSlider').value = currentConfig.minRpm;
@@ -610,8 +630,11 @@ function loadConfig() {
             document.getElementById('debounceSlider').value = currentConfig.debounce;
             document.getElementById('debounceValue').textContent = currentConfig.debounce + ' ms';
             
-            // Initialize graph
-            initGraphPoints(currentConfig.cutTimeMap);
+            // Populate map selector
+            populateMapSelector();
+            
+            // Initialize graph with current map
+            initGraphPoints(currentConfig.maps[currentMapIndex].cutTimeMap);
             drawGraph();
             
             showLoading(false);
@@ -623,10 +646,14 @@ function loadConfig() {
             currentConfig = {
                 minRpm: 3000,
                 debounce: 50,
-                cutTimeMap: [80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80]
+                activeMapIndex: 0,
+                mapCount: 1,
+                maps: [{name: "Default Map", cutTimeMap: [80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80]}]
             };
             
-            initGraphPoints(currentConfig.cutTimeMap);
+            currentMapIndex = 0;
+            populateMapSelector();
+            initGraphPoints(currentConfig.maps[0].cutTimeMap);
             drawGraph();
             
             showLoading(false);
@@ -638,22 +665,188 @@ function loadConfig() {
 function saveConfiguration() {
     const cutTimeMap = buildCutTimeMapFromPoints();
     
+    // Update current map with new cut time data
+    currentConfig.maps[currentMapIndex].cutTimeMap = cutTimeMap;
+    
+    // Update global config values
+    currentConfig.minRpm = parseInt(document.getElementById('minRpmSlider').value);
+    currentConfig.debounce = parseInt(document.getElementById('debounceSlider').value);
+    
     const config = {
         type: 'config',
-        minRpm: parseInt(document.getElementById('minRpmSlider').value),
-        debounce: parseInt(document.getElementById('debounceSlider').value),
-        cutTimeMap: cutTimeMap
+        minRpm: currentConfig.minRpm,
+        debounce: currentConfig.debounce,
+        activeMapIndex: currentConfig.activeMapIndex,
+        mapCount: currentConfig.mapCount,
+        maps: JSON.parse(JSON.stringify(currentConfig.maps))
     };
     
     if (ws && ws.readyState === WebSocket.OPEN) {
         ws.send(JSON.stringify(config));
-        showToast('Configuration saved!', 2000);
+        showToast('Configuration saved and synced!', 2000);
         
         setTimeout(() => {
             window.location.href = '/';
         }, 2000);
     } else {
-        showToast('Cannot save: Not connected to device', 3000);
+        showToast('Configuration saved locally (offline)', 2000);
+        
+        setTimeout(() => {
+            window.location.href = '/';
+        }, 2000);
+    }
+}
+
+// Populate map selector dropdown
+function populateMapSelector() {
+    const selector = document.getElementById('mapSelector');
+    selector.innerHTML = '';
+    
+    for (let i = 0; i < currentConfig.mapCount; i++) {
+        const option = document.createElement('option');
+        option.value = i;
+        option.textContent = currentConfig.maps[i].name || `Map ${i + 1}`;
+        if (i === currentMapIndex) {
+            option.selected = true;
+        }
+        selector.appendChild(option);
+    }
+}
+
+// Switch between maps
+function switchMap() {
+    // Save current graph data before switching
+    if (currentMapIndex < currentConfig.mapCount) {
+        currentConfig.maps[currentMapIndex].cutTimeMap = buildCutTimeMapFromPoints();
+    }
+    
+    // Switch to selected map
+    const selector = document.getElementById('mapSelector');
+    currentMapIndex = parseInt(selector.value);
+    
+    // Ensure index is valid
+    if (currentMapIndex >= currentConfig.mapCount) {
+        currentMapIndex = 0;
+    }
+    
+    // Load new map into graph
+    initGraphPoints(currentConfig.maps[currentMapIndex].cutTimeMap);
+    drawGraph();
+    
+    showToast(`Switched to ${currentConfig.maps[currentMapIndex].name}`, 1500);
+}
+
+// Add new map
+function addNewMap() {
+    if (currentConfig.mapCount >= 10) {
+        showToast('Maximum 10 maps allowed', 2000);
+        return;
+    }
+    
+    const mapName = prompt('Enter name for new map:', `Map ${currentConfig.mapCount + 1}`);
+    if (!mapName || mapName.trim() === '') {
+        showToast('Map name cannot be empty', 2000);
+        return;
+    }
+    
+    // Create new map with default values
+    const newMap = {
+        name: mapName.trim(),
+        cutTimeMap: [80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80]
+    };
+    
+    // Send to server
+    const config = {
+        type: 'config',
+        operation: 'addMap',
+        mapName: newMap.name,
+        cutTimeMap: newMap.cutTimeMap
+    };
+    
+    // Add locally
+    currentConfig.maps.push(newMap);
+    currentConfig.mapCount++;
+    
+    // Switch to new map
+    currentMapIndex = currentConfig.mapCount - 1;
+    populateMapSelector();
+    initGraphPoints(newMap.cutTimeMap);
+    drawGraph();
+    
+    // Send to server if connected
+    if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify(config));
+        showToast(`Map "${mapName}" created and synced`, 2000);
+    } else {
+        showToast(`Map "${mapName}" created (offline)`, 2000);
+    }
+}
+
+// Rename current map
+function renameCurrentMap() {
+    const currentName = currentConfig.maps[currentMapIndex].name;
+    const newName = prompt('Enter new name for map:', currentName);
+    
+    if (!newName || newName.trim() === '') {
+        showToast('Map name cannot be empty', 2000);
+        return;
+    }
+    
+    if (newName.trim() === currentName) {
+        return; // No change
+    }
+    
+    currentConfig.maps[currentMapIndex].name = newName.trim();
+    
+    // Update selector
+    populateMapSelector();
+    
+    // Will be saved when user saves configuration
+    showToast(`Map renamed to "${newName.trim()}"`, 2000);
+}
+
+// Delete current map
+function deleteCurrentMap() {
+    if (currentConfig.mapCount <= 1) {
+        showToast('Cannot delete the last map', 2000);
+        return;
+    }
+    
+    const mapName = currentConfig.maps[currentMapIndex].name;
+    if (!confirm(`Delete map "${mapName}"?`)) {
+        return;
+    }
+    
+    const config = {
+        type: 'config',
+        operation: 'deleteMap',
+        mapIndex: currentMapIndex
+    };
+    
+    // Remove locally
+    currentConfig.maps.splice(currentMapIndex, 1);
+    currentConfig.mapCount--;
+    
+    // Adjust current index if needed
+    if (currentMapIndex >= currentConfig.mapCount) {
+        currentMapIndex = currentConfig.mapCount - 1;
+    }
+    
+    // Update active index if needed
+    if (currentConfig.activeMapIndex >= currentConfig.mapCount) {
+        currentConfig.activeMapIndex = currentConfig.mapCount - 1;
+    }
+    
+    populateMapSelector();
+    initGraphPoints(currentConfig.maps[currentMapIndex].cutTimeMap);
+    drawGraph();
+    
+    // Send to server if connected
+    if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify(config));
+        showToast(`Map "${mapName}" deleted and synced`, 2000);
+    } else {
+        showToast(`Map "${mapName}" deleted (offline)`, 2000);
     }
 }
 

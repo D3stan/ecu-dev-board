@@ -407,6 +407,148 @@
             color: #00ff88;
             font-weight: bold;
         }
+        
+        /* Map Selector Styles */
+        .map-selector-container {
+            position: relative;
+        }
+        
+        .map-selector {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            padding: 10px 0;
+        }
+        
+        .map-selector.collapsed .map-card:nth-child(n+4) {
+            display: none;
+        }
+        
+        @media (max-width: 600px) {
+            .map-selector {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            
+            .map-selector.collapsed .map-card:nth-child(n+4) {
+                display: none;
+            }
+        }
+        
+        @media (max-width: 400px) {
+            .map-selector {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            
+            .map-selector.collapsed .map-card:nth-child(n+4) {
+                display: none;
+            }
+        }
+        
+        .map-expand-btn {
+            width: 100%;
+            margin-top: 10px;
+            padding: 8px;
+            background: #333;
+            color: #aaa;
+            border: 1px solid #444;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.3s;
+        }
+        
+        .map-expand-btn:hover {
+            background: #3a3a3a;
+            color: #00ff88;
+        }
+        
+        .map-card {
+            aspect-ratio: 3 / 4;
+            background: linear-gradient(145deg, #2a2a2a, #1a1a1a);
+            border: 2px solid #333;
+            border-radius: 15px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+            max-height: 180px;
+        }
+        
+        .map-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+            border-color: #00ff88;
+        }
+        
+        .map-card.active {
+            background: linear-gradient(145deg, #00ff88, #00dd77);
+            border-color: #00ff88;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+        }
+        
+        .map-card.active .map-name {
+            color: #000;
+        }
+        
+        .map-card.active .map-status {
+            color: #000;
+            opacity: 0.7;
+        }
+        
+        .map-name {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #fff;
+            text-align: center;
+            margin-bottom: 8px;
+            word-break: break-word;
+        }
+        
+        .map-status {
+            font-size: 0.85em;
+            color: #888;
+            text-align: center;
+            margin-top: auto;
+        }
+        
+        .map-card.active .map-status {
+            color: #000;
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .section-header h2 {
+            margin: 0;
+        }
+        
+        .edit-icon {
+            background: #333;
+            color: #00ff88;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1.1em;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .edit-icon:hover {
+            background: #00ff88;
+            color: #000;
+            transform: scale(1.05);
+        }
     </style>
 </head>
 <body>
@@ -440,6 +582,20 @@
             <span id="uptime">0s</span>
         </div>
         <p style="color: #aaa; margin-top: 10px; font-size: 0.9em; text-align: center;">Click to view full dashboard</p>
+    </div>
+    
+    <!-- Map Selection Section -->
+    <div class="section">
+        <div class="section-header">
+            <h2>Cut Maps</h2>
+            <a href="/qsconfig.html" class="edit-icon" title="Edit Maps">⚙️</a>
+        </div>
+        <div class="map-selector-container">
+            <div id="mapSelector" class="map-selector collapsed">
+                <!-- Maps will be dynamically loaded here -->
+            </div>
+            <button id="mapExpandBtn" class="map-expand-btn" onclick="toggleMapExpand()" style="display: none;">▼ Show More Maps</button>
+        </div>
     </div>
     
     <!-- QuickShifter Configuration -->

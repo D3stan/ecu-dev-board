@@ -19,11 +19,24 @@ bool StorageHandler::begin() {
 }
 
 void StorageHandler::getDefaultConfig(SystemConfig& config) {
-    // QuickShifter defaults
-    config.qsConfig.minRpmThreshold = 3000;
-    config.qsConfig.debounceTimeMs = 50;
-    for (auto& cutTime : config.qsConfig.cutTimeMap) {
+    // QuickShifter defaults with single default map
+    config.qsMapConfig.minRpmThreshold = 3000;
+    config.qsMapConfig.debounceTimeMs = 50;
+    config.qsMapConfig.activeMapIndex = 0;
+    config.qsMapConfig.mapCount = 1;
+    
+    // Initialize first map as default
+    strcpy(config.qsMapConfig.maps[0].name, "Default Map");
+    for (auto& cutTime : config.qsMapConfig.maps[0].cutTimeMap) {
         cutTime = 80;  // 80ms default for all RPM ranges
+    }
+    
+    // Initialize remaining maps with empty names
+    for (size_t i = 1; i < 10; i++) {
+        config.qsMapConfig.maps[i].name[0] = '\0';
+        for (auto& cutTime : config.qsMapConfig.maps[i].cutTimeMap) {
+            cutTime = 80;
+        }
     }
     
     // Network defaults
@@ -73,19 +86,51 @@ bool StorageHandler::loadConfig(SystemConfig& config) {
         return false;
     }
     
-    // Load QuickShifter config
-    config.qsConfig.minRpmThreshold = doc["qs"]["minRpm"] | 3000;
-    config.qsConfig.debounceTimeMs = doc["qs"]["debounce"] | 50;
+    // Load QuickShifter config with multi-map support
+    config.qsMapConfig.minRpmThreshold = doc["qs"]["minRpm"] | 3000;
+    config.qsMapConfig.debounceTimeMs = doc["qs"]["debounce"] | 50;
+    config.qsMapConfig.activeMapIndex = doc["qs"]["activeMapIndex"] | 0;
     
-    JsonArray cutTimeArray = doc["qs"]["cutTimeMap"];
-    if (cutTimeArray.size() == 11) {
-        for (size_t i = 0; i < 11; i++) {
-            config.qsConfig.cutTimeMap[i] = cutTimeArray[i] | 80;
+    // Load maps array
+    JsonArray mapsArray = doc["qs"]["maps"];
+    if (mapsArray.size() > 0 && mapsArray.size() <= 10) {
+        config.qsMapConfig.mapCount = mapsArray.size();
+        
+        for (size_t i = 0; i < mapsArray.size() && i < 10; i++) {
+            JsonObject mapObj = mapsArray[i];
+            
+            // Load map name with validation
+            const char* mapName = mapObj["name"] | nullptr;
+            if (mapName && strlen(mapName) > 0) {
+                strlcpy(config.qsMapConfig.maps[i].name, mapName, sizeof(config.qsMapConfig.maps[i].name));
+            } else {
+                // Generate default name if missing
+                snprintf(config.qsMapConfig.maps[i].name, sizeof(config.qsMapConfig.maps[i].name), "Map %d", (int)(i + 1));
+            }
+            
+            // Load cut time map
+            JsonArray cutTimeArray = mapObj["cutTimeMap"];
+            if (cutTimeArray.size() == 11) {
+                for (size_t j = 0; j < 11; j++) {
+                    config.qsMapConfig.maps[i].cutTimeMap[j] = cutTimeArray[j] | 80;
+                }
+            } else {
+                // Use default values if array is invalid
+                for (auto& cutTime : config.qsMapConfig.maps[i].cutTimeMap) {
+                    cutTime = 80;
+                }
+            }
+        }
+        
+        // Validate active map index
+        if (config.qsMapConfig.activeMapIndex >= config.qsMapConfig.mapCount) {
+            Serial.println("[Storage] Invalid activeMapIndex, resetting to 0");
+            config.qsMapConfig.activeMapIndex = 0;
         }
     } else {
-        for (auto& cutTime : config.qsConfig.cutTimeMap) {
-            cutTime = 80;
-        }
+        // Invalid or missing maps array - use defaults
+        Serial.println("[Storage] Invalid maps array, using defaults");
+        getDefaultConfig(config);
     }
     
     // Load Network config
@@ -112,14 +157,22 @@ bool StorageHandler::saveConfig(const SystemConfig& config) {
     // Create JSON document
     JsonDocument doc;
     
-    // QuickShifter config
+    // QuickShifter config with multi-map support
     JsonObject qs = doc.createNestedObject("qs");
-    qs["minRpm"] = config.qsConfig.minRpmThreshold;
-    qs["debounce"] = config.qsConfig.debounceTimeMs;
+    qs["minRpm"] = config.qsMapConfig.minRpmThreshold;
+    qs["debounce"] = config.qsMapConfig.debounceTimeMs;
+    qs["activeMapIndex"] = config.qsMapConfig.activeMapIndex;
     
-    JsonArray cutTimeArray = qs.createNestedArray("cutTimeMap");
-    for (const auto& cutTime : config.qsConfig.cutTimeMap) {
-        cutTimeArray.add(cutTime);
+    // Save maps array
+    JsonArray mapsArray = qs.createNestedArray("maps");
+    for (size_t i = 0; i < config.qsMapConfig.mapCount && i < 10; i++) {
+        JsonObject mapObj = mapsArray.createNestedObject();
+        mapObj["name"] = String(config.qsMapConfig.maps[i].name);
+        
+        JsonArray cutTimeArray = mapObj.createNestedArray("cutTimeMap");
+        for (const auto& cutTime : config.qsMapConfig.maps[i].cutTimeMap) {
+            cutTimeArray.add(cutTime);
+        }
     }
     
     // Network config
@@ -154,14 +207,77 @@ bool StorageHandler::saveConfig(const SystemConfig& config) {
 bool StorageHandler::loadQsConfig(QuickShifterEngine::Config& config) {
     SystemConfig sysConfig;
     bool result = loadConfig(sysConfig);
-    config = sysConfig.qsConfig;
+    
+    // Get active map with fallback validation
+    if (result && sysConfig.qsMapConfig.mapCount > 0) {
+        uint8_t activeIdx = sysConfig.qsMapConfig.activeMapIndex;
+        if (activeIdx >= sysConfig.qsMapConfig.mapCount) {
+            activeIdx = 0; // Fallback to first map
+        }
+        
+        config.minRpmThreshold = sysConfig.qsMapConfig.minRpmThreshold;
+        config.debounceTimeMs = sysConfig.qsMapConfig.debounceTimeMs;
+        config.cutTimeMap = sysConfig.qsMapConfig.maps[activeIdx].cutTimeMap;
+    } else {
+        // Return default config
+        config.minRpmThreshold = 3000;
+        config.debounceTimeMs = 50;
+        for (auto& cutTime : config.cutTimeMap) {
+            cutTime = 80;
+        }
+    }
+    
     return result;
 }
 
 bool StorageHandler::saveQsConfig(const QuickShifterEngine::Config& config) {
     SystemConfig sysConfig;
     loadConfig(sysConfig);
-    sysConfig.qsConfig = config;
+    
+    // Update active map
+    uint8_t activeIdx = sysConfig.qsMapConfig.activeMapIndex;
+    if (activeIdx >= sysConfig.qsMapConfig.mapCount) {
+        activeIdx = 0;
+    }
+    
+    sysConfig.qsMapConfig.minRpmThreshold = config.minRpmThreshold;
+    sysConfig.qsMapConfig.debounceTimeMs = config.debounceTimeMs;
+    sysConfig.qsMapConfig.maps[activeIdx].cutTimeMap = config.cutTimeMap;
+    
+    return saveConfig(sysConfig);
+}
+
+bool StorageHandler::loadQsMapConfig(QsMapConfig& config) {
+    SystemConfig sysConfig;
+    bool result = loadConfig(sysConfig);
+    config = sysConfig.qsMapConfig;
+    return result;
+}
+
+bool StorageHandler::saveQsMapConfig(const QsMapConfig& config) {
+    SystemConfig sysConfig;
+    loadConfig(sysConfig);
+    sysConfig.qsMapConfig = config;
+    return saveConfig(sysConfig);
+}
+
+bool StorageHandler::getActiveMapConfig(QuickShifterEngine::Config& config) {
+    return loadQsConfig(config);
+}
+
+bool StorageHandler::setActiveMap(uint8_t mapIndex) {
+    SystemConfig sysConfig;
+    if (!loadConfig(sysConfig)) {
+        return false;
+    }
+    
+    // Validate map index
+    if (mapIndex >= sysConfig.qsMapConfig.mapCount) {
+        Serial.printf("[Storage] Invalid map index %d (max: %d)\n", mapIndex, sysConfig.qsMapConfig.mapCount - 1);
+        return false;
+    }
+    
+    sysConfig.qsMapConfig.activeMapIndex = mapIndex;
     return saveConfig(sysConfig);
 }
 

@@ -2,7 +2,13 @@
   "qs": {
     "minRpm": 3000,
     "debounce": 50,
-    "cutTimeMap": [80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80]
+    "activeMapIndex": 0,
+    "maps": [
+      {
+        "name": "Default Map",
+        "cutTimeMap": [80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80]
+      }
+    ]
   },
   "network": {
     "apSsid": "rspqs",

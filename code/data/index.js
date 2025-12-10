@@ -118,12 +118,17 @@ function loadConfig() {
             return response.json();
         })
         .then(data => {
-            // Load QS config - store in variables for modal
+            // Load QS config with multi-map support
             window.currentQsConfig = {
                 minRpm: data.qs.minRpm,
                 debounce: data.qs.debounce,
-                cutTimeMap: data.qs.cutTimeMap
+                activeMapIndex: data.qs.activeMapIndex || 0,
+                mapCount: data.qs.mapCount || 1,
+                maps: JSON.parse(JSON.stringify(data.qs.maps || [{name: "Default Map", cutTimeMap: [80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80]}]))
             };
+            
+            // Update map selector
+            renderMapSelector();
             
             // Update display summary
             updateConfigSummary();
@@ -160,8 +165,11 @@ function loadConfig() {
             window.currentQsConfig = {
                 minRpm: 3000,
                 debounce: 50,
-                cutTimeMap: [80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80]
+                activeMapIndex: 0,
+                mapCount: 1,
+                maps: [{name: "Default Map", cutTimeMap: [80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80]}]
             };
+            renderMapSelector();
             updateConfigSummary();
             
             // Set default telemetry
@@ -174,11 +182,105 @@ function loadConfig() {
         });
 }
 
+function renderMapSelector() {
+    const config = window.currentQsConfig;
+    const mapSelector = document.getElementById('mapSelector');
+    const expandBtn = document.getElementById('mapExpandBtn');
+    
+    if (!config || !config.maps || config.maps.length === 0) {
+        mapSelector.innerHTML = '<p style="color: #888; text-align: center;">No maps configured</p>';
+        if (expandBtn) expandBtn.style.display = 'none';
+        return;
+    }
+    
+    // Render all maps
+    mapSelector.innerHTML = '';
+    
+    for (let i = 0; i < config.mapCount; i++) {
+        const map = config.maps[i];
+        const isActive = i === config.activeMapIndex;
+        
+        const card = document.createElement('div');
+        card.className = 'map-card' + (isActive ? ' active' : '');
+        card.onclick = () => selectMap(i);
+        
+        const name = document.createElement('div');
+        name.className = 'map-name';
+        name.textContent = map.name || `Map ${i + 1}`;
+        
+        const status = document.createElement('div');
+        status.className = 'map-status';
+        status.textContent = isActive ? '✓ Active' : 'Tap to activate';
+        
+        card.appendChild(name);
+        card.appendChild(status);
+        mapSelector.appendChild(card);
+    }
+    
+    // Show/hide expand button based on map count
+    if (expandBtn) {
+        if (config.mapCount > 3) {
+            expandBtn.style.display = 'block';
+            updateExpandButton();
+        } else {
+            expandBtn.style.display = 'none';
+        }
+    }
+}
+
+function toggleMapExpand() {
+    const mapSelector = document.getElementById('mapSelector');
+    mapSelector.classList.toggle('collapsed');
+    updateExpandButton();
+}
+
+function updateExpandButton() {
+    const mapSelector = document.getElementById('mapSelector');
+    const expandBtn = document.getElementById('mapExpandBtn');
+    
+    if (mapSelector.classList.contains('collapsed')) {
+        expandBtn.textContent = '▼ Show More Maps';
+    } else {
+        expandBtn.textContent = '▲ Show Less';
+    }
+}
+
+function selectMap(mapIndex) {
+    const config = window.currentQsConfig;
+    
+    if (mapIndex >= config.mapCount) {
+        console.error('Invalid map index:', mapIndex);
+        return;
+    }
+    
+    // Update active map index
+    config.activeMapIndex = mapIndex;
+    renderMapSelector();
+    
+    // Send complete config to ensure ESP has updated data
+    const fullConfig = {
+        type: 'config',
+        minRpm: config.minRpm,
+        debounce: config.debounce,
+        activeMapIndex: mapIndex,
+        mapCount: config.mapCount,
+        maps: JSON.parse(JSON.stringify(config.maps))
+    };
+    
+    if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify(fullConfig));
+        console.log('Active map set to:', mapIndex, config.maps[mapIndex].name);
+    } else {
+        console.log('Offline mode: Active map set locally to:', mapIndex);
+    }
+}
+
 function updateConfigSummary() {
     const config = window.currentQsConfig;
+    const activeMap = config.maps[config.activeMapIndex] || config.maps[0];
     document.getElementById('minRpmDisplay').textContent = config.minRpm + ' RPM';
     document.getElementById('debounceDisplay').textContent = config.debounce + ' ms';
-    document.getElementById('cutTimePointsDisplay').textContent = config.cutTimeMap.length + ' points';
+    document.getElementById('cutTimePointsDisplay').textContent = (activeMap.cutTimeMap ? activeMap.cutTimeMap.length : 11) + ' points';
 }
 
 function saveQsConfigFromModal() {
