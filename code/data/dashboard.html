@@ -3,9 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    
+    <!-- iOS PWA Support -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="RPM Gauge">
+    
+    <!-- Android PWA Support -->
     <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#0f0f0f">
+    <meta name="application-name" content="RPM Gauge">
+    
     <title>RPM Dashboard Gauge</title>
     
     <style>
@@ -246,7 +254,8 @@
             justify-content: center;
             z-index: 9999;
             text-align: center;
-            padding: 40px;
+            padding: 20px;
+            box-sizing: border-box;
         }
 
         .portrait-warning.show {
@@ -265,14 +274,19 @@
         }
 
         .portrait-warning h2 {
-            font-size: 2em;
-            margin-bottom: 10px;
+            font-size: clamp(1.5em, 5vw, 2em);
+            margin: 0 0 10px 0;
+            padding: 0 20px;
             color: #00ff88;
+            max-width: 100%;
         }
 
         .portrait-warning p {
-            font-size: 1.2em;
+            font-size: clamp(1em, 3vw, 1.2em);
+            margin: 0;
+            padding: 0 20px;
             color: #aaa;
+            max-width: 100%;
         }
         
         /* Layout helpers to replace Tailwind */
