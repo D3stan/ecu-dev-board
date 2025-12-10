@@ -243,29 +243,49 @@ function drawGraph() {
     ctx.lineTo(width - padding, height - padding);
     ctx.stroke();
     
-    // Draw tick marks
+    // Draw tick marks and labels
     const fontSize = Math.max(10, Math.min(14, width * 0.018));
+    ctx.fillStyle = '#888';
+    ctx.font = `${fontSize}px sans-serif`;
+    
+    // RPM tick marks and labels (X-axis)
     ctx.strokeStyle = '#444';
     ctx.lineWidth = 2;
-    
-    // RPM tick marks (X-axis)
     const rpmStep = graphWidth < 400 ? 5000 : 2500;
+    ctx.textAlign = 'center';
+    
     for (let rpm = 5000; rpm <= 15000; rpm += rpmStep) {
         const x = padding + ((rpm - 5000) / 10000) * graphWidth;
+        
+        // Draw tick mark
         ctx.beginPath();
         ctx.moveTo(x, height - padding);
         ctx.lineTo(x, height - padding + 8);
         ctx.stroke();
+        
+        // Draw label only if there's enough space
+        if (width > 350) {
+            ctx.fillText(rpm / 1000 + 'k', x, height - padding + fontSize + 10);
+        }
     }
     
-    // Cut Time tick marks (Y-axis)
+    // Cut Time tick marks and labels (Y-axis)
     const cutTimeStep = graphHeight < 300 ? 80 : 40;
+    ctx.textAlign = 'right';
+    
     for (let cutTime = 0; cutTime <= 200; cutTime += cutTimeStep) {
         const y = height - padding - (cutTime / 200) * graphHeight;
+        
+        // Draw tick mark
         ctx.beginPath();
         ctx.moveTo(padding - 8, y);
         ctx.lineTo(padding, y);
         ctx.stroke();
+        
+        // Draw label only if there's enough space
+        if (height > 250) {
+            ctx.fillText(cutTime + 'ms', padding - 12, y + fontSize / 3);
+        }
     }
     
     // Sort points for drawing
