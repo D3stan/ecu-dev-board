@@ -8,7 +8,6 @@ NetworkManager::NetworkManager(StorageHandler& storage, QuickShifterEngine& qsEn
     , _state(State::INIT)
     , _server(80)
     , _ws("/ws")
-    , _dnsServer(nullptr)
     , _lastTelemetryUpdate(0)
     , _telemetryUpdateRate(100)
 {
@@ -59,11 +58,6 @@ bool NetworkManager::begin() {
 }
 
 void NetworkManager::update() {
-    // Process DNS requests for captive portal
-    if (_dnsServer) {
-        _dnsServer->processNextRequest();
-    }
-    
     // Clean up WebSocket clients
     _ws.cleanupClients();
     
@@ -108,12 +102,6 @@ void NetworkManager::switchToApMode() {
     if (success) {
         Serial.printf("[Network] AP Mode: SSID=%s, IP=%s\n", 
                      netConfig.ssid, apIP.toString().c_str());
-        
-        // Start DNS server for captive portal
-        _dnsServer = new DNSServer();
-        _dnsServer->start(53, "*", apIP);
-        Serial.println("[Network] DNS Server started (Captive Portal enabled)");
-        Serial.println("[Network] DNS Server started (Captive Portal enabled)");
         
         _state = State::AP_MODE;
         _led.setStatus(LedController::Status::WIFI_AP);
@@ -367,15 +355,9 @@ void NetworkManager::setupHttpRoutes() {
         ESP.restart();
     });
     
-    // Captive portal and 404 handler
+    // 404 handler
     _server.onNotFound([this](AsyncWebServerRequest* request) {
         String path = request->url();
-        
-        // For captive portal in AP mode, redirect to root
-        if (_state == State::AP_MODE && request->host() != WiFi.softAPIP().toString()) {
-            request->redirect("http://" + WiFi.softAPIP().toString());
-            return;
-        }
         
         // Try to serve file from LittleFS if it exists
         if (LittleFS.exists(path)) {

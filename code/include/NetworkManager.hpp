@@ -4,7 +4,6 @@
 #include <WiFiClientSecure.h>
 #include <ESPAsyncWebServer.h>
 #include <AsyncTCP.h>
-#include <DNSServer.h>
 #include <Update.h>
 #include <ESPmDNS.h>
 #include "StorageHandler.hpp"
@@ -84,7 +83,6 @@ private:
     String _hardwareId;
     AsyncWebServer _server;
     AsyncWebSocket _ws;
-    DNSServer* _dnsServer;
     
     // Telemetry timing
     unsigned long _lastTelemetryUpdate;
