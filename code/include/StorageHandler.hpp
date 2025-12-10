@@ -15,9 +15,12 @@ class StorageHandler {
 public:
     // Network configuration structure
     struct NetworkConfig {
-        char ssid[32];
-        char password[64];
-        bool staMode;  // true = Station mode, false = AP mode
+        char apSsid[32];        // AP mode SSID
+        char apPassword[64];    // AP mode password
+        char staSsid[32];       // STA mode SSID
+        char staPassword[64];   // STA mode password
+        bool staMode;           // true = Station mode, false = AP mode
+        char lastError[128];    // Last connection error message
     };
     
     // Telemetry configuration

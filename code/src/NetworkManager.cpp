@@ -35,13 +35,10 @@ bool NetworkManager::begin() {
     setupHttpRoutes();
     
     // Start in appropriate mode
-    if (netConfig.staMode && strlen(netConfig.ssid) > 0) {
-        if (switchToStaMode(netConfig.ssid, netConfig.password)) {
+    if (netConfig.staMode && strlen(netConfig.staSsid) > 0) {
+        if (switchToStaMode(netConfig.staSsid, netConfig.staPassword)) {
             _state = State::STA_MODE;
             _led.setStatus(LedController::Status::WIFI_STA);
-        } else {
-            // Fall back to AP mode if STA fails
-            switchToApMode();
         }
     } else {
         switchToApMode();
@@ -93,15 +90,15 @@ void NetworkManager::switchToApMode() {
     _storage.loadNetworkConfig(netConfig);
     
     bool success;
-    if (strlen(netConfig.password) > 0) {
-        success = WiFi.softAP(netConfig.ssid, netConfig.password);
+    if (strlen(netConfig.apPassword) > 0) {
+        success = WiFi.softAP(netConfig.apSsid, netConfig.apPassword);
     } else {
-        success = WiFi.softAP(netConfig.ssid);
+        success = WiFi.softAP(netConfig.apSsid);
     }
     
     if (success) {
         Serial.printf("[Network] AP Mode: SSID=%s, IP=%s\n", 
-                     netConfig.ssid, apIP.toString().c_str());
+                     netConfig.apSsid, apIP.toString().c_str());
         
         _state = State::AP_MODE;
         _led.setStatus(LedController::Status::WIFI_AP);
@@ -119,9 +116,9 @@ bool NetworkManager::switchToStaMode(const char* ssid, const char* password) {
     
     Serial.printf("[Network] Connecting to %s...\n", ssid);
     
-    // Wait up to 10 seconds for connection
+    // First attempt: Wait up to 5 seconds for connection
     int attempts = 0;
-    while (WiFi.status() != WL_CONNECTED && attempts < 20) {
+    while (WiFi.status() != WL_CONNECTED && attempts < 10) {
         delay(500);
         Serial.print(".");
         attempts++;
@@ -132,11 +129,70 @@ bool NetworkManager::switchToStaMode(const char* ssid, const char* password) {
         Serial.printf("[Network] Connected! IP: %s\n", WiFi.localIP().toString().c_str());
         _state = State::STA_MODE;
         _led.setStatus(LedController::Status::WIFI_STA);
+        
+        // Clear any previous error
+        StorageHandler::NetworkConfig netConfig;
+        _storage.loadNetworkConfig(netConfig);
+        if (strlen(netConfig.lastError) > 0) {
+            netConfig.lastError[0] = '\0';
+            _storage.saveNetworkConfig(netConfig);
+        }
+        _lastError = "";
+        
         return true;
-    } else {
-        Serial.println("[Network] Failed to connect");
-        return false;
     }
+    
+    // First attempt failed, try one more time with 5s timeout
+    Serial.println("[Network] First attempt failed, retrying...");
+    WiFi.disconnect();
+    delay(1000);
+    WiFi.begin(ssid, password);
+    
+    attempts = 0;
+    while (WiFi.status() != WL_CONNECTED && attempts < 10) {
+        delay(500);
+        Serial.print(".");
+        attempts++;
+    }
+    Serial.println();
+    
+    if (WiFi.status() == WL_CONNECTED) {
+        Serial.printf("[Network] Connected on retry! IP: %s\n", WiFi.localIP().toString().c_str());
+        _state = State::STA_MODE;
+        _led.setStatus(LedController::Status::WIFI_STA);
+        
+        // Clear any previous error
+        StorageHandler::NetworkConfig netConfig;
+        _storage.loadNetworkConfig(netConfig);
+        if (strlen(netConfig.lastError) > 0) {
+            netConfig.lastError[0] = '\0';
+            _storage.saveNetworkConfig(netConfig);
+        }
+        _lastError = "";
+        
+        return true;
+    }
+    
+    // Both attempts failed - save error and switch to AP mode
+    Serial.println("[Network] Failed to connect after 2 attempts");
+    
+    String errorMsg = "Failed to connect to WiFi network '";
+    errorMsg += ssid;
+    errorMsg += "'. Check SSID and password.";
+    _lastError = errorMsg;
+    
+    // Save error to persistent storage
+    StorageHandler::NetworkConfig netConfig;
+    _storage.loadNetworkConfig(netConfig);
+    strlcpy(netConfig.lastError, errorMsg.c_str(), sizeof(netConfig.lastError));
+    _storage.saveNetworkConfig(netConfig);
+    
+    Serial.println("[Network] Falling back to AP mode...");
+    WiFi.disconnect();
+    delay(500);
+    switchToApMode();
+    
+    return false;
 }
 
 void NetworkManager::setupWebSocket() {
@@ -240,21 +296,28 @@ void NetworkManager::handleConfigUpdate(const char* jsonData) {
             netConfig.staMode = doc["staMode"];
         }
         
-        // Only update SSID/password if switching to STA mode or already in STA mode
-        if (netConfig.staMode) {
-            if (doc.containsKey("ssid")) {
-                strlcpy(netConfig.ssid, doc["ssid"], sizeof(netConfig.ssid));
-            }
-            if (doc.containsKey("password")) {
-                strlcpy(netConfig.password, doc["password"], sizeof(netConfig.password));
-            }
+        // Update AP credentials (always available for customization)
+        if (doc.containsKey("apSsid")) {
+            strlcpy(netConfig.apSsid, doc["apSsid"], sizeof(netConfig.apSsid));
         }
-        // If switching to AP mode, keep existing AP credentials (default "rspqs")
+        if (doc.containsKey("apPassword")) {
+            strlcpy(netConfig.apPassword, doc["apPassword"], sizeof(netConfig.apPassword));
+        }
+        
+        // Update STA credentials
+        if (doc.containsKey("staSsid")) {
+            strlcpy(netConfig.staSsid, doc["staSsid"], sizeof(netConfig.staSsid));
+        }
+        if (doc.containsKey("staPassword")) {
+            strlcpy(netConfig.staPassword, doc["staPassword"], sizeof(netConfig.staPassword));
+        }
         
         _storage.saveNetworkConfig(netConfig);
         Serial.printf("[Network] Network config updated - Mode: %s\n", netConfig.staMode ? "STA" : "AP");
         if (netConfig.staMode) {
-            Serial.printf("[Network] Will connect to: %s\n", netConfig.ssid);
+            Serial.printf("[Network] Will connect to: %s\n", netConfig.staSsid);
+        } else {
+            Serial.printf("[Network] Will start AP: %s\n", netConfig.apSsid);
         }
         Serial.println("[Network] Reboot required for changes to take effect");
     }
@@ -323,12 +386,18 @@ void NetworkManager::setupHttpRoutes() {
             cutTimeArray.add(cutTime);
         }
         
-        // Network config (don't send password)
+        // Network config (don't send passwords)
         StorageHandler::NetworkConfig netConfig;
         _storage.loadNetworkConfig(netConfig);
         JsonObject net = doc.createNestedObject("network");
-        net["ssid"] = netConfig.ssid;
+        net["apSsid"] = netConfig.apSsid;
+        net["staSsid"] = netConfig.staSsid;
         net["staMode"] = netConfig.staMode;
+        
+        // Include stored error if present
+        if (strlen(netConfig.lastError) > 0) {
+            net["lastError"] = netConfig.lastError;
+        }
         
         // Telemetry config
         JsonObject tel = doc.createNestedObject("telemetry");
@@ -353,6 +422,17 @@ void NetworkManager::setupHttpRoutes() {
         request->send(200, "text/plain", "Rebooting...");
         delay(1000);
         ESP.restart();
+    });
+    
+    // Clear error endpoint
+    _server.on("/api/clearError", HTTP_POST, [this](AsyncWebServerRequest* request) {
+        StorageHandler::NetworkConfig netConfig;
+        _storage.loadNetworkConfig(netConfig);
+        netConfig.lastError[0] = '\0';
+        _storage.saveNetworkConfig(netConfig);
+        _lastError = "";
+        Serial.println("[Network] Error cleared by user");
+        request->send(200, "text/plain", "Error cleared");
     });
     
     // 404 handler
