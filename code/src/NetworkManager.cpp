@@ -102,7 +102,7 @@ void NetworkManager::switchToApMode() {
     StorageHandler::NetworkConfig netConfig;
     _storage.loadNetworkConfig(netConfig);
     
-    Serial.printf("[Network] Starting AP mode with SSID: %s\n", netConfig.ssid);
+    Serial.printf("[Network] Starting AP mode with SSID: %s\n", netConfig.apSsid);
     
     bool success;
     if (strlen(netConfig.apPassword) > 0) {
