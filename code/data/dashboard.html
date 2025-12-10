@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
     <title>RPM Dashboard Gauge</title>
     
     <style>
@@ -11,12 +14,10 @@
             background-color: #0f0f0f;
             color: white;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, monospace, sans-serif;
-            overflow: hidden;
+            overflow: auto;
             margin: 0;
             padding: 0;
-            width: 100%;
-            height: 100vh;
-            position: fixed;
+            min-height: 100vh;
             -webkit-text-size-adjust: 100%;
             -moz-text-size-adjust: 100%;
             -ms-text-size-adjust: 100%;
@@ -389,8 +390,18 @@
             top: 110px;
         }
         
-        .top-130 {
-            top: 130px;
+        .top-180 {
+            top: 180px;
+        }
+        
+        /* Flashing animation for high RPM */
+        @keyframes flash {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+        
+        .flashing .segment {
+            animation: flash var(--flash-speed) ease-in-out infinite;
         }
     </style>
 </head>
@@ -450,11 +461,11 @@
                 RPM x1000
             </div>
 
-            <!-- 8000 Label -->
-            <div class="absolute top-110 right-12 label-text">8000</div>
+            <!-- 15000 Label -->
+            <div class="absolute top-110 right-12 label-text">15000</div>
 
             <!-- Main Digital Value -->
-            <div class="absolute top-130 left-1/2 transform -translate-x-1/2 text-center">
+            <div class="absolute top-180 left-1/2 transform -translate-x-1/2 text-center">
                 <div id="rpm-display" class="rpm-value text-7xl font-black text-white tracking-widest">
                     0
                 </div>
@@ -463,12 +474,43 @@
     </div>
 
     <script>
-        // Configuration
-        const MAX_RPM = 8000;
-        const SEGMENT_COUNT = 70; // Number of ticks
-        const SEGMENT_WIDTH = 6;
-        const SEGMENT_HEIGHT = 20; // Height of the tick marks
-        const RPM_TIMEOUT_MS = 2000; // Reset to 0 after 2 seconds of no data
+        // ============================================================
+        // TUNABLE CONFIGURATION - Edit these values as needed
+        // ============================================================
+        
+        // RPM Settings
+        const MAX_RPM = 15000;              // Maximum RPM value
+        const RPM_TIMEOUT_MS = 2000;        // Reset to 0 after this many ms of no data
+        
+        // Gauge Visual Settings
+        const SEGMENT_COUNT = 70;           // Number of tick marks on the gauge
+        const SEGMENT_WIDTH = 6;            // Width of each tick mark (px)
+        const SEGMENT_HEIGHT = 20;          // Height of each tick mark (px)
+        
+        // Color Zones Configuration
+        // Colors transition dynamically based on RPM ranges
+        // Format: { rpm: starting_rpm, color: hex_color, glow: glow_class }
+        const COLOR_ZONES = [
+            { rpm: 0,     color: '#8B0000', glow: 'glow-red' },      // Deep Red (0-2000)
+            { rpm: 2000,  color: '#FF4500', glow: 'glow-orange' },   // Orange (2000-3500)
+            { rpm: 3500,  color: '#FFD700', glow: 'glow-yellow' },   // Yellow (3500-5000)
+            { rpm: 5000,  color: '#39FF14', glow: 'glow-green' },    // Neon Green (5000-12500)
+            { rpm: 12500, color: '#FF0000', glow: 'glow-redline' }   // Redline (12500-15000)
+        ];
+        
+        // Flashing Effect Settings
+        const FLASH_THRESHOLD_RPM = 13000;  // Start flashing above this RPM
+        const FLASH_SPEED_MS = 200;         // Flash animation speed (lower = faster)
+        
+        // RPM Display Position (for manual tuning)
+        // To adjust the centered RPM value position:
+        // 1. Find the class 'top-180' in the CSS section above
+        // 2. Change the value (e.g., top: 180px -> top: 200px for lower)
+        // 3. Update the corresponding class name in the HTML if needed
+        
+        // ============================================================
+        // END OF TUNABLE CONFIGURATION
+        // ============================================================
         
         // WebSocket connection
         let ws = null;
@@ -536,16 +578,21 @@
             updateGauge(0);
         }
 
-        // Color Mapping Function based on prompt requirements
-        // Start: Deep Red -> Orange -> Yellow -> Green -> Red (End)
+        // Color Mapping Function - Uses dynamic COLOR_ZONES configuration
         function getColorForIndex(index, total) {
-            const pct = index / total;
+            // Calculate RPM for this segment index
+            const segmentRpm = (index / total) * MAX_RPM;
             
-            if (pct < 0.15) return { color: '#8B0000', glow: 'glow-red' }; // Deep Red
-            if (pct < 0.25) return { color: '#FF4500', glow: 'glow-orange' }; // Orange
-            if (pct < 0.35) return { color: '#FFD700', glow: 'glow-yellow' }; // Yellow
-            if (pct < 0.85) return { color: '#39FF14', glow: 'glow-green' }; // Neon Green (Main)
-            return { color: '#FF0000', glow: 'glow-redline' }; // Redline
+            // Find the appropriate color zone
+            let zone = COLOR_ZONES[0];
+            for (let i = COLOR_ZONES.length - 1; i >= 0; i--) {
+                if (segmentRpm >= COLOR_ZONES[i].rpm) {
+                    zone = COLOR_ZONES[i];
+                    break;
+                }
+            }
+            
+            return { color: zone.color, glow: zone.glow };
         }
 
         function updateGauge(rpm) {
@@ -557,6 +604,15 @@
 
             // Calculate active segments
             const activeCount = Math.floor((rpm / MAX_RPM) * SEGMENT_COUNT);
+            
+            // Enable/disable flashing based on RPM threshold
+            if (rpm >= FLASH_THRESHOLD_RPM) {
+                segmentsGroup.classList.add('flashing');
+                // Set CSS variable for flash speed
+                segmentsGroup.style.setProperty('--flash-speed', `${FLASH_SPEED_MS}ms`);
+            } else {
+                segmentsGroup.classList.remove('flashing');
+            }
 
             segments.forEach((rect, index) => {
                 const styleData = getColorForIndex(index, SEGMENT_COUNT);
