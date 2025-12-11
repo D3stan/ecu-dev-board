@@ -33,6 +33,7 @@ void QuickShifterEngine::begin(uint8_t pickupPin, uint8_t shiftSensorPin, uint8_
     _pickupPin = pickupPin;
     _shiftSensorPin = shiftSensorPin;
     _ignitionCutPin = ignitionCutPin;
+    _lastValidInterval = 0;
     
     // Configure pins
     pinMode(_ignitionCutPin, OUTPUT);
@@ -102,19 +103,58 @@ uint16_t QuickShifterEngine::calculateCutTime(uint16_t rpm) const {
 
 void IRAM_ATTR QuickShifterEngine::handlePickupPulse() {
     unsigned long currentTime = micros();
+
+    // 1. Handle Ignition Cut & Signal Loss
+    // If the cut is active, or if we haven't seen a pulse in >100ms (stall/startup),
+    // we reset the filter state. The next pulse will be used only to establish a baseline.
+    if (_cutActive || _lastPulseTime == 0 || (currentTime - _lastPulseTime) > 100000) {
+        _lastPulseTime = currentTime;
+        _lastValidInterval = 0; // Reset predictive filter
+        return;
+    }
+
+    unsigned long currentInterval = currentTime - _lastPulseTime;
     
-    // Calculate pulse interval
-    if (_lastPulseTime != 0) {
-        _pulseInterval = currentTime - _lastPulseTime;
-        
-        // Calculate RPM: (60 * 1000000) / pulseInterval
-        // This assumes 1 pulse per revolution
-        if (_pulseInterval > 0) {
-            _currentRpm = 60000000UL / _pulseInterval;
+    // 2. Predictive Filtering
+    // We expect the new interval to be within +/- 40% of the previous valid one.
+    // This filters out noise spikes (too short) and missed pulses (too long).
+    _isIntervalValid = true;
+    
+    if (_lastValidInterval > 0) {
+        // Calculate absolute difference
+        unsigned long diff = (currentInterval > _lastValidInterval) 
+                           ? (currentInterval - _lastValidInterval) 
+                           : (_lastValidInterval - currentInterval);
+                           
+        // Threshold: 40% of previous interval
+        // e.g. at 5000us (12k RPM), range is 3000us - 7000us
+        if (diff > (_lastValidInterval * 4 / 10)) {
+            _isIntervalValid = false;
         }
     }
     
-    _lastPulseTime = currentTime;
+    // 3. Absolute Sanity Check
+    // Filter physically impossible RPMs (> 20,000 RPM -> < 3000us)
+    if (currentInterval < 3000) {
+        _isIntervalValid = false;
+    }
+
+    if (_isIntervalValid) {
+        // Valid pulse: Update state and RPM
+        _pulseInterval = currentInterval;
+        _lastValidInterval = currentInterval;
+        
+        // Calculate RPM (safe from div/0 due to <3000 check)
+        _currentRpm = 60000000UL / _pulseInterval;
+        
+        // Update timestamp only for valid pulses
+        _lastPulseTime = currentTime;
+    } else {
+        // Invalid pulse (Noise or Glitch)
+        // We do NOT update _lastPulseTime.
+        // This effectively ignores the noise spike, measuring the next interval 
+        // from the last *valid* pulse.
+    }
 }
 
 void IRAM_ATTR QuickShifterEngine::handleShiftSensor() {

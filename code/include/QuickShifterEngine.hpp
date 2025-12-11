@@ -79,6 +79,8 @@ private:
     // Timing variables (accessed from ISR - must be volatile)
     volatile unsigned long _lastPulseTime;
     volatile unsigned long _pulseInterval;
+    volatile unsigned long _lastValidInterval;
+    volatile bool _isIntervalValid;
     volatile unsigned long _lastShiftSensorTime;
     volatile uint16_t _currentRpm;
     volatile bool _cutActive;
