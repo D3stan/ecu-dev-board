@@ -16,6 +16,13 @@ QuickShifterEngine::QuickShifterEngine()
     , _lastUpdateTime(0)
     , _cutTimer(nullptr)
 {
+    // Initialize debug data
+    _debugData.hasEvent = false;
+    _debugData.debounced = false;
+    _debugData.rpmTooLow = false;
+    _debugData.rpm = 0;
+    _debugData.cutTime = 0;
+    
     // Set default configuration
     _config.minRpmThreshold = 3000;
     _config.debounceTimeMs = 50;
@@ -41,17 +48,24 @@ void QuickShifterEngine::begin(uint8_t pickupPin, uint8_t shiftSensorPin, uint8_
     
     pinMode(_pickupPin, INPUT);
     pinMode(_shiftSensorPin, INPUT);
+    pinMode(0, INPUT_PULLUP);
+    
+    // Configure built-in LED for debugging
+    pinMode(LED_BUILTIN, OUTPUT);
+    digitalWrite(LED_BUILTIN, LOW);
     
     // Attach interrupts
     attachInterrupt(digitalPinToInterrupt(_pickupPin), pickupCoilISR, RISING);
     attachInterrupt(digitalPinToInterrupt(_shiftSensorPin), shiftSensorISR, RISING);
+    attachInterrupt(digitalPinToInterrupt(0), shiftSensorISR, FALLING);
+
     
     // Create hardware timer for ignition cut
     _cutTimer = xTimerCreate(
         "IgnitionCut",
         pdMS_TO_TICKS(80),  // Default period (will be updated per cut)
         pdFALSE,            // One-shot timer
-        this,               // Pass instance pointer as timer ID
+        nullptr,            // Timer ID not needed (using static _instance)
         cutTimerCallback
     );
     
@@ -76,6 +90,27 @@ void QuickShifterEngine::update() {
         noInterrupts();
         _currentRpm = 0;
         interrupts();
+    }
+    
+    // Print debug messages if we have a shift sensor event
+    if (_debugData.hasEvent) {
+        String debugMsg = "[QS] Shift sensor triggered! | RPM: ";
+        debugMsg += _debugData.rpm;
+        debugMsg += " | Threshold: ";
+        debugMsg += _config.minRpmThreshold;
+        
+        if (_debugData.debounced) {
+            debugMsg += " | DEBOUNCED - ignoring";
+        } else if (_debugData.rpmTooLow) {
+            debugMsg += " | RPM TOO LOW - ignoring";
+        } else {
+            debugMsg += " | Cut time: ";
+            debugMsg += _debugData.cutTime;
+            debugMsg += "ms | CUT TRIGGERED";
+        }
+        
+        Serial.println(debugMsg);
+        _debugData.hasEvent = false;
     }
 }
 
@@ -105,9 +140,13 @@ void IRAM_ATTR QuickShifterEngine::handlePickupPulse() {
     unsigned long currentTime = micros();
 
     // 1. Handle Ignition Cut & Signal Loss
-    // If the cut is active, or if we haven't seen a pulse in >100ms (stall/startup),
-    // we reset the filter state. The next pulse will be used only to establish a baseline.
-    if (_cutActive || _lastPulseTime == 0 || (currentTime - _lastPulseTime) > 100000) {
+    // If the cut is active, ignore pulses completely to avoid interference
+    if (_cutActive) {
+        return;
+    }
+    
+    // If this is the first pulse or signal was lost (>100ms), establish baseline
+    if (_lastPulseTime == 0 || (currentTime - _lastPulseTime) > 100000) {
         _lastPulseTime = currentTime;
         _lastValidInterval = 0; // Reset predictive filter
         return;
@@ -161,9 +200,20 @@ void IRAM_ATTR QuickShifterEngine::handleShiftSensor() {
     unsigned long currentTime = micros();
     unsigned long debounceTimeUs = _config.debounceTimeMs * 1000UL;
     
+    // Debug: Toggle built-in LED
+    digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
+    
+    // Mark that we have a new event to log
+    _debugData.hasEvent = true;
+    _debugData.debounced = false;
+    _debugData.rpmTooLow = false;
+    _debugData.rpm = _currentRpm;
+    _debugData.cutTime = 0;
+    
     // Debounce check
     if (_lastShiftSensorTime != 0 && 
         (currentTime - _lastShiftSensorTime) < debounceTimeUs) {
+        _debugData.debounced = true;
         return; // Ignore bounce
     }
     
@@ -171,11 +221,13 @@ void IRAM_ATTR QuickShifterEngine::handleShiftSensor() {
     
     // Check if RPM is above threshold
     if (_currentRpm < _config.minRpmThreshold) {
+        _debugData.rpmTooLow = true;
         return; // RPM too low, ignore shift request
     }
     
     // Calculate cut time based on current RPM
     uint16_t cutTime = calculateCutTime(_currentRpm);
+    _debugData.cutTime = cutTime;
     
     // Trigger ignition cut
     triggerIgnitionCut(cutTime);
@@ -196,15 +248,17 @@ void IRAM_ATTR QuickShifterEngine::triggerIgnitionCut(uint16_t cutTimeMs) {
     if (xHigherPriorityTaskWoken) {
         portYIELD_FROM_ISR();
     }
+
+    return;
 }
 
 void QuickShifterEngine::cutTimerCallback(TimerHandle_t xTimer) {
-    // Get instance pointer from timer ID
-    QuickShifterEngine* instance = static_cast<QuickShifterEngine*>(pvTimerGetTimerID(xTimer));
+    // Use static instance (singleton pattern)
+    if (!_instance) return;
     
     // End ignition cut
-    digitalWrite(instance->_ignitionCutPin, LOW);
-    instance->_cutActive = false;
+    digitalWrite(_instance->_ignitionCutPin, LOW);
+    _instance->_cutActive = false;
 }
 
 // ISR Trampolines

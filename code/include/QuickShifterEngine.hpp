@@ -85,6 +85,16 @@ private:
     volatile uint16_t _currentRpm;
     volatile bool _cutActive;
     
+    // Debug data (accessed from ISR - must be volatile)
+    struct DebugData {
+        volatile bool hasEvent;
+        volatile bool debounced;
+        volatile bool rpmTooLow;
+        volatile uint16_t rpm;
+        volatile uint16_t cutTime;
+    };
+    DebugData _debugData;
+    
     // Signal timeout tracking
     bool _signalActive;
     unsigned long _lastUpdateTime;
