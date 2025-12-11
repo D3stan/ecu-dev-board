@@ -32,14 +32,6 @@ constexpr unsigned long STATUS_UPDATE_INTERVAL = 500;  // Update LED status ever
 void setup() {
     // Initialize serial for debugging
     Serial.begin(115200);
-
-    while (!Serial) {
-        delay(10); // Wait for serial port to connect. Needed for native USB
-    }
-
-    delay(2000);
-    
-    
     
     
     

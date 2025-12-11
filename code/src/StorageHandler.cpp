@@ -77,6 +77,7 @@ bool StorageHandler::loadConfig(SystemConfig& config) {
     if (doc.overflowed()) {
         
         getDefaultConfig(config);
+        doc.clear();
         return false;
     }
     
@@ -105,7 +106,7 @@ bool StorageHandler::loadConfig(SystemConfig& config) {
     
     // Load Telemetry config
     config.telemetryConfig.updateRateMs = doc["telemetry"]["updateRate"] | 100;
-    
+    doc.clear();
     
     return true;
 }
@@ -171,6 +172,8 @@ bool StorageHandler::saveConfig(const SystemConfig& config) {
         
     }
     
+    doc.clear();
+
     return success;
 }
 

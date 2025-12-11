@@ -19,10 +19,10 @@
     "network": {
         "apSsid": "rspqs",
         "apPassword": "",
-        "staSsid": "",
-        "staPassword": "",
-        "staMode": false,
-        "lastError": ""
+        "staSsid": "GiuseppeBagnile",
+        "staPassword": "MikroTik2020",
+        "staMode": true,
+        "lastError": "UPDATED"
     },
     "telemetry": {
         "updateRate": 100

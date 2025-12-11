@@ -1,5 +1,8 @@
 #include "NetworkManager.hpp"
 #include <HTTPClient.h>
+#include <HTTPUpdate.h>
+#include <esp_ota_ops.h>
+#include <esp_partition.h>
 
 NetworkManager::NetworkManager(StorageHandler& storage, QuickShifterEngine& qsEngine, LedController& led)
     : _storage(storage)
@@ -287,7 +290,7 @@ void NetworkManager::broadcastTelemetry() {
     
     // Check for overflow
     if (doc.overflowed()) {
-        
+        doc.clear();
         return;
     }
     
@@ -295,11 +298,12 @@ void NetworkManager::broadcastTelemetry() {
     size_t jsonSize = serializeJson(doc, jsonBuffer, sizeof(jsonBuffer));
     
     if (jsonSize == 0 || jsonSize >= sizeof(jsonBuffer)) {
-        
+        doc.clear();
         return;
     }
     
     _ws.textAll(jsonBuffer, jsonSize);
+    doc.clear();
 }
 
 void NetworkManager::handleConfigUpdate(const char* jsonData) {
@@ -314,7 +318,7 @@ void NetworkManager::handleConfigUpdate(const char* jsonData) {
     
     // Check for overflow
     if (doc.overflowed()) {
-        
+        doc.clear();
         return;
     }
 
@@ -429,9 +433,11 @@ void NetworkManager::handleConfigUpdate(const char* jsonData) {
     
     // Check for OTA trigger (legacy support for simple trigger message)
     if (doc.containsKey("ota") && doc["ota"].as<bool>() == true) {
-        
+        doc.clear();
         startOtaUpdate();
     }
+    doc.clear();
+
 }
 
 void NetworkManager::setupHttpRoutes() {
@@ -511,6 +517,7 @@ void NetworkManager::setupHttpRoutes() {
         // Check for overflow
         if (doc.overflowed()) {
             request->send(500, "text/plain", "Config too large");
+            doc.clear();
             return;
         }
         
@@ -519,9 +526,11 @@ void NetworkManager::setupHttpRoutes() {
         
         if (jsonSize == 0 || jsonSize >= sizeof(jsonBuffer)) {
             request->send(500, "text/plain", "Serialization failed");
+            doc.clear();
             return;
         }
-        
+
+        doc.clear();
         request->send(200, "application/json", jsonBuffer);
     });
     
@@ -581,7 +590,16 @@ void NetworkManager::startOtaUpdate() {
     _led.setStatus(LedController::Status::OTA_UPDATE);
     
     // First, update firmware
+    _ws.closeAll();           // Close all WebSocket connections
+    _ws.cleanupClients();     // Clean up WebSocket clients
+    _server.end();            // Stop the web server
     
+    // Give time for connections to close
+    delay(500);
+
+    Serial.printf("[OTA] Free heap: %d bytes\n", ESP.getFreeHeap());
+    const esp_partition_t* partition = esp_ota_get_next_update_partition(nullptr);
+    Serial.printf("[OTA] OTA Partition size: %u bytes\n", partition->size);
     
     bool firmwareSuccess = performOtaUpdate(true);
     
@@ -590,6 +608,10 @@ void NetworkManager::startOtaUpdate() {
         
           // Ensure error message is printed
         _lastError = "Firmware update failed. Check firmware server and try again.";
+        StorageHandler::NetworkConfig netConfig;
+        _storage.loadNetworkConfig(netConfig);
+        strlcpy(netConfig.lastError, _lastError.c_str(), sizeof(netConfig.lastError));
+        _storage.saveNetworkConfig(netConfig);
         _led.setStatus(LedController::Status::ERROR);
         _led.setBlinking(true);
         delay(3000);  // Give more time to read error
@@ -614,9 +636,33 @@ void NetworkManager::startOtaUpdate() {
         
         
         _lastError = "Filesystem update failed, but firmware is updated.";
+                StorageHandler::NetworkConfig netConfig;
+        _storage.loadNetworkConfig(netConfig);
+        strlcpy(netConfig.lastError, _lastError.c_str(), sizeof(netConfig.lastError));
+        _storage.saveNetworkConfig(netConfig);
+        
         delay(2000);
         ESP.restart();
     }
+}
+
+void update_started() {
+    Serial.println("CALLBACK:  HTTP update process started");
+}
+
+void update_finished() {
+    Serial.println("CALLBACK:  HTTP update process finished");
+    // set led to solid on to indicate completion
+}
+
+void update_progress(int cur, int total) {
+    Serial.printf("CALLBACK:  HTTP update process at %d of %d bytes...\n", cur, total);
+    // blink led to show progress
+}
+
+void update_error(int err) {
+    Serial.printf("CALLBACK:  HTTP update fatal error code %d\n", err);
+    // set led to error state
 }
 
 bool NetworkManager::performOtaUpdate(bool updateFirmware) {
@@ -625,93 +671,169 @@ bool NetworkManager::performOtaUpdate(bool updateFirmware) {
         _lastError = "Not connected to WiFi";
         return false;
     }
-    
-    // Create secure WiFi client and HTTP client
+
+    // http client created outside from the HTTPupdate request so
+    // we can add custom headers
     WiFiClientSecure wifiClient;
     HTTPClient httpClient;
+
+    // wifiClient.setCACert(GITHUB_ROOT_CERT);
+    wifiClient.setInsecure(); // Temporary for testing - replace with proper cert validation
+    // HTTPupdate class does this automatically if we pass the wificlient
+    // in this case we are passing it the http client so
+    // we have to manually begin the req
+    httpClient.begin(wifiClient, "https://test.rsp-industries.com/firmware.bin");  // Start connection to the server
+    httpClient.setTimeout(30000);
+
+    // Add security headers
+    httpClient.addHeader("hwid", _hardwareId);     // HTTPupdate class adds ESP.getChipId() in the x-ESP8266-Chip-ID header
+
+    // Add functionality headers
+    // httpClient.addHeader("fwid", config.fw_version);
+    // httpClient.addHeader("fsid", config.fs_version);
+    // httpClient.addHeader("device", device);
+    // httpClient.addHeader("platform", platform);
+    // httpClient.addHeader("mode", firstTime ? "firmware" : "filesystem");
     
-    // Set SSL certificate for HTTPS
-    wifiClient.setCACert(GITHUB_ROOT_CERT);
+    HTTPUpdate myESPhttpUpdate;
     
-    // Begin HTTPS connection
-    String url = String(OTA_UPDATE_URL);
-    if (!updateFirmware) {
-        // Change URL to filesystem.bin for filesystem update
-        url.replace("firmware.bin", "filesystem.bin");
-    }
+    // Needed to follow redirects for GitHub releases
+    myESPhttpUpdate.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
+    // Remove automatic reboot
+    myESPhttpUpdate.rebootOnUpdate(false);
+    // Add optional led flashing
+    myESPhttpUpdate.setLedPin(LED_BUILTIN, LOW);
+
+    // Add optional callback notifiers
+    myESPhttpUpdate.onStart(update_started);
+    myESPhttpUpdate.onEnd(update_finished);
+    myESPhttpUpdate.onProgress(update_progress);
+    myESPhttpUpdate.onError(update_error);
     
-    Serial.printf("[Network] Fetching %s update from: %s\n", 
-                  updateFirmware ? "firmware" : "filesystem", url.c_str());
+    Serial.println("Starting update from: " + String(OTA_UPDATE_URL));
+    t_httpUpdate_return ret = updateFirmware ? myESPhttpUpdate.update(httpClient) : myESPhttpUpdate.updateSpiffs(httpClient);
+    Serial.println("Update process returned: " + String(ret));
     
-    httpClient.begin(wifiClient, url);
-    httpClient.setTimeout(15000);  // 15 second timeout
-    
-    // Add security and functionality headers (not query parameters)
-    httpClient.addHeader("hwid", _hardwareId);
-    httpClient.addHeader("fwid", FIRMWARE_VERSION);
-    httpClient.addHeader("fsid", FILESYSTEM_VERSION);
-    httpClient.addHeader("device", "QuickShifter");
-    httpClient.addHeader("platform", "ESP32-S2");
-    httpClient.addHeader("mode", updateFirmware ? "firmware" : "filesystem");
-    
-    int httpCode = httpClient.GET();
-    
-    if (httpCode != HTTP_CODE_OK) {
-        
-        _lastError = "OTA failed: HTTP error " + String(httpCode);
-        httpClient.end();
+
+    if (ret == HTTP_UPDATE_FAILED) {
+        Serial.printf("HTTP_UPDATE_FAILED Error (%d): %s\n", myESPhttpUpdate.getLastError(), myESPhttpUpdate.getLastErrorString().c_str());
+        // char err[100];
+        // sprintf(err, "Update Failed: %s", myESPhttpUpdate.getLastErrorString().c_str());
+        // _lastError = err;
+        // _state = State::AP_MODE;
+        // saveConfiguration(config_file_path, config);
+        // delay(1500);
+        // ESP.restart();
         return false;
+
+    } else {
+        if (ret == HTTP_UPDATE_NO_UPDATES) {
+            Serial.println("No updates available");
+            return false;
+        } else {
+            Serial.printf("Update %s successfully", updateFirmware ? "firmware" : "filesystem");
+        }
+
+        // if (firstTime) {
+        //     httpClient.end();
+        //     wifiClient.stop();
+        //     checkForUpdate(false);
+        // }
+        // else {
+        //     config.wifiMode = WIFI_AP;
+        //     saveConfiguration(config_file_path, config);
+        //     delay(1500);
+        //     ESP.restart();
+        // }
     }
+
     
-    int contentLength = httpClient.getSize();
-    if (contentLength <= 0) {
+    // // Create secure WiFi client and HTTP client
+    // WiFiClientSecure wifiClient;
+    // HTTPClient httpClient;
+    
+    // // Set SSL certificate for HTTPS
+    // wifiClient.setCACert(GITHUB_ROOT_CERT);
+    
+    // // Begin HTTPS connection
+    // String url = String(OTA_UPDATE_URL);
+    // if (!updateFirmware) {
+    //     // Change URL to filesystem.bin for filesystem update
+    //     url.replace("firmware.bin", "littlefs.bin");
+    // }
+    
+    // Serial.printf("[Network] Fetching %s update from: %s\n", 
+    //               updateFirmware ? "firmware" : "filesystem", url.c_str());
+    
+    // httpClient.begin(wifiClient, url);
+    // httpClient.setTimeout(15000);  // 15 second timeout
+    
+    // // Add security and functionality headers (not query parameters)
+    // httpClient.addHeader("hwid", _hardwareId);
+    // httpClient.addHeader("fwid", FIRMWARE_VERSION);
+    // httpClient.addHeader("fsid", FILESYSTEM_VERSION);
+    // httpClient.addHeader("device", "QuickShifter");
+    // httpClient.addHeader("platform", "ESP32-S2");
+    // httpClient.addHeader("mode", updateFirmware ? "firmware" : "filesystem");
+    
+    // int httpCode = httpClient.GET();
+    
+    // if (httpCode != HTTP_CODE_OK) {
         
-        _lastError = "OTA failed: Invalid " + String(updateFirmware ? "firmware" : "filesystem") + " file";
-        httpClient.end();
-        return false;
-    }
+    //     _lastError = "OTA failed: HTTP error " + String(httpCode);
+    //     httpClient.end();
+    //     return false;
+    // }
     
-    Serial.printf("[Network] %s size: %d bytes\n", 
-                  updateFirmware ? "Firmware" : "Filesystem", contentLength);
-    
-    // Begin OTA update (firmware or filesystem)
-    int updateType = updateFirmware ? U_FLASH : U_SPIFFS;
-    if (!Update.begin(contentLength, updateType)) {
+    // int contentLength = httpClient.getSize();
+    // if (contentLength <= 0) {
         
-        _lastError = "OTA failed: " + String(Update.errorString());
-        httpClient.end();
-        return false;
-    }
+    //     _lastError = "OTA failed: Invalid " + String(updateFirmware ? "firmware" : "filesystem") + " file";
+    //     httpClient.end();
+    //     return false;
+    // }
     
-    // Write firmware/filesystem
-    WiFiClient* stream = httpClient.getStreamPtr();
-    size_t written = Update.writeStream(*stream);
+    // Serial.printf("[Network] %s size: %d bytes\n", 
+    //               updateFirmware ? "Firmware" : "Filesystem", contentLength);
     
-    if (written != contentLength) {
+    // // Begin OTA update (firmware or filesystem)
+    // int updateType = updateFirmware ? U_FLASH : U_SPIFFS;
+    // if (!Update.begin(contentLength, updateType)) {
         
-        _lastError = "OTA failed: Incomplete write (" + String(written) + "/" + String(contentLength) + " bytes)";
-        httpClient.end();
-        return false;
-    }
+    //     _lastError = "OTA failed: " + String(Update.errorString());
+    //     httpClient.end();
+    //     return false;
+    // }
     
-    // Finalize update
-    if (!Update.end()) {
+    // // Write firmware/filesystem
+    // WiFiClient* stream = httpClient.getStreamPtr();
+    // size_t written = Update.writeStream(*stream);
+    
+    // if (written != contentLength) {
         
-        _lastError = "OTA failed: " + String(Update.errorString());
-        httpClient.end();
-        return false;
-    }
+    //     _lastError = "OTA failed: Incomplete write (" + String(written) + "/" + String(contentLength) + " bytes)";
+    //     httpClient.end();
+    //     return false;
+    // }
     
-    if (!Update.isFinished()) {
+    // // Finalize update
+    // if (!Update.end()) {
         
-        _lastError = "OTA failed: Update incomplete";
-        httpClient.end();
-        return false;
-    }
+    //     _lastError = "OTA failed: " + String(Update.errorString());
+    //     httpClient.end();
+    //     return false;
+    // }
     
-    httpClient.end();
-    Serial.printf("[Network] %s OTA update completed successfully\n", 
-                  updateFirmware ? "Firmware" : "Filesystem");
+    // if (!Update.isFinished()) {
+        
+    //     _lastError = "OTA failed: Update incomplete";
+    //     httpClient.end();
+    //     return false;
+    // }
+    
+    // httpClient.end();
+    // Serial.printf("[Network] %s OTA update completed successfully\n", 
+    //               updateFirmware ? "Firmware" : "Filesystem");
     return true;
 }
 
