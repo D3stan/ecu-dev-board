@@ -531,6 +531,8 @@
         let reconnectInterval = null;
         let lastRpmUpdate = Date.now();
         let rpmTimeoutInterval = null;
+        let lastValidRpm = 0;  // Track last valid RPM value
+        let disconnectTimer = null;  // Delay reset on disconnect
         
         // The Path Definition
         // Starts bottom left, curves up sharply, flattens out to the right
@@ -610,8 +612,18 @@
         }
 
         function updateGauge(rpm) {
-            // Ensure rpm is a number and within bounds
-            rpm = Math.max(0, Math.min(MAX_RPM, parseInt(rpm) || 0));
+            // Validate and parse RPM
+            const parsedRpm = parseInt(rpm);
+            
+            // Reject invalid data - don't update gauge with bad values
+            if (isNaN(parsedRpm) || parsedRpm < 0) {
+                console.warn('Invalid RPM data received:', rpm);
+                return;  // Keep displaying last valid value
+            }
+            
+            // Ensure rpm is within bounds
+            rpm = Math.min(MAX_RPM, parsedRpm);
+            lastValidRpm = rpm;  // Store last valid value
             
             // Update Text
             rpmDisplay.textContent = rpm;
@@ -662,14 +674,25 @@
                 showToast('Connected to QuickShifter', 2000);
                 clearInterval(reconnectInterval);
                 reconnectInterval = null;
+                
+                // Clear any pending disconnect timer
+                if (disconnectTimer) {
+                    clearTimeout(disconnectTimer);
+                    disconnectTimer = null;
+                }
             };
             
             ws.onclose = function() {
                 console.log('WebSocket disconnected');
                 updateConnectionStatus('inactive', 'Disconnected');
                 
-                // Reset RPM to 0 when disconnected
-                updateGauge(0);
+                // Don't immediately reset RPM - wait 1 second to avoid flicker on brief disconnects
+                // This prevents momentary drops to 0 during network hiccups
+                disconnectTimer = setTimeout(() => {
+                    console.log('Connection timeout - resetting RPM to 0');
+                    lastValidRpm = 0;
+                    updateGauge(0);
+                }, 1000);
                 
                 // Attempt reconnection every 3 seconds
                 if (!reconnectInterval) {
@@ -686,13 +709,19 @@
                 try {
                     const data = JSON.parse(event.data);
                     
-                    // Update RPM if present
-                    if (data.rpm !== undefined) {
-                        updateGauge(data.rpm);
-                        lastRpmUpdate = Date.now();
+                    // Validate data structure and RPM value
+                    if (data && typeof data.rpm !== 'undefined' && data.rpm !== null) {
+                        // Additional validation: RPM should be a reasonable number
+                        const rpm = parseInt(data.rpm);
+                        if (!isNaN(rpm) && rpm >= 0 && rpm <= MAX_RPM * 1.1) {  // Allow 10% overhead
+                            updateGauge(rpm);
+                            lastRpmUpdate = Date.now();
+                        } else {
+                            console.warn('RPM value out of range or invalid:', data.rpm);
+                        }
                     }
                 } catch (error) {
-                    console.error('Error parsing WebSocket message:', error);
+                    console.error('Error parsing WebSocket message:', error, event.data);
                 }
             };
         }
@@ -723,8 +752,9 @@
             
             if (timeSinceLastUpdate > RPM_TIMEOUT_MS) {
                 // Only update if RPM is not already 0
-                if (parseInt(rpmDisplay.textContent) !== 0) {
-                    console.log('RPM timeout - resetting to 0');
+                if (lastValidRpm !== 0) {
+                    console.log('RPM timeout - resetting to 0 (no data for ' + timeSinceLastUpdate + 'ms)');
+                    lastValidRpm = 0;
                     updateGauge(0);
                 }
             }
