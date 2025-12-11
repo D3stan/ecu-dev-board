@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OTA Update - QuickShifter</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 20px 0;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #00ff88 0%, #00ccff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            color: #888;
+            font-size: 1.1em;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .card h2 {
+            margin-bottom: 20px;
+            color: #00ff88;
+            font-size: 1.5em;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .info-item {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .info-label {
+            color: #888;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #00ff88;
+        }
+
+        .upload-section {
+            margin-bottom: 30px;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            margin-bottom: 15px;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .file-input-label {
+            display: block;
+            padding: 15px 20px;
+            background: rgba(0, 255, 136, 0.1);
+            border: 2px dashed #00ff88;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .file-input-label:hover {
+            background: rgba(0, 255, 136, 0.2);
+            border-color: #00ccff;
+        }
+
+        .file-name {
+            margin-top: 10px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 5px;
+            font-size: 0.9em;
+            color: #888;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #00ff88 0%, #00ccff 100%);
+            color: #1a1a2e;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 255, 136, 0.3);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .btn-danger {
+            background: rgba(255, 68, 68, 0.2);
+            color: #ff4444;
+            border: 1px solid rgba(255, 68, 68, 0.3);
+        }
+
+        .btn-danger:hover:not(:disabled) {
+            background: rgba(255, 68, 68, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .progress-container {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00ff88 0%, #00ccff 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #1a1a2e;
+        }
+
+        .status-message {
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .status-success {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            color: #00ff88;
+        }
+
+        .status-error {
+            background: rgba(255, 68, 68, 0.1);
+            border: 1px solid rgba(255, 68, 68, 0.3);
+            color: #ff4444;
+        }
+
+        .status-info {
+            background: rgba(0, 204, 255, 0.1);
+            border: 1px solid rgba(0, 204, 255, 0.3);
+            color: #00ccff;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: #00ff88;
+            text-decoration: none;
+            font-weight: bold;
+            transition: color 0.3s ease;
+        }
+
+        .back-link:hover {
+            color: #00ccff;
+        }
+
+        .url-input {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 1em;
+            margin-bottom: 10px;
+        }
+
+        .url-input:focus {
+            outline: none;
+            border-color: #00ff88;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .divider {
+            text-align: center;
+            margin: 30px 0;
+            position: relative;
+        }
+
+        .divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .divider span {
+            position: relative;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            padding: 0 15px;
+            color: #888;
+        }
+
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 2em;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚀 OTA Update</h1>
+            <p class="subtitle">Update firmware and filesystem wirelessly</p>
+        </header>
+
+        <!-- System Info Card -->
+        <div class="card">
+            <h2>System Information</h2>
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">Current Partition</div>
+                    <div class="info-value" id="currentPartition">Loading...</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Available Space</div>
+                    <div class="info-value" id="availableSpace">Loading...</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Max Firmware Size</div>
+                    <div class="info-value" id="maxFirmwareSize">Loading...</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Rollback Available</div>
+                    <div class="info-value" id="canRollback">Loading...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upload Firmware Card -->
+        <div class="card">
+            <h2>Upload Firmware</h2>
+            <div class="upload-section">
+                <div class="file-input-wrapper">
+                    <input type="file" id="firmwareFile" accept=".bin">
+                    <label for="firmwareFile" class="file-input-label">
+                        📁 Choose Firmware File (.bin)
+                    </label>
+                    <div class="file-name" id="firmwareFileName">No file selected</div>
+                </div>
+                <button class="btn btn-primary" id="uploadFirmwareBtn" disabled>
+                    Upload Firmware
+                </button>
+            </div>
+        </div>
+
+        <!-- Upload Filesystem Card -->
+        <div class="card">
+            <h2>Upload Filesystem</h2>
+            <div class="upload-section">
+                <div class="file-input-wrapper">
+                    <input type="file" id="filesystemFile" accept=".bin">
+                    <label for="filesystemFile" class="file-input-label">
+                        📁 Choose Filesystem File (.bin)
+                    </label>
+                    <div class="file-name" id="filesystemFileName">No file selected</div>
+                </div>
+                <button class="btn btn-primary" id="uploadFilesystemBtn" disabled>
+                    Upload Filesystem
+                </button>
+            </div>
+        </div>
+
+        <!-- URL Update Card -->
+        <div class="card">
+            <h2>Update from URL</h2>
+            <div class="upload-section">
+                <input type="text" class="url-input" id="updateUrl" 
+                       placeholder="https://example.com/firmware.bin">
+                <button class="btn btn-primary" id="updateFromUrlBtn">
+                    Update from URL
+                </button>
+            </div>
+        </div>
+
+        <!-- Progress Card -->
+        <div class="card progress-container" id="progressCard">
+            <h2>Update Progress</h2>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill">0%</div>
+            </div>
+            <div id="progressStatus" style="text-align: center; color: #888;">
+                Initializing...
+            </div>
+        </div>
+
+        <!-- Status Messages -->
+        <div class="status-message status-success" id="successMessage"></div>
+        <div class="status-message status-error" id="errorMessage"></div>
+        <div class="status-message status-info" id="infoMessage"></div>
+
+        <!-- Rollback Card -->
+        <div class="card">
+            <h2>Rollback</h2>
+            <p style="color: #888; margin-bottom: 15px;">
+                Revert to the previous firmware version if something went wrong.
+            </p>
+            <button class="btn btn-danger" id="rollbackBtn" disabled>
+                Rollback to Previous Version
+            </button>
+        </div>
+
+        <a href="/" class="back-link">← Back to Home</a>
+    </div>
+
+    <script>
+        // UI Elements
+        const firmwareFile = document.getElementById('firmwareFile');
+        const firmwareFileName = document.getElementById('firmwareFileName');
+        const uploadFirmwareBtn = document.getElementById('uploadFirmwareBtn');
+        
+        const filesystemFile = document.getElementById('filesystemFile');
+        const filesystemFileName = document.getElementById('filesystemFileName');
+        const uploadFilesystemBtn = document.getElementById('uploadFilesystemBtn');
+        
+        const updateUrl = document.getElementById('updateUrl');
+        const updateFromUrlBtn = document.getElementById('updateFromUrlBtn');
+        
+        const rollbackBtn = document.getElementById('rollbackBtn');
+        const progressCard = document.getElementById('progressCard');
+        const progressFill = document.getElementById('progressFill');
+        const progressStatus = document.getElementById('progressStatus');
+        
+        const successMessage = document.getElementById('successMessage');
+        const errorMessage = document.getElementById('errorMessage');
+        const infoMessage = document.getElementById('infoMessage');
+
+        // Load system info on page load
+        loadSystemInfo();
+
+        // File input handlers
+        firmwareFile.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                firmwareFileName.textContent = file.name;
+                uploadFirmwareBtn.disabled = false;
+            } else {
+                firmwareFileName.textContent = 'No file selected';
+                uploadFirmwareBtn.disabled = true;
+            }
+        });
+
+        filesystemFile.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                filesystemFileName.textContent = file.name;
+                uploadFilesystemBtn.disabled = false;
+            } else {
+                filesystemFileName.textContent = 'No file selected';
+                uploadFilesystemBtn.disabled = true;
+            }
+        });
+
+        // Upload firmware
+        uploadFirmwareBtn.addEventListener('click', () => {
+            const file = firmwareFile.files[0];
+            if (file) {
+                uploadFile(file, 'firmware');
+            }
+        });
+
+        // Upload filesystem
+        uploadFilesystemBtn.addEventListener('click', () => {
+            const file = filesystemFile.files[0];
+            if (file) {
+                uploadFile(file, 'filesystem');
+            }
+        });
+
+        // Update from URL
+        updateFromUrlBtn.addEventListener('click', () => {
+            const url = updateUrl.value.trim();
+            if (!url) {
+                showError('Please enter a valid URL');
+                return;
+            }
+            updateFromURL(url);
+        });
+
+        // Rollback
+        rollbackBtn.addEventListener('click', () => {
+            if (confirm('Are you sure you want to rollback to the previous version?')) {
+                performRollback();
+            }
+        });
+
+        // Load system information
+        async function loadSystemInfo() {
+            try {
+                const response = await fetch('/api/ota/info');
+                const data = await response.json();
+                
+                document.getElementById('currentPartition').textContent = data.current_partition;
+                document.getElementById('availableSpace').textContent = formatBytes(data.available_space);
+                document.getElementById('maxFirmwareSize').textContent = formatBytes(data.max_firmware_size);
+                document.getElementById('canRollback').textContent = data.can_rollback ? 'Yes' : 'No';
+                
+                rollbackBtn.disabled = !data.can_rollback;
+            } catch (error) {
+                console.error('Failed to load system info:', error);
+                showError('Failed to load system information');
+            }
+        }
+
+        // Upload file
+        async function uploadFile(file, type) {
+            hideMessages();
+            showProgress();
+            
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            try {
+                uploadFirmwareBtn.disabled = true;
+                uploadFilesystemBtn.disabled = true;
+                updateFromUrlBtn.disabled = true;
+                
+                updateProgress(0, `Uploading ${type}...`);
+                
+                const xhr = new XMLHttpRequest();
+                
+                xhr.upload.addEventListener('progress', (e) => {
+                    if (e.lengthComputable) {
+                        const percent = (e.loaded / e.total) * 100;
+                        updateProgress(percent, `Uploading ${type}...`);
+                    }
+                });
+                
+                xhr.addEventListener('load', () => {
+                    if (xhr.status === 200) {
+                        updateProgress(100, 'Update complete! Rebooting...');
+                        showSuccess(`${type} update successful! Device is rebooting...`);
+                        setTimeout(() => {
+                            window.location.href = '/';
+                        }, 5000);
+                    } else {
+                        const response = JSON.parse(xhr.responseText);
+                        showError(response.message || 'Upload failed');
+                        hideProgress();
+                        enableButtons();
+                    }
+                });
+                
+                xhr.addEventListener('error', () => {
+                    showError('Upload failed - network error');
+                    hideProgress();
+                    enableButtons();
+                });
+                
+                xhr.open('POST', '/api/ota/upload');
+                xhr.send(formData);
+                
+            } catch (error) {
+                console.error('Upload error:', error);
+                showError('Upload failed: ' + error.message);
+                hideProgress();
+                enableButtons();
+            }
+        }
+
+        // Update from URL
+        async function updateFromURL(url) {
+            hideMessages();
+            showProgress();
+            
+            try {
+                uploadFirmwareBtn.disabled = true;
+                uploadFilesystemBtn.disabled = true;
+                updateFromUrlBtn.disabled = true;
+                
+                updateProgress(0, 'Connecting to server...');
+                
+                const formData = new FormData();
+                formData.append('url', url);
+                
+                const response = await fetch('/api/ota/url', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    // Poll for status
+                    pollUpdateStatus();
+                } else {
+                    showError(data.message || 'Update failed');
+                    hideProgress();
+                    enableButtons();
+                }
+                
+            } catch (error) {
+                console.error('Update error:', error);
+                showError('Update failed: ' + error.message);
+                hideProgress();
+                enableButtons();
+            }
+        }
+
+        // Poll update status
+        async function pollUpdateStatus() {
+            const pollInterval = setInterval(async () => {
+                try {
+                    const response = await fetch('/api/ota/status');
+                    const data = await response.json();
+                    
+                    updateProgress(data.progress, `Status: ${data.state}`);
+                    
+                    if (data.state === 'SUCCESS') {
+                        clearInterval(pollInterval);
+                        updateProgress(100, 'Update complete! Rebooting...');
+                        showSuccess('Update successful! Device is rebooting...');
+                        setTimeout(() => {
+                            window.location.href = '/';
+                        }, 5000);
+                    } else if (data.state === 'ERROR') {
+                        clearInterval(pollInterval);
+                        showError(data.error || 'Update failed');
+                        hideProgress();
+                        enableButtons();
+                    }
+                } catch (error) {
+                    clearInterval(pollInterval);
+                    showError('Lost connection to device');
+                    hideProgress();
+                    enableButtons();
+                }
+            }, 1000);
+        }
+
+        // Perform rollback
+        async function performRollback() {
+            hideMessages();
+            showProgress();
+            updateProgress(50, 'Performing rollback...');
+            
+            try {
+                const response = await fetch('/api/ota/rollback', {
+                    method: 'POST'
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    updateProgress(100, 'Rollback complete! Rebooting...');
+                    showSuccess('Rollback successful! Device is rebooting...');
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 5000);
+                } else {
+                    showError(data.message || 'Rollback failed');
+                    hideProgress();
+                }
+                
+            } catch (error) {
+                console.error('Rollback error:', error);
+                showError('Rollback failed: ' + error.message);
+                hideProgress();
+            }
+        }
+
+        // UI Helper Functions
+        function showProgress() {
+            progressCard.style.display = 'block';
+        }
+
+        function hideProgress() {
+            progressCard.style.display = 'none';
+        }
+
+        function updateProgress(percent, status) {
+            progressFill.style.width = percent + '%';
+            progressFill.textContent = Math.round(percent) + '%';
+            progressStatus.textContent = status;
+        }
+
+        function showSuccess(message) {
+            hideMessages();
+            successMessage.textContent = message;
+            successMessage.style.display = 'block';
+        }
+
+        function showError(message) {
+            hideMessages();
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+        }
+
+        function showInfo(message) {
+            hideMessages();
+            infoMessage.textContent = message;
+            infoMessage.style.display = 'block';
+        }
+
+        function hideMessages() {
+            successMessage.style.display = 'none';
+            errorMessage.style.display = 'none';
+            infoMessage.style.display = 'none';
+        }
+
+        function enableButtons() {
+            uploadFirmwareBtn.disabled = !firmwareFile.files[0];
+            uploadFilesystemBtn.disabled = !filesystemFile.files[0];
+            updateFromUrlBtn.disabled = false;
+        }
+
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
+        }
+    </script>
+</body>
+</html>

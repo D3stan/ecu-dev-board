@@ -33,9 +33,6 @@ void setup() {
     // Initialize serial for debugging
     Serial.begin(115200);
     
-    
-    
-    
     // 1. Initialize LED Controller first for visual feedback
     
     led.begin(R_LED, G_LED, B_LED, LED_BUILTIN);

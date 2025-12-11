@@ -13,6 +13,14 @@ NetworkManager::NetworkManager(StorageHandler& storage, QuickShifterEngine& qsEn
     , _ws("/ws")
     , _lastTelemetryUpdate(0)
     , _telemetryUpdateRate(100)
+    , _otaState(OTAState::IDLE)
+    , _lastOtaError(OTAError::NONE)
+    , _otaProgress(0)
+    , _otaStartTime(0)
+    , _lastProgressUpdate(0)
+    , _totalSize(0)
+    , _writtenSize(0)
+    , _updateInProgress(false)
 {
 }
 
@@ -552,6 +560,37 @@ void NetworkManager::setupHttpRoutes() {
         request->send(200, "text/plain", "Error cleared");
     });
     
+    // OTA endpoints
+    _server.on("/ota", HTTP_GET, [this](AsyncWebServerRequest* request) {
+        handleOTAPage(request);
+    });
+    
+    _server.on("/api/ota/info", HTTP_GET, [this](AsyncWebServerRequest* request) {
+        handleOTAInfo(request);
+    });
+    
+    _server.on("/api/ota/url", HTTP_POST, [this](AsyncWebServerRequest* request) {
+        handleOTAURL(request);
+    });
+    
+    _server.on("/api/ota/status", HTTP_GET, [this](AsyncWebServerRequest* request) {
+        handleOTAStatus(request);
+    });
+    
+    _server.on("/api/ota/rollback", HTTP_POST, [this](AsyncWebServerRequest* request) {
+        handleOTARollback(request);
+    });
+    
+    // Upload handler with data callback
+    _server.on("/api/ota/upload", HTTP_POST,
+        [this](AsyncWebServerRequest* request) {
+            handleOTAUpload(request);
+        },
+        [this](AsyncWebServerRequest* request, String filename, size_t index, uint8_t* data, size_t len, bool final) {
+            handleOTAUploadData(request, filename, index, data, len, final);
+        }
+    );
+    
     // 404 handler
     _server.onNotFound([this](AsyncWebServerRequest* request) {
         String path = request->url();
@@ -848,5 +887,370 @@ void NetworkManager::setupMdns() {
         MDNS.addServiceTxt("http", "tcp", "device", "QuickShifter");
     } else {
         
+    }
+}
+
+// OTA utility functions
+bool NetworkManager::validateURL(const String& url) {
+    if (url.length() == 0) {
+        return false;
+    }
+    
+    if (!url.startsWith("http://") && !url.startsWith("https://")) {
+        return false;
+    }
+    
+    if (!url.endsWith(".bin")) {
+        return false;
+    }
+    
+    return true;
+}
+
+bool NetworkManager::checkSpace(size_t requiredSize) {
+    size_t available = getAvailableSpace();
+    
+    if (requiredSize > available) {
+        Serial.printf("[OTA] Insufficient space: required=%d, available=%d\n", 
+                      requiredSize, available);
+        return false;
+    }
+    
+    return true;
+}
+
+bool NetworkManager::beginOTA(size_t size, int type) {
+    Serial.printf("[OTA] Beginning OTA update (type=%d)...\n", type);
+    
+    if (!Update.begin(size, type)) {
+        Serial.printf("[OTA] Begin failed: %s\n", Update.errorString());
+        return false;
+    }
+    
+    setOTAState(OTAState::WRITING);
+    return true;
+}
+
+bool NetworkManager::writeOTA(uint8_t* data, size_t len) {
+    size_t written = Update.write(data, len);
+    
+    if (written != len) {
+        Serial.printf("[OTA] Write failed: written=%d, expected=%d\n", written, len);
+        Serial.printf("[OTA] Error: %s\n", Update.errorString());
+        return false;
+    }
+    
+    _writtenSize += written;
+    return true;
+}
+
+bool NetworkManager::endOTA() {
+    Serial.println("[OTA] Finalizing OTA update...");
+    
+    if (!Update.end(true)) {
+        Serial.printf("[OTA] End failed: %s\n", Update.errorString());
+        return false;
+    }
+    
+    Serial.println("[OTA] OTA update finalized successfully");
+    return true;
+}
+
+void NetworkManager::setOTAState(OTAState state) {
+    _otaState = state;
+    Serial.printf("[OTA] State changed: %s\n", getOTAStateString());
+}
+
+void NetworkManager::setOTAError(OTAError error) {
+    _lastOtaError = error;
+    _otaState = OTAState::ERROR;
+    Serial.printf("[OTA] Error: %s\n", getOTAErrorString().c_str());
+}
+
+void NetworkManager::updateOTAProgress(size_t current, size_t total) {
+    if (total == 0) {
+        _otaProgress = 0;
+        return;
+    }
+    
+    _otaProgress = (current * 100) / total;
+    
+    // Log progress every second
+    unsigned long now = millis();
+    if (now - _lastProgressUpdate > 1000) {
+        Serial.printf("[OTA] Progress: %d%% (%d / %d bytes)\n", _otaProgress, current, total);
+        _lastProgressUpdate = now;
+    }
+}
+
+const char* NetworkManager::getOTAStateString() const {
+    switch (_otaState) {
+        case OTAState::IDLE:        return "IDLE";
+        case OTAState::CONNECTING:  return "CONNECTING";
+        case OTAState::DOWNLOADING: return "DOWNLOADING";
+        case OTAState::UPLOADING:   return "UPLOADING";
+        case OTAState::WRITING:     return "WRITING";
+        case OTAState::VERIFYING:   return "VERIFYING";
+        case OTAState::REBOOTING:   return "REBOOTING";
+        case OTAState::SUCCESS:     return "SUCCESS";
+        case OTAState::ERROR:       return "ERROR";
+        default:                    return "UNKNOWN";
+    }
+}
+
+String NetworkManager::getOTAErrorString() const {
+    return String(otaErrorToString(_lastOtaError));
+}
+
+const char* NetworkManager::otaErrorToString(OTAError error) const {
+    switch (error) {
+        case OTAError::NONE:                return "No error";
+        case OTAError::CONNECTION_REFUSED:  return "Connection refused";
+        case OTAError::TIMEOUT:             return "Timeout";
+        case OTAError::DNS_FAILED:          return "DNS resolution failed";
+        case OTAError::SSL_FAILED:          return "SSL/TLS error";
+        case OTAError::HTTP_404:            return "File not found (HTTP 404)";
+        case OTAError::HTTP_500:            return "Server error (HTTP 5xx)";
+        case OTAError::INVALID_RESPONSE:    return "Invalid HTTP response";
+        case OTAError::FILE_TOO_LARGE:      return "File too large";
+        case OTAError::PARTITION_NOT_FOUND: return "OTA partition not found";
+        case OTAError::FLASH_WRITE_FAILED:  return "Flash write failed";
+        case OTAError::FLASH_VERIFY_FAILED: return "Flash verification failed";
+        case OTAError::INSUFFICIENT_SPACE:  return "Insufficient space";
+        case OTAError::OTA_BEGIN_FAILED:    return "OTA begin failed";
+        case OTAError::OTA_END_FAILED:      return "OTA end failed";
+        case OTAError::ROLLBACK_FAILED:     return "Rollback failed";
+        case OTAError::INVALID_URL:         return "Invalid URL";
+        case OTAError::INVALID_FILE:        return "Invalid file";
+        case OTAError::UNKNOWN:             return "Unknown error";
+        default:                            return "Undefined error";
+    }
+}
+
+String NetworkManager::getCurrentPartition() const {
+    const esp_partition_t* partition = esp_ota_get_running_partition();
+    
+    if (!partition) {
+        return "unknown";
+    }
+    
+    if (partition->subtype == ESP_PARTITION_SUBTYPE_APP_OTA_0) {
+        return "OTA_0";
+    } else if (partition->subtype == ESP_PARTITION_SUBTYPE_APP_OTA_1) {
+        return "OTA_1";
+    } else if (partition->subtype == ESP_PARTITION_SUBTYPE_APP_FACTORY) {
+        return "factory";
+    }
+    
+    return String(partition->label);
+}
+
+size_t NetworkManager::getAvailableSpace() const {
+    const esp_partition_t* partition = esp_ota_get_next_update_partition(nullptr);
+    
+    if (!partition) {
+        return 0;
+    }
+    
+    return partition->size;
+}
+
+size_t NetworkManager::getMaxFirmwareSize() const {
+    return getAvailableSpace();
+}
+
+bool NetworkManager::canRollback() const {
+    const esp_partition_t* partition = esp_ota_get_last_invalid_partition();
+    return (partition != nullptr);
+}
+
+bool NetworkManager::rollback() {
+    Serial.println("[OTA] Performing manual rollback...");
+    
+    const esp_partition_t* partition = esp_ota_get_last_invalid_partition();
+    
+    if (!partition) {
+        Serial.println("[OTA] No partition available for rollback");
+        setOTAError(OTAError::ROLLBACK_FAILED);
+        return false;
+    }
+    
+    esp_err_t err = esp_ota_set_boot_partition(partition);
+    
+    if (err != ESP_OK) {
+        Serial.printf("[OTA] Rollback failed: %d\n", err);
+        setOTAError(OTAError::ROLLBACK_FAILED);
+        return false;
+    }
+    
+    Serial.println("[OTA] Rollback successful, rebooting...");
+    delay(1000);
+    ESP.restart();
+    
+    return true;
+}
+
+String NetworkManager::getPartitionInfo() const {
+    String info = "{";
+    
+    const esp_partition_t* running = esp_ota_get_running_partition();
+    const esp_partition_t* next = esp_ota_get_next_update_partition(nullptr);
+    
+    info += "\"current\":\"" + getCurrentPartition() + "\",";
+    info += "\"current_size\":" + String(running ? running->size : 0) + ",";
+    info += "\"next\":\"" + String(next ? next->label : "none") + "\",";
+    info += "\"next_size\":" + String(next ? next->size : 0) + ",";
+    info += "\"max_firmware_size\":" + String(getMaxFirmwareSize()) + ",";
+    info += "\"can_rollback\":" + String(canRollback() ? "true" : "false");
+    
+    info += "}";
+    return info;
+}
+
+// OTA HTTP Handlers
+void NetworkManager::handleOTAPage(AsyncWebServerRequest* request) {
+    if (LittleFS.exists("/ota.html")) {
+        request->send(LittleFS, "/ota.html", "text/html");
+    } else {
+        String html = "<!DOCTYPE html><html><head><title>OTA Update</title>";
+        html += "<meta name='viewport' content='width=device-width, initial-scale=1.0'></head>";
+        html += "<body style='background:#1a1a1a;color:#fff;font-family:sans-serif;padding:40px;'>";
+        html += "<h1>OTA Update</h1>";
+        html += "<p>OTA page not installed. Please upload ota.html to filesystem.</p>";
+        html += "<p><a href='/' style='color:#00ff88;'>Back to Home</a></p>";
+        html += "</body></html>";
+        request->send(200, "text/html", html);
+    }
+}
+
+void NetworkManager::handleOTAInfo(AsyncWebServerRequest* request) {
+    String json = "{";
+    json += "\"current_partition\":\"" + getCurrentPartition() + "\",";
+    json += "\"available_space\":" + String(getAvailableSpace()) + ",";
+    json += "\"max_firmware_size\":" + String(getMaxFirmwareSize()) + ",";
+    json += "\"can_rollback\":" + String(canRollback() ? "true" : "false") + ",";
+    json += "\"state\":\"" + String(getOTAStateString()) + "\",";
+    json += "\"progress\":" + String(_otaProgress);
+    json += "}";
+    
+    request->send(200, "application/json", json);
+}
+
+void NetworkManager::handleOTAURL(AsyncWebServerRequest* request) {
+    if (!request->hasParam("url", true)) {
+        request->send(400, "application/json", "{\"success\":false,\"message\":\"Missing URL parameter\"}");
+        return;
+    }
+    
+    String url = request->getParam("url", true)->value();
+    
+    if (!validateURL(url)) {
+        request->send(400, "application/json", "{\"success\":false,\"message\":\"Invalid URL format\"}");
+        return;
+    }
+    
+    request->send(200, "application/json", "{\"success\":true,\"message\":\"Update started\"}");
+    
+    // Start update in background
+    // Note: This is a simplified version - in production you'd want to handle this asynchronously
+    delay(100);
+    startOtaUpdate();
+}
+
+void NetworkManager::handleOTAStatus(AsyncWebServerRequest* request) {
+    String json = "{";
+    json += "\"state\":\"" + String(getOTAStateString()) + "\",";
+    json += "\"progress\":" + String(_otaProgress) + ",";
+    json += "\"error\":\"" + getOTAErrorString() + "\"";
+    json += "}";
+    
+    request->send(200, "application/json", json);
+}
+
+void NetworkManager::handleOTARollback(AsyncWebServerRequest* request) {
+    if (!canRollback()) {
+        request->send(400, "application/json", "{\"success\":false,\"message\":\"Rollback not available\"}");
+        return;
+    }
+    
+    request->send(200, "application/json", "{\"success\":true,\"message\":\"Rollback initiated\"}");
+    
+    delay(100);
+    rollback();
+}
+
+void NetworkManager::handleOTAUpload(AsyncWebServerRequest* request) {
+    // This is called after upload completes
+    if (Update.hasError()) {
+        String error = "{\"success\":false,\"message\":\"" + String(Update.errorString()) + "\"}";
+        request->send(500, "application/json", error);
+        setOTAState(OTAState::ERROR);
+        setOTAError(OTAError::FLASH_WRITE_FAILED);
+        _updateInProgress = false;
+    } else {
+        request->send(200, "application/json", "{\"success\":true,\"message\":\"Update successful\"}");
+        setOTAState(OTAState::SUCCESS);
+        _updateInProgress = false;
+        
+        Serial.println("[OTA] Upload successful! Rebooting in 3 seconds...");
+        delay(3000);
+        ESP.restart();
+    }
+}
+
+void NetworkManager::handleOTAUploadData(AsyncWebServerRequest* request, String filename, 
+                                         size_t index, uint8_t* data, size_t len, bool final) {
+    if (index == 0) {
+        Serial.printf("[OTA] Upload started: %s\n", filename.c_str());
+        
+        _updateInProgress = true;
+        _otaStartTime = millis();
+        _writtenSize = 0;
+        _totalSize = 0;
+        _otaProgress = 0;
+        
+        // Determine update type from filename
+        int updateType = U_FLASH;
+        if (filename.indexOf("littlefs") >= 0 || filename.indexOf("spiffs") >= 0 || 
+            filename.indexOf("filesystem") >= 0) {
+            updateType = U_SPIFFS;
+            Serial.println("[OTA] Filesystem update detected");
+        } else {
+            Serial.println("[OTA] Firmware update detected");
+        }
+        
+        setOTAState(OTAState::UPLOADING);
+        
+        if (!Update.begin(UPDATE_SIZE_UNKNOWN, updateType)) {
+            Serial.printf("[OTA] Begin failed: %s\n", Update.errorString());
+            setOTAError(OTAError::OTA_BEGIN_FAILED);
+        }
+    }
+    
+    if (len) {
+        if (Update.write(data, len) != len) {
+            Serial.printf("[OTA] Write failed: %s\n", Update.errorString());
+            setOTAError(OTAError::FLASH_WRITE_FAILED);
+        } else {
+            _writtenSize += len;
+            
+            // Update progress (approximate since we don't know total size)
+            unsigned long now = millis();
+            if (now - _lastProgressUpdate > 1000) {
+                Serial.printf("[OTA] Uploaded: %d bytes\n", _writtenSize);
+                _lastProgressUpdate = now;
+            }
+        }
+    }
+    
+    if (final) {
+        if (Update.end(true)) {
+            Serial.printf("[OTA] Upload complete: %d bytes\n", index + len);
+            _totalSize = index + len;
+            _otaProgress = 100;
+        } else {
+            Serial.printf("[OTA] End failed: %s\n", Update.errorString());
+            setOTAError(OTAError::OTA_END_FAILED);
+        }
     }
 }

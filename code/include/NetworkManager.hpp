@@ -13,6 +13,46 @@
 #include "LedController.hpp"
 
 /**
+ * @brief OTA Update States
+ */
+enum class OTAState {
+    IDLE,
+    CONNECTING,
+    DOWNLOADING,
+    UPLOADING,
+    WRITING,
+    VERIFYING,
+    REBOOTING,
+    SUCCESS,
+    ERROR
+};
+
+/**
+ * @brief OTA Error Codes
+ */
+enum class OTAError {
+    NONE,
+    CONNECTION_REFUSED,
+    TIMEOUT,
+    DNS_FAILED,
+    SSL_FAILED,
+    HTTP_404,
+    HTTP_500,
+    INVALID_RESPONSE,
+    FILE_TOO_LARGE,
+    PARTITION_NOT_FOUND,
+    FLASH_WRITE_FAILED,
+    FLASH_VERIFY_FAILED,
+    INSUFFICIENT_SPACE,
+    OTA_BEGIN_FAILED,
+    OTA_END_FAILED,
+    ROLLBACK_FAILED,
+    INVALID_URL,
+    INVALID_FILE,
+    UNKNOWN
+};
+
+/**
  * @brief Network Manager - Handles all network operations
  * 
  * Manages:
@@ -93,6 +133,16 @@ private:
     // Error tracking
     String _lastError;
     
+    // OTA state tracking
+    OTAState _otaState;
+    OTAError _lastOtaError;
+    uint8_t _otaProgress;
+    unsigned long _otaStartTime;
+    unsigned long _lastProgressUpdate;
+    size_t _totalSize;
+    size_t _writtenSize;
+    bool _updateInProgress;
+    
     // OTA update server URL (placeholder)
     static constexpr const char* OTA_UPDATE_URL = "https://github.com/D3stan/ecu-dev-board/releases/latest/download/firmware.bin";
     
@@ -159,6 +209,34 @@ private:
      * @brief Handle configuration update from web interface
      */
     void handleConfigUpdate(const char* jsonData);
+    
+    // OTA handlers
+    void handleOTAPage(AsyncWebServerRequest* request);
+    void handleOTAInfo(AsyncWebServerRequest* request);
+    void handleOTAURL(AsyncWebServerRequest* request);
+    void handleOTAStatus(AsyncWebServerRequest* request);
+    void handleOTARollback(AsyncWebServerRequest* request);
+    void handleOTAUpload(AsyncWebServerRequest* request);
+    void handleOTAUploadData(AsyncWebServerRequest* request, String filename, size_t index, uint8_t* data, size_t len, bool final);
+    
+    // OTA utility functions
+    bool validateURL(const String& url);
+    bool checkSpace(size_t requiredSize);
+    bool beginOTA(size_t size, int type);
+    bool writeOTA(uint8_t* data, size_t len);
+    bool endOTA();
+    void setOTAState(OTAState state);
+    void setOTAError(OTAError error);
+    void updateOTAProgress(size_t current, size_t total);
+    const char* getOTAStateString() const;
+    String getOTAErrorString() const;
+    const char* otaErrorToString(OTAError error) const;
+    String getCurrentPartition() const;
+    size_t getAvailableSpace() const;
+    size_t getMaxFirmwareSize() const;
+    bool canRollback() const;
+    bool rollback();
+    String getPartitionInfo() const;
     
     /**
      * @brief Perform OTA update from server

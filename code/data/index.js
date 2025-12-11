@@ -359,13 +359,14 @@ function togglePasswordVisibility(fieldId) {
 }
 
 function startOta() {
-    if (confirm('Start OTA firmware update? Device will reboot after update.')) {
-        if (sendConfig({ ota: true })) {
-            alert('OTA update started. Device will reboot automatically.');
-        } else {
-            alert('Cannot start OTA update in offline mode.');
-        }
-    }
+    window.location.href='/ota'
+    // if (confirm('Start OTA firmware update? Device will reboot after update.')) {
+    //     if (sendConfig({ ota: true })) {
+    //         alert('OTA update started. Device will reboot automatically.');
+    //     } else {
+    //         alert('Cannot start OTA update in offline mode.');
+    //     }
+    // }
 }
 
 function reboot() {
