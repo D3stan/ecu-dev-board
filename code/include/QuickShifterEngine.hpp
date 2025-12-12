@@ -63,6 +63,7 @@ public:
      */
     static void IRAM_ATTR pickupCoilISR();
     static void IRAM_ATTR shiftSensorISR();
+    static void IRAM_ATTR buttonISR();
     
 private:
     // Singleton instance pointer for ISR trampolines
@@ -121,7 +122,7 @@ private:
     /**
      * @brief Handle shift sensor trigger (called from ISR)
      */
-    void IRAM_ATTR handleShiftSensor();
+    void IRAM_ATTR handleShiftSensor(bool fromButton = false);
     
     /**
      * @brief Trigger ignition cut

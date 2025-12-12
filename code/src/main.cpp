@@ -49,7 +49,7 @@ void setup() {
     
     // 3. Initialize QuickShifter Engine
     
-    qsEngine.begin(SPARK_CDI, QS_SW, QS_SCR);
+    qsEngine.begin(SPARK_CDI, QS_SW, POWERJET);
     
     // Load configuration from storage
     QuickShifterEngine::Config qsConfig;

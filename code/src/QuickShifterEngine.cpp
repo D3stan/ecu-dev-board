@@ -57,7 +57,7 @@ void QuickShifterEngine::begin(uint8_t pickupPin, uint8_t shiftSensorPin, uint8_
     // Attach interrupts
     attachInterrupt(digitalPinToInterrupt(_pickupPin), pickupCoilISR, RISING);
     attachInterrupt(digitalPinToInterrupt(_shiftSensorPin), shiftSensorISR, RISING);
-    attachInterrupt(digitalPinToInterrupt(0), shiftSensorISR, FALLING);
+    attachInterrupt(digitalPinToInterrupt(0), buttonISR, FALLING);
 
     
     // Create hardware timer for ignition cut
@@ -196,7 +196,7 @@ void IRAM_ATTR QuickShifterEngine::handlePickupPulse() {
     }
 }
 
-void IRAM_ATTR QuickShifterEngine::handleShiftSensor() {
+void IRAM_ATTR QuickShifterEngine::handleShiftSensor(bool fromButton) {
     unsigned long currentTime = micros();
     unsigned long debounceTimeUs = _config.debounceTimeMs * 1000UL;
     
@@ -220,7 +220,7 @@ void IRAM_ATTR QuickShifterEngine::handleShiftSensor() {
     _lastShiftSensorTime = currentTime;
     
     // Check if RPM is above threshold
-    if (_currentRpm < _config.minRpmThreshold) {
+    if (_currentRpm < _config.minRpmThreshold && !fromButton) {
         _debugData.rpmTooLow = true;
         return; // RPM too low, ignore shift request
     }
@@ -271,5 +271,11 @@ void IRAM_ATTR QuickShifterEngine::pickupCoilISR() {
 void IRAM_ATTR QuickShifterEngine::shiftSensorISR() {
     if (_instance) {
         _instance->handleShiftSensor();
+    }
+}
+
+void IRAM_ATTR QuickShifterEngine::buttonISR() {
+    if (_instance) {
+        _instance->handleShiftSensor(true);
     }
 }
