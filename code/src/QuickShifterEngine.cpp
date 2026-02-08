@@ -220,10 +220,10 @@ void IRAM_ATTR QuickShifterEngine::handleShiftSensor(bool fromButton) {
     _lastShiftSensorTime = currentTime;
     
     // Check if RPM is above threshold
-    if (_currentRpm < _config.minRpmThreshold && !fromButton) {
-        _debugData.rpmTooLow = true;
-        return; // RPM too low, ignore shift request
-    }
+    // if (_currentRpm < _config.minRpmThreshold && !fromButton) {
+    //     _debugData.rpmTooLow = true;
+    //     return; // RPM too low, ignore shift request
+    // }
     
     // Calculate cut time based on current RPM
     uint16_t cutTime = calculateCutTime(_currentRpm);
