@@ -50,4 +50,4 @@ app.router.add_static('/', path=os.getcwd())
 
 if __name__ == '__main__':
     print("Starting server at http://localhost:8000")
-    web.run_app(app, host='localhost', port=8000)
+    web.run_app(app, host='localhost', port=80)

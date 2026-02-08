@@ -21,7 +21,7 @@
         "apPassword": "",
         "staSsid": "GiuseppeBagnile",
         "staPassword": "MikroTik2020",
-        "staMode": true,
+        "staMode": false,
         "lastError": "UPDATED"
     },
     "telemetry": {
