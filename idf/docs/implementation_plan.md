@@ -86,6 +86,11 @@ For detailed, mid-level file modifications, reference the corresponding subfiles
 #### [MODIFY] [constants.js](file:///Users/puddu/Downloads/webui/src/js/utils/constants.js)
 #### [MODIFY] [paths.js](file:///Users/puddu/Downloads/webui/src/js/utils/paths.js)
 
+### Documentation Structure
+To keep the codebase tidy and organized, documentation files for individual frontend components must be placed within dedicated subfolders under [src/docs](file:///Users/puddu/Downloads/webui/src/docs).
+- Each component will have its own subdirectory matching its component name (e.g., `src/docs/[ComponentName]/`).
+- The corresponding documentation markdown files and any local design assets/diagrams must reside inside that subfolder (e.g., `src/docs/WifiConnectionCard/WIFI_CONNECTION_CARD.md`).
+
 ---
 
 ## Verification Plan
