@@ -1,0 +1,41 @@
+/* ============= TPS BAR ============= */
+.tps-bar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.tps-bar__header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.tps-bar__label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--ecu-text-muted);
+}
+
+.tps-bar__track {
+  height: 8px;
+  background: var(--ecu-surface-alt);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.tps-bar__fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--ecu-green), var(--ecu-yellow));
+  border-radius: 4px;
+  transition: width 100ms ease;
+  min-width: 0;
+}
+
+.tps-bar__value {
+  font-size: 1.25rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--ecu-text);
+}

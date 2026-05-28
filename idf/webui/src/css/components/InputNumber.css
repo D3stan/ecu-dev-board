@@ -1,0 +1,308 @@
+/**
+ * InputNumber.css
+ * ===============
+ * Stili per il componente InputNumber
+ * Form parametrica per editing parametri numerici e enum
+ * 
+ * @author FogExtra Team
+ * @version 1.0.0
+ */
+
+/* ============= PARAMETER SETTINGS CARD ============= */
+.parameter-settings-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* Container for Value + Slider (with smaller gap) */
+.parameter-value-slider-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+/* ============= VALUE DISPLAY SECTION ============= */
+.parameter-display-section {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 1.5rem;
+  padding: 1rem 0;
+}
+
+.parameter-arrow-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: all 150ms;
+  flex-shrink: 0;
+}
+
+.parameter-arrow-btn:hover {
+  transform: scale(1.1);
+}
+
+.parameter-arrow-btn:active {
+  transform: scale(0.95);
+}
+
+.parameter-arrow-btn svg {
+  width: 2rem;
+  height: 2rem;
+  color: var(--brand);
+}
+
+.parameter-value-display {
+  font-size: 3rem;
+  font-weight: 700;
+  color: var(--text);
+  cursor: pointer;
+  user-select: none;
+  padding: 0.5rem 1rem;
+  border-radius: 0.75rem;
+  transition: all 150ms;
+  min-width: 8rem;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.parameter-value-display:hover {
+  background: var(--surface);
+}
+
+.parameter-value-input {
+  font-size: 3rem;
+  font-weight: 700;
+  color: var(--text);
+  text-align: center;
+  border: 2px solid var(--brand);
+  border-radius: 0.75rem;
+  background: var(--card);
+  padding: 0.5rem 1rem;
+  min-width: 8rem;
+  outline: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.parameter-value-input::-webkit-inner-spin-button,
+.parameter-value-input::-webkit-outer-spin-button {
+  opacity: 1;
+}
+
+/* ============= SLIDER SECTION ============= */
+.parameter-slider-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.parameter-slider-section.hidden {
+  display: none;
+}
+
+.parameter-slider-container {
+  position: relative;
+  width: 100%;
+  padding: 0.5rem 0;
+}
+
+.parameter-slider {
+  width: 100%;
+  height: 0.75rem;
+  -webkit-appearance: none;
+  appearance: none;
+  background: var(--border);
+  border-radius: 0.5rem;
+  outline: none;
+  cursor: pointer;
+  position: relative;
+}
+
+/* Track progress (selected part) - WebKit */
+.parameter-slider::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 0.75rem;
+  background: transparent;
+  border-radius: 0.5rem;
+}
+
+.parameter-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 1.25rem;
+  height: 1.25rem;
+  background: white;
+  border: 3px solid var(--brand);
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  transition: all 150ms;
+  margin-top: -0.25rem;
+  position: relative;
+  z-index: 2;
+}
+
+.parameter-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+}
+
+.parameter-slider::-webkit-slider-thumb:active {
+  transform: scale(1.05);
+}
+
+/* Track progress (selected part) - Firefox */
+.parameter-slider::-moz-range-track {
+  width: 100%;
+  height: 0.75rem;
+  background: var(--border);
+  border-radius: 0.5rem;
+}
+
+.parameter-slider::-moz-range-progress {
+  height: 0.75rem;
+  background: var(--brand);
+  border-radius: 0.5rem;
+}
+
+.parameter-slider::-moz-range-thumb {
+  width: 1.25rem;
+  height: 1.25rem;
+  background: white;
+  border: 3px solid var(--brand);
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  transition: all 150ms;
+  position: relative;
+  z-index: 2;
+}
+
+.parameter-slider::-moz-range-thumb:hover {
+  transform: scale(1.15);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+}
+
+.parameter-slider::-moz-range-thumb:active {
+  transform: scale(1.05);
+}
+
+.parameter-slider-labels {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.parameter-slider-label {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+/* ============= ACTION BAR ============= */
+.parameter-action-bar {
+  display: flex;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.parameter-btn {
+  flex: 1;
+  padding: 1rem;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 150ms;
+  box-shadow: var(--shadow);
+}
+
+.parameter-btn-default {
+  background: var(--bg);
+  color: var(--text);
+  border: 2px solid var(--brand);
+}
+
+.parameter-btn-default:hover {
+  background: var(--surface);
+}
+
+.parameter-btn-default:active {
+  transform: scale(0.98);
+}
+
+.parameter-btn-confirm {
+  background: var(--brand);
+  color: white;
+}
+
+.parameter-btn-confirm:hover {
+  background: var(--brand-light);
+}
+
+.parameter-btn-confirm:active {
+  transform: scale(0.98);
+}
+
+/* ============= RESPONSIVE ============= */
+@media (max-width: 768px) {
+  .parameter-settings-card {
+    padding: 1rem;
+    gap: 1.5rem;
+  }
+  
+  .parameter-value-display,
+  .parameter-value-input {
+    font-size: 2.5rem;
+    min-width: 6rem;
+  }
+  
+  .parameter-arrow-btn svg {
+    width: 1.75rem;
+    height: 1.75rem;
+  }
+  
+  .parameter-btn {
+    padding: 0.875rem;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .parameter-value-display,
+  .parameter-value-input {
+    font-size: 2rem;
+    min-width: 5rem;
+  }
+  
+  .parameter-display-section {
+    gap: 1rem;
+  }
+  
+  .parameter-arrow-btn svg {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+}
+
+/* ============================================
+   ULTRA-SMALL SCREENS (es. < 350 px)
+   ============================================ */
+@media (max-width: 350px) {
+  .parameter-action-bar {
+    flex-direction: column; /* da row → column */
+    align-items: stretch;   /* i pulsanti occupano tutta la larghezza */
+  }
+
+  .parameter-btn {
+    width: 100%;
+  }
+}

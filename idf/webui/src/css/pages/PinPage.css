@@ -1,0 +1,338 @@
+/* ============================================
+ * PinPage.css
+ * PIN entry page styles — responsive lock screen UI
+ * ============================================ */
+
+/* ── Page Layout ──────────────────────────────── */
+.pin-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100%;
+  padding: clamp(0.5rem, 1.8vh, 2rem) 1rem;
+  box-sizing: border-box;
+  user-select: none;
+  -webkit-user-select: none;
+  gap: clamp(0.25rem, 1vh, 0.75rem);
+}
+
+/* ── Header ───────────────────────────────────── */
+.pin-header {
+  text-align: center;
+  margin-bottom: clamp(0.4rem, 1.5vh, 1.5rem);
+}
+
+.pin-lock-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: clamp(2.2rem, 5.5vh, 3rem);
+  height: clamp(2.2rem, 5.5vh, 3rem);
+  border-radius: 50%;
+  background: var(--icon-bg, #e8f1f7);
+  color: var(--brand, #16486f);
+  margin-bottom: clamp(0.35rem, 1vh, 0.9rem);
+}
+
+[data-theme="dark"] .pin-lock-icon {
+  background: rgba(91, 159, 201, 0.15);
+  color: var(--brand, #5b9fc9);
+}
+
+.pin-title {
+  font-size: clamp(1rem, 2.4vh, 1.25rem);
+  font-weight: 600;
+  color: var(--text, #0f3652);
+  margin: 0 0 0.2rem 0;
+}
+
+.pin-subtitle {
+  font-size: clamp(0.74rem, 1.8vh, 0.875rem);
+  color: var(--text-muted, #5b7a92);
+  margin: 0;
+  line-height: 1.35;
+}
+
+/* ── PIN Indicators ───────────────────────────── */
+.pin-indicators {
+  display: flex;
+  gap: clamp(0.75rem, 2vw, 1.15rem);
+  margin-bottom: clamp(0.2rem, 0.8vh, 0.8rem);
+  min-height: 1.1rem;
+}
+
+.pin-indicator {
+  width: clamp(0.75rem, 1.8vh, 1rem);
+  height: clamp(0.75rem, 1.8vh, 1rem);
+  border-radius: 50%;
+  border: 2px solid var(--border, #d1e3ed);
+  background: transparent;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.pin-indicator.filled {
+  background: var(--brand, #16486f);
+  border-color: var(--brand, #16486f);
+}
+
+[data-theme="dark"] .pin-indicator {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+[data-theme="dark"] .pin-indicator.filled {
+  background: var(--brand, #5b9fc9);
+  border-color: var(--brand, #5b9fc9);
+}
+
+/* ── Error Message ────────────────────────────── */
+.pin-error {
+  height: clamp(0.9rem, 2.2vh, 1.5rem);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: clamp(0.2rem, 0.8vh, 0.8rem);
+}
+
+.pin-error span {
+  font-size: clamp(0.7rem, 1.5vh, 0.8125rem);
+  font-weight: 500;
+  color: var(--danger, #ef4444);
+  text-align: center;
+}
+
+/* ── Shake Animation ──────────────────────────── */
+.pin-shake {
+  animation: pinShake 0.5s ease-in-out;
+}
+
+@keyframes pinShake {
+  0%, 100% { transform: translateX(0); }
+  10%, 50%, 90% { transform: translateX(-6px); }
+  30%, 70% { transform: translateX(6px); }
+}
+
+/* ── Keypad ───────────────────────────────────── */
+.pin-keypad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(0.45rem, 1.2vh, 0.75rem);
+  width: min(100%, 280px, 52vh);
+  max-width: 280px;
+}
+
+.pin-key {
+  aspect-ratio: 1;
+  min-height: clamp(2.9rem, 8vh, 5.25rem);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border, #d1e3ed);
+  border-radius: clamp(0.75rem, 1.8vh, 1rem);
+  background: var(--card, #ffffff);
+  color: var(--text, #0f3652);
+  font-size: clamp(1.05rem, 3vh, 1.5rem);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.1s ease, transform 0.1s ease;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+  box-shadow: var(--shadow);
+}
+
+.pin-key:active {
+  background: var(--surface, #e8f1f7);
+  transform: scale(0.95);
+}
+
+[data-theme="dark"] .pin-key {
+  background: var(--card, #1a2533);
+  border-color: rgba(255, 255, 255, 0.08);
+  color: var(--text, #e2e8f0);
+}
+
+[data-theme="dark"] .pin-key:active {
+  background: var(--surface, #243040);
+}
+
+/* ── Action keys (Cancel, Backspace) ──────────── */
+.pin-key-action {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  font-size: clamp(0.68rem, 1.6vh, 0.8125rem);
+  font-weight: 500;
+  color: var(--text-muted, #5b7a92);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.pin-key-action:active {
+  background: transparent;
+  transform: scale(0.95);
+  color: var(--brand, #16486f);
+}
+
+[data-theme="dark"] .pin-key-action {
+  background: transparent;
+  border: none;
+  color: var(--text-muted, #64748b);
+}
+
+[data-theme="dark"] .pin-key-action:active {
+  background: transparent;
+  color: var(--brand, #5b9fc9);
+}
+
+/* Backspace icon color */
+.pin-key-action svg {
+  color: var(--text-muted, #5b7a92);
+  width: clamp(1.1rem, 2.8vh, 1.5rem);
+  height: clamp(1.1rem, 2.8vh, 1.5rem);
+}
+
+.pin-key-action:active svg {
+  color: var(--brand, #16486f);
+}
+
+[data-theme="dark"] .pin-key-action svg {
+  color: var(--text-muted, #64748b);
+}
+
+[data-theme="dark"] .pin-key-action:active svg {
+  color: var(--brand, #5b9fc9);
+}
+
+/* ── Medium-height screens ────────────────────── */
+@media (max-height: 700px) {
+  .pin-page {
+    justify-content: flex-start;
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+    gap: 0.35rem;
+  }
+
+  .pin-header {
+    margin-bottom: 0.45rem;
+  }
+
+  .pin-lock-icon {
+    width: 2.3rem;
+    height: 2.3rem;
+    margin-bottom: 0.35rem;
+  }
+
+  .pin-title {
+    font-size: 1.02rem;
+  }
+
+  .pin-subtitle {
+    font-size: 0.76rem;
+  }
+
+  .pin-indicators {
+    margin-bottom: 0.2rem;
+  }
+
+  .pin-error {
+    height: 0.95rem;
+    margin-bottom: 0.3rem;
+  }
+
+  .pin-keypad {
+    width: min(100%, 255px, 50vh);
+    gap: 0.5rem;
+  }
+
+  .pin-key {
+    min-height: 2.85rem;
+    font-size: 1.05rem;
+    border-radius: 0.85rem;
+  }
+
+  .pin-key-action {
+    font-size: 0.7rem;
+  }
+}
+
+/* ── Small-height screens (es. 360x640) ───────── */
+@media (max-height: 640px) {
+  .pin-page {
+    justify-content: flex-start;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+    gap: 0.25rem;
+  }
+
+  .pin-header {
+    margin-bottom: 0.35rem;
+  }
+
+  .pin-lock-icon {
+    width: 2rem;
+    height: 2rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .pin-title {
+    font-size: 0.98rem;
+    margin-bottom: 0.1rem;
+  }
+
+  .pin-subtitle {
+    font-size: 0.72rem;
+    line-height: 1.25;
+  }
+
+  .pin-indicators {
+    gap: 0.75rem;
+    margin-bottom: 0.15rem;
+    min-height: 0.95rem;
+  }
+
+  .pin-indicator {
+    width: 0.72rem;
+    height: 0.72rem;
+  }
+
+  .pin-error {
+    height: 0.85rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .pin-error span {
+    font-size: 0.68rem;
+  }
+
+  .pin-keypad {
+    width: min(100%, 235px, 47vh);
+    gap: 0.42rem;
+  }
+
+  .pin-key {
+    min-height: 2.6rem;
+    font-size: 0.98rem;
+    border-radius: 0.75rem;
+  }
+
+  .pin-key-action {
+    font-size: 0.66rem;
+  }
+
+  .pin-key-action svg {
+    width: 1rem;
+    height: 1rem;
+  }
+}
+
+/* ── Very narrow screens ───────────────────────── */
+@media (max-width: 340px) {
+  .pin-page {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+
+  .pin-keypad {
+    width: min(100%, 220px, 46vh);
+  }
+}

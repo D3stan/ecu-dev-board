@@ -1,0 +1,319 @@
+/**
+ * InputTimer.css
+ * ==============
+ * Stili per il componente InputTimer.
+ * Layout mobile-first, responsive, con supporto per dark mode.
+ * 
+ * @author FogExtra Team
+ * @version 1.0.0
+ */
+
+/* ============================================
+   TIMER SETTINGS CARD
+   ============================================ */
+
+.timer-settings-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+  max-width: 100%;
+}
+
+/* ============================================
+   TIMER PICKER SECTION
+   ============================================ */
+
+.timer-picker-section {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 2rem 0;
+  flex-wrap: nowrap;
+  overflow-x: auto; /* Scroll orizzontale su mobile se necessario */
+}
+
+/* ============================================
+   TIMER BLOCK (Hours/Minutes/Seconds)
+   ============================================ */
+
+.timer-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  min-width: 4.5rem;
+  flex-shrink: 0;
+}
+
+.timer-block.hidden {
+  display: none;
+}
+
+/* ============================================
+   TIMER LABEL
+   ============================================ */
+
+.timer-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* ============================================
+   TIMER ARROW (Up/Down)
+   ============================================ */
+
+.timer-arrow {
+  width: 1.5rem;
+  height: 1.5rem;
+  cursor: pointer;
+  transition: all 150ms ease;
+  color: var(--brand);
+  flex-shrink: 0;
+}
+
+.timer-arrow:hover {
+  color: var(--brand-light);
+  transform: scale(1.1);
+}
+
+.timer-arrow:active {
+  transform: scale(0.95);
+}
+
+/* ============================================
+   TIMER VALUE (Display mode)
+   ============================================ */
+
+.timer-value-settings {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--text);
+  cursor: pointer;
+  user-select: none;
+  min-width: 4rem;
+  text-align: center;
+  transition: all 150ms ease;
+  border-radius: 0.5rem;
+  padding: 0.25rem 0.5rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.05em;
+}
+
+.timer-value-settings:hover {
+  background: var(--surface);
+}
+
+/* ============================================
+   TIMER VALUE INPUT (Edit mode)
+   ============================================ */
+
+.timer-value-input {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--text);
+  text-align: center;
+  border: 2px solid var(--brand);
+  border-radius: 0.5rem;
+  background: var(--card);
+  padding: 0.25rem 0.5rem;
+  width: 4.5rem;
+  outline: none;
+  font-variant-numeric: tabular-nums;
+  appearance: textfield; /* Standard property */
+  -moz-appearance: textfield; /* Firefox fallback */
+}
+
+/* Mostra spinner su Chrome/Safari */
+.timer-value-input::-webkit-inner-spin-button,
+.timer-value-input::-webkit-outer-spin-button {
+  opacity: 1;
+  height: 2rem;
+}
+
+.timer-value-input:focus {
+  border-color: var(--brand-light);
+  box-shadow: 0 0 0 3px rgba(var(--brand-rgb), 0.2);
+}
+
+/* ============================================
+   TIMER SEPARATOR COLUMN
+   ============================================ */
+
+.timer-separator-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+  /* Padding top allinea separatore con i valori */
+  padding-top: 1.25rem;
+}
+
+.timer-separator-column.hidden {
+  display: none;
+}
+
+/* ============================================
+   TIMER SEPARATOR (:)
+   ============================================ */
+
+.timer-separator {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 3.5rem; /* Allineato con timer-value-settings */
+}
+
+/* ============================================
+   TIMER ACTION BAR (Buttons)
+   ============================================ */
+
+.timer-action-bar {
+  display: flex;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.timer-btn {
+  flex: 1;
+  padding: 1rem;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 150ms ease;
+  box-shadow: var(--shadow);
+  white-space: nowrap;
+}
+
+/* Default Button */
+.timer-btn-default {
+  background: var(--bg);
+  color: var(--text);
+  border: 2px solid var(--brand);
+}
+
+.timer-btn-default:hover {
+  background: var(--surface);
+  border-color: var(--brand-light);
+}
+
+.timer-btn-default:active {
+  transform: scale(0.98);
+}
+
+/* Confirm Button */
+.timer-btn-confirm {
+  background: var(--brand);
+  color: white;
+}
+
+.timer-btn-confirm:hover {
+  background: var(--brand-light);
+}
+
+.timer-btn-confirm:active {
+  transform: scale(0.98);
+}
+
+/* ============================================
+   RESPONSIVE - Mobile First
+   ============================================ */
+
+/* Mobile (< 375px) - Riduci dimensioni per schermi molto piccoli */
+@media (max-width: 374px) {
+  .timer-value-settings,
+  .timer-value-input,
+  .timer-separator {
+    font-size: 2rem;
+  }
+  
+  .timer-block {
+    min-width: 3.5rem;
+  }
+  
+  .timer-value-input {
+    width: 3.5rem;
+  }
+  
+  .timer-label {
+    font-size: 0.65rem;
+  }
+  
+  .timer-arrow {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+}
+
+/* Tablet e Desktop (> 768px) - Aumenta spaziatura */
+@media (min-width: 768px) {
+  .timer-settings-card {
+    padding: 2rem;
+  }
+  
+  .timer-picker-section {
+    gap: 1rem;
+    padding: 2.5rem 0;
+  }
+  
+  .timer-block {
+    min-width: 5rem;
+  }
+  
+  .timer-value-settings,
+  .timer-value-input,
+  .timer-separator {
+    font-size: 3rem;
+  }
+  
+  .timer-value-input {
+    width: 5rem;
+  }
+  
+  .timer-btn {
+    padding: 1.25rem;
+    font-size: 1.125rem;
+  }
+}
+
+/* Desktop Large (> 1024px) - Max width per evitare layout troppo largo */
+@media (min-width: 1024px) {
+  .timer-settings-card {
+    max-width: 600px;
+    margin: 0 auto;
+  }
+}
+
+/* ============================================
+   ULTRA-SMALL SCREENS (es. < 350 px)
+   ============================================ */
+@media (max-width: 350px) {
+  .timer-action-bar {
+    flex-direction: column; /* da row → column */
+    align-items: stretch;   /* i pulsanti occupano tutta la larghezza */
+  }
+
+  .timer-btn {
+    width: 100%;
+  }
+}

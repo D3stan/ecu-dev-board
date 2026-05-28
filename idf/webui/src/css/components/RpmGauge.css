@@ -1,0 +1,54 @@
+/* ============= RPM GAUGE ============= */
+.rpm-gauge {
+  position: relative;
+  width: 220px;
+  height: 220px;
+  margin: 0 auto;
+}
+
+.rpm-gauge__svg {
+  width: 100%;
+  height: 100%;
+}
+
+.rpm-gauge__track {
+  stroke: var(--ecu-border);
+  stroke-width: 12;
+  fill: none;
+  stroke-linecap: round;
+}
+
+.rpm-gauge__fill {
+  stroke-width: 12;
+  fill: none;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 100ms ease;
+}
+
+/* Center text overlay */
+.rpm-gauge__center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+}
+
+.rpm-gauge__value {
+  font-size: 3rem;
+  font-weight: 700;
+  color: var(--ecu-text);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.rpm-gauge__label {
+  font-size: 0.875rem;
+  color: var(--ecu-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-top: 4px;
+}

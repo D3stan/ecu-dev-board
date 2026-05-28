@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FogExtra – Mode Selector</title>
+
+<style>
+    body {
+        font-family: 'Inter', sans-serif;
+        background: #f2f6fa;
+        margin: 0;
+        padding: 20px;
+        color: #0c1d36;
+    }
+
+    .mode-selector {
+        background: white;
+        padding: 20px;
+        border-radius: 18px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+        max-width: 480px;
+        margin: auto;
+    }
+
+    .mode-title {
+        font-size: 22px;
+        font-weight: 700;
+        margin-bottom: 6px;
+    }
+
+    .mode-subtitle {
+        font-size: 14px;
+        opacity: 0.7;
+        margin-bottom: 18px;
+    }
+
+    .mode-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 14px;
+    }
+
+    .mode-card {
+        border-radius: 16px;
+        padding: 20px 14px;
+        text-align: center;
+        cursor: pointer;
+        transition: 0.25s;
+        background: #eef3f8;
+        border: 2px solid transparent;
+        user-select: none;
+    }
+
+    .mode-card:hover {
+        transform: scale(0.97);
+    }
+
+    .mode-card.active {
+        background: #007bff;
+        border-color: #005fcc;
+        color: white;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    }
+
+    .mode-icon {
+        font-size: 34px;
+        margin-bottom: 10px;
+    }
+
+    .mode-label {
+        font-size: 14px;
+        font-weight: 600;
+        margin-bottom: 4px;
+    }
+
+    .mode-state {
+        font-size: 12px;
+        opacity: 0.8;
+    }
+
+</style>
+</head>
+<body>
+
+<div class="mode-selector">
+    <div class="mode-title">Mode Selector</div>
+    <div class="mode-subtitle">Tocca una modalità per attivarla</div>
+
+    <div class="mode-grid">
+        <div class="mode-card" data-mode="temp">
+            <div class="mode-icon">🌡️</div>
+            <div class="mode-label">Temperatura</div>
+            <div class="mode-state">Disattivata</div>
+        </div>
+
+        <div class="mode-card" data-mode="hum">
+            <div class="mode-icon">💧</div>
+            <div class="mode-label">Umidità</div>
+            <div class="mode-state">Disattivata</div>
+        </div>
+
+        <div class="mode-card" data-mode="timer">
+            <div class="mode-icon">⏱️</div>
+            <div class="mode-label">Timer</div>
+            <div class="mode-state">Disattivata</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.querySelectorAll(".mode-card").forEach(card => {
+        card.addEventListener("click", () => {
+            card.classList.toggle("active");
+
+            const stateLabel = card.querySelector(".mode-state");
+
+            if (card.classList.contains("active")) {
+                stateLabel.textContent = "Attiva";
+            } else {
+                stateLabel.textContent = "Disattivata";
+            }
+        });
+    });
+</script>
+
+</body>
+</html>

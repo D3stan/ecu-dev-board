@@ -1,0 +1,131 @@
+/* ============= MAP EDITOR ============= */
+.map-editor {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.map-editor__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+}
+
+/* Table */
+.map-editor__table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.map-editor__table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.map-editor__table th {
+  background: var(--ecu-surface-alt);
+  color: var(--ecu-text-muted);
+  padding: 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-align: left;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.map-editor__table th:first-child {
+  border-radius: var(--radius-sm) 0 0 0;
+}
+
+.map-editor__table th:last-child {
+  border-radius: 0 var(--radius-sm) 0 0;
+}
+
+.map-editor__table td {
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--ecu-border);
+  vertical-align: middle;
+}
+
+.map-editor__table tr:last-child td {
+  border-bottom: none;
+}
+
+/* Inputs */
+.map-editor__table input {
+  background: var(--ecu-surface-alt);
+  color: var(--ecu-text);
+  border: 1px solid var(--ecu-border);
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  width: 80px;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  transition: border-color var(--transition-fast);
+}
+
+.map-editor__table input:focus {
+  outline: none;
+  border-color: var(--ecu-accent);
+  box-shadow: 0 0 0 2px var(--ecu-accent-glow);
+}
+
+/* Buttons */
+.map-editor__add-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 10px;
+  background: transparent;
+  border: 2px dashed var(--ecu-border);
+  border-radius: var(--radius-md);
+  color: var(--ecu-accent);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.map-editor__add-btn:hover {
+  border-color: var(--ecu-accent);
+  background: var(--ecu-accent-glow);
+}
+
+.map-editor__save-btn {
+  background: var(--ecu-accent);
+  color: #ffffff;
+  padding: 10px 24px;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.map-editor__save-btn:hover {
+  filter: brightness(1.1);
+}
+
+.map-editor__save-btn:active {
+  transform: scale(0.97);
+}
+
+.map-editor__delete-btn {
+  color: var(--ecu-red);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  transition: background var(--transition-fast);
+}
+
+.map-editor__delete-btn:hover {
+  background: rgba(239, 68, 68, 0.1);
+}

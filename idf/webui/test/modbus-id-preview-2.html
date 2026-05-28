@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ID Macchina – Preview Interno</title>
+
+<style>
+    body {
+        margin: 0;
+        font-family: "Inter", sans-serif;
+        background: #f4f8fb;
+        padding: 20px;
+        color: #0c2d48;
+    }
+
+    /* --- CARD PRINCIPALE (contenitore padre) --- */
+    .card {
+        background: #ffffff;
+        padding: 16px 18px 20px 18px;
+        border-radius: 16px;
+        box-shadow: 0px 2px 6px rgba(0,0,0,0.06);
+        margin-bottom: 20px;
+    }
+
+    /* --- PRIMA RIGA PARAMETRO --- */
+    .param-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: pointer;
+        margin-bottom: 14px;
+    }
+
+    .param-label {
+        font-size: 18px;
+        font-weight: 600;
+        color: #0f2d4a;
+    }
+
+    .param-value {
+        font-size: 18px;
+        font-weight: 700;
+        margin-right: 12px;
+        color: #0f2d4a;
+    }
+
+    .param-info-btn {
+        width: 28px;
+        height: 28px;
+        background: #e7eef4;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: #0f2d4a;
+    }
+
+    /* --- BOX RECAP INTERNO --- */
+    .recap-box {
+        background: #f1f6fa;
+        border-radius: 12px;
+        padding: 14px 14px;
+        font-size: 15px;
+        line-height: 1.5;
+    }
+
+    .recap-box strong {
+        color: #093a61;
+    }
+</style>
+
+</head>
+<body>
+
+<!-- CARD UNICO -->
+<div class="card">
+
+    <!-- PRIMA RIGA PARAMETRO -->
+    <div class="param-row" onclick="changeValue()">
+        <span class="param-label">ID Macchina (Modbus / AP / DNS)</span>
+
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <span class="param-value" id="paramValue">6</span>
+
+            <div class="param-info-btn" onclick="event.stopPropagation(); showInfo()">
+                i
+            </div>
+        </div>
+    </div>
+
+    <!-- BOX RECAP INTERNO -->
+    <div class="recap-box" id="recapBox">
+        Modbus ID: <strong>6</strong><br>
+        Wi-Fi AP: <strong>fogExtra-6</strong><br>
+        DNS locale: <strong>fogextra-6.local</strong>
+    </div>
+</div>
+
+
+<script>
+let idValue = 6;
+
+function updateRecap() {
+    document.getElementById("paramValue").textContent = idValue;
+
+    document.getElementById("recapBox").innerHTML = `
+        Modbus ID: <strong>${idValue}</strong><br>
+        Wi-Fi AP: <strong>fogExtra-${idValue}</strong><br>
+        DNS locale: <strong>fogextra-${idValue}.local</strong>
+    `;
+}
+
+function changeValue() {
+    idValue++;
+    if (idValue > 10) idValue = 0;
+    updateRecap();
+}
+
+function showInfo() {
+    alert("Questo numero definisce il ModbusID e genera automaticamente il nome della rete AP e del DNS locale.");
+}
+
+updateRecap();
+</script>
+
+</body>
+</html>
