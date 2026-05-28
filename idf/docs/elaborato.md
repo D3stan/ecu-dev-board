@@ -1,51 +1,51 @@
-# ECU Telemetry & Ignition Core — Final Specification
+# ECU Telemetria e Accensione — Specifica Finale
 
-## 1. System Overview
+## 1. Panoramica del Sistema
 
-A 4-node embedded/web system demonstrating a custom ECU for single-cylinder motorcycles. The project covers real-time engine control, live telemetry, map tuning, OTA updates, and session logging.
+Un sistema embedded/web a 4 nodi che dimostra una ECU personalizzata per motocicli monocilindrici. Il progetto copre controllo motore in tempo reale, telemetria live, tuning mappe, aggiornamenti OTA e logging delle sessioni.
 
-### Nodes
+### Nodi
 
-| # | Node | Hardware | Role |
+| # | Nodo | Hardware | Ruolo |
 |---|---|---|---|
-| 1 | **Simulator** | ESP32 | Generates simulated sensor signals (pick-up, TPS, EGT). Controlled via its own mini web UI. |
-| 2 | **ECU** | ESP32-S3 | Engine control (Core 0) + communications (Core 1). Hosts on-bike dashboard from LittleFS. |
-| 3 | **On-Bike Dashboard** | Phone/Tablet browser | SvelteKit app served by ECU. **Full control**: real-time telemetry, map editing, OTA, QS trigger. |
-| 4 | **Server** | Proxmox VM | MQTT broker (Mosquitto) + Express.js backend + React SPA. **Read-only**: session history viewer. |
+| 1 | **Simulatore** | ESP32 | Genera segnali sensore simulati (pick-up, TPS, EGT). Controllato tramite una mini web UI dedicata. |
+| 2 | **ECU** | ESP32-S3 | Controllo motore (Core 0) + comunicazioni (Core 1). Ospita la dashboard a bordo da LittleFS. |
+| 3 | **Dashboard a Bordo** | Browser telefono/tablet | App SvelteKit servita dalla ECU. **Controllo completo**: telemetria in tempo reale, editing mappe, OTA, trigger QS. |
+| 4 | **Server** | VM Proxmox | Broker MQTT (Mosquitto) + backend Express.js + React SPA. **Solo lettura**: visualizzatore storico sessioni. |
 
-### Protocols
+### Protocolli
 
-| Path | Protocol | Direction | Payload |
+| Percorso | Protocollo | Direzione | Payload |
 |---|---|---|---|
-| Simulator → ECU | GPIO / ADC wires | Input | Square wave (pick-up), analog (TPS, EGT) |
-| ECU → Phone | WebSocket | Push | Real-time telemetry JSON (~10–20 Hz) |
-| Phone → ECU | WebSocket | Commands | QS trigger, map edit, map switch, config request |
-| ECU → MQTT Broker | MQTT publish | Push | Session logs (buffered, sent post-session) |
-| MQTT Broker → Express | MQTT subscribe | Push | Session logs → PostgreSQL |
-| React SPA → Express | HTTP REST | Pull | Session list, session detail |
-| ECU → Proxmox VM | HTTP GET | Pull | OTA version check + firmware download |
+| Simulatore → ECU | GPIO / cavi ADC | Input | Onda quadra (pick-up), analogico (TPS, EGT) |
+| ECU → Telefono | WebSocket | Push | Telemetria in tempo reale JSON (~10–20 Hz) |
+| Telefono → ECU | WebSocket | Comandi | Trigger QS, editing mappa, switch mappa, richiesta config |
+| ECU → Broker MQTT | Pubblicazione MQTT | Push | Log sessione (bufferizzati, inviati a fine sessione) |
+| Broker MQTT → Express | Sottoscrizione MQTT | Push | Log sessione → PostgreSQL |
+| React SPA → Express | HTTP REST | Pull | Lista sessioni, dettaglio sessione |
+| ECU → VM Proxmox | HTTP GET | Pull | Verifica versione OTA + download firmware |
 
 ---
 
-## 2. Architecture Diagram
+## 2. Diagramma di Architettura
 
 ```
   ┌──────────────────┐
-  │   Simulator      │
+  │   Simulatore     │
   │   (ESP32)        │
   │                  │          GPIO wires
-  │  Square wave ────┼────────────────────────────┐
-  │  TPS analog  ────┼────────────────────────────┤
-  │  EGT analog  ────┼────────────────────────────┤
+  │  Onda quadra ────┼────────────────────────────┐
+  │  TPS analog. ────┼────────────────────────────┤
+  │  EGT analog. ────┼────────────────────────────┤
   │                  │                             │
-  │  Mini Web UI ◄───┼── (WiFi AP, config only)   │
+  │  Mini Web UI ◄───┼── (WiFi AP, solo config)   │
   └──────────────────┘                             │
                                                    │
                                          ┌─────────▼────────┐
                                          │    ESP32-S3       │
-                                         │    ECU Node       │
+                                         │    Nodo ECU       │
                                          │                   │
-                                         │  Core 0 (Engine)  │
+                                         │  Core 0 (Motore)  │
                                          │  ├─ pick_up ISR   │
                                          │  ├─ rpm_task      │
                                          │  └─ adc_task      │
@@ -56,28 +56,28 @@ A 4-node embedded/web system demonstrating a custom ECU for single-cylinder moto
                                          │  └─ ota_task      │
                                          │                   │
                                          │  LittleFS:        │
-                                         │  SvelteKit build  │
+                                         │  build SvelteKit  │
                                          └──┬──────────┬─────┘
                                             │          │
-                              WebSocket     │          │  MQTT pub (session logs)
-                              + HTTP static │          │  HTTP GET (OTA poll)
+                              WebSocket     │          │  MQTT pub (log sessione)
+                              + HTTP static │          │  HTTP GET (poll OTA)
                                             │          │
                                    ┌────────▼──┐    ┌──▼──────────────────────┐
-                                   │ Phone /   │    │   Proxmox VM            │
+                                   │ Telefono/ │    │   VM Proxmox            │
                                    │ Tablet    │    │                         │
                                    │           │    │  ┌───────────────────┐  │
                                    │ SvelteKit │    │  │ Mosquitto         │  │
-                                   │ On-Bike   │    │  └─────────┬─────────┘  │
-                                   │ Dashboard │    │            │ subscribe  │
+                                   │ Dashboard │    │  └─────────┬─────────┘  │
+                                   │ a Bordo   │    │            │ subscribe  │
                                    │           │    │  ┌─────────▼─────────┐  │
-                                   │ FULL      │    │  │ Express.js        │  │
-                                   │ CONTROL   │    │  │ (log ingestion)   │  │
+                                   │ CONTROLLO │    │  │ Express.js        │  │
+                                   │ COMPLETO  │    │  │ (ingestione log)  │  │
                                    └───────────┘    │  └─────────┬─────────┘  │
                                                     │            │            │
                                                     │  ┌─────────▼─────────┐  │
                                                     │  │ React SPA         │  │
-                                                    │  │ (session viewer)  │  │
-                                                    │  │ READ-ONLY         │  │
+                                                    │  │ (viewer sessioni) │  │
+                                                    │  │ SOLO LETTURA      │  │
                                                     │  └───────────────────┘  │
                                                     │                         │
                                                     │  PostgreSQL             │
@@ -86,91 +86,91 @@ A 4-node embedded/web system demonstrating a custom ECU for single-cylinder moto
 
 ---
 
-## 3. Node 1 — Simulator (ESP32)
+## 3. Nodo 1 — Simulatore (ESP32)
 
-### Purpose
-Replaces real sensors for bench testing. Generates electrical signals that the ECU reads through its normal I/O path (ISR, ADC).
+### Scopo
+Sostituisce i sensori reali per test da banco. Genera segnali elettrici che la ECU legge tramite il normale percorso I/O (ISR, ADC).
 
-### Outputs to ECU
-| Signal | Type | Range | Control |
+### Uscite verso ECU
+| Segnale | Tipo | Range | Controllo |
 |---|---|---|---|
-| Pick-up | Square wave on GPIO | 0–300 Hz (≈ 0–18,000 RPM for single-cyl) | Adjustable frequency via web UI |
-| TPS | Analog voltage (DAC or filtered PWM) | 0–3.3V (0–100% throttle) | Adjustable via web UI slider |
-| EGT | Analog voltage (DAC or filtered PWM) | 0–3.3V (mapped to 0–900°C) | Adjustable via web UI slider |
+| Pick-up | Onda quadra su GPIO | 0–300 Hz (≈ 0–18.000 RPM per mono) | Frequenza regolabile via web UI |
+| TPS | Tensione analogica (DAC o PWM filtrato) | 0–3,3 V (0–100% gas) | Regolabile via slider web UI |
+| EGT | Tensione analogica (DAC o PWM filtrato) | 0–3,3 V (mappata su 0–900°C) | Regolabile via slider web UI |
 
 ### Web UI
-- Hosted on the Simulator ESP32 itself (WiFi AP mode)
-- Simple HTML/JS page
-- Controls: RPM slider/input, TPS slider, EGT slider
-- Presets: "Idle" (1200 RPM, 0% TPS), "Cruise" (6000 RPM, 30% TPS), "WOT" (12000 RPM, 100% TPS)
-- Kill switch: stop all signals (simulate engine off)
+- Ospitata sull'ESP32 Simulatore (modalita WiFi AP)
+- Pagina HTML/JS semplice
+- Controlli: slider/input RPM, slider TPS, slider EGT
+- Preset: "Idle" (1200 RPM, 0% TPS), "Cruise" (6000 RPM, 30% TPS), "WOT" (12000 RPM, 100% TPS)
+- Kill switch: ferma tutti i segnali (simula motore spento)
 
 ---
 
-## 4. Node 2 — ECU (ESP32-S3)
+## 4. Nodo 2 — ECU (ESP32-S3)
 
-### 4.1 FreeRTOS Task Allocation
+### 4.1 Allocazione Task FreeRTOS
 
-| Task | Core | Priority | Stack | Role |
+| Task | Core | Priorita | Stack | Ruolo |
 |---|---|---|---|---|
-| `pick_up_isr` | 0 | — (ISR) | — | Edge-triggered ISR on pick-up GPIO. Captures timestamp, notifies `rpm_task`. |
-| `rpm_task` | 0 | Highest | 4 KB | Computes RPM from ISR timestamps. Runs engine FSM. Schedules CDI timer. |
-| `adc_task` | 0 | High | 4 KB | Periodic TPS + EGT sampling. Computes Power Jet duty cycle from lookup table. |
-| `ws_task` | 1 | High | 8 KB | WebSocket server. Broadcasts telemetry JSON. Receives commands from on-bike dashboard. |
-| `mqtt_task` | 1 | Medium | 8 KB | Buffers telemetry during session. Publishes session log to MQTT broker post-session. |
-| `ota_task` | 1 | Low | 8 KB | Periodically polls server for new firmware version. Downloads and applies OTA update. |
+| `pick_up_isr` | 0 | — (ISR) | — | ISR sul fronte del GPIO pick-up. Cattura il timestamp, notifica `rpm_task`. |
+| `rpm_task` | 0 | Massima | 4 KB | Calcola i RPM dai timestamp ISR. Esegue la FSM motore. Pianifica il timer CDI. |
+| `adc_task` | 0 | Alta | 4 KB | Campionamento periodico TPS + EGT. Calcola duty cycle Power Jet da lookup table. |
+| `ws_task` | 1 | Alta | 8 KB | Server WebSocket. Trasmette telemetria JSON. Riceve comandi dalla dashboard a bordo. |
+| `mqtt_task` | 1 | Media | 8 KB | Bufferizza la telemetria durante la sessione. Pubblica il log su broker MQTT a fine sessione. |
+| `ota_task` | 1 | Bassa | 8 KB | Esegue polling periodico del server per nuove versioni firmware. Scarica e applica OTA. |
 
-### 4.2 Engine FSM
+### 4.2 FSM Motore
 
 ```
-States: INIT, SYNCING, RUNNING, IDLE, IGNCUT, ALARM
+Stati: INIT, SYNCING, RUNNING, IDLE, IGNCUT, ALARM
 
-         ┌──────┐  pick-up detected  ┌──────────┐
+         ┌──────┐  pick-up rilevato  ┌──────────┐
          │ INIT │──────────────────►│ SYNCING  │
          └──────┘                   └──────────┘
-                  ◄── timeout ──────────┘ │ N valid consecutive pulses
+                  ◄── timeout ──────────┘ │ N impulsi validi consecutivi
                                           ▼
-                 RPM < threshold   ┌─────────┐   EGT > MAX
+                 RPM < soglia   ┌─────────┐   EGT > MAX
             ┌───────────────────── │ RUNNING │──────────────────┐
             ▼                      └─────────┘                  ▼
          ┌──────┐  RPM = 0              │                   ┌───────┐
-         │ IDLE │──────────►INIT        │ QS request        │ ALARM │
+         │ IDLE │──────────►INIT        │ richiesta QS      │ ALARM │
          └──────┘                       ▼                   └───────┘
                                   ┌──────────┐                  │ EGT OK
                                   │ IGNCUT   │                  └──────►RUNNING
                                   └──────────┘
-                                  (CDI cut for N cycles,
-                                   then → RUNNING)
+                                  (taglio CDI per N cicli,
+                                   poi → RUNNING)
 ```
 
-**Transitions:**
-| From | To | Trigger |
+**Transizioni:**
+| Da | A | Trigger |
 |---|---|---|
-| INIT | SYNCING | First pick-up pulse detected |
-| SYNCING | RUNNING | N consecutive valid pulses (sync acquired) |
-| SYNCING | INIT | Timeout — no pulse for T ms |
-| RUNNING | IDLE | RPM drops below idle threshold |
-| RUNNING | ALARM | EGT exceeds safety limit |
-| RUNNING | IGNCUT | QS trigger received (button or WebSocket cmd) |
-| IDLE | INIT | RPM = 0 (engine stopped) |
-| ALARM | RUNNING | EGT returns below safe threshold |
-| IGNCUT | RUNNING | After N ignition cycles cut |
+| INIT | SYNCING | Rilevato il primo impulso pick-up |
+| SYNCING | RUNNING | N impulsi validi consecutivi (sync acquisito) |
+| SYNCING | INIT | Timeout — nessun impulso per T ms |
+| RUNNING | IDLE | RPM scende sotto la soglia idle |
+| RUNNING | ALARM | EGT supera il limite di sicurezza |
+| RUNNING | IGNCUT | Ricevuto trigger QS (pulsante o comando WebSocket) |
+| IDLE | INIT | RPM = 0 (motore fermo) |
+| ALARM | RUNNING | EGT torna sotto la soglia di sicurezza |
+| IGNCUT | RUNNING | Dopo N cicli di taglio accensione |
 
-### 4.3 Lookup Tables (1D, stored in NVS)
+### 4.3 Tabelle di Lookup (1D, salvate in NVS)
 
-**Ignition Advance Map**: `f(RPM) → advance_degrees`
-- Configurable number of RPM breakpoints
-- Linear interpolation between breakpoints
-- Multiple maps supported (Map A, Map B, ...)
-- One map active at a time
+**Mappa Anticipo Accensione**: `f(RPM) → advance_degrees`
+- Numero di breakpoints RPM configurabile
+- Interpolazione lineare tra i breakpoints
+- Supporto mappe multiple (Mappa A, Mappa B, ...)
+- Una mappa attiva alla volta
 
-**Power Jet Duty Cycle Map**: `f(RPM) → duty_cycle_%`
-- Same structure as ignition map
-- Controls PWM output to Power Jet solenoid
+**Mappa Duty Cycle Power Jet**: `f(RPM) → duty_cycle_%`
+- Stessa struttura della mappa accensione
+- Controlla l'uscita PWM verso il solenoide Power Jet
 
-### 4.4 Shared Data Buffer
+### 4.4 Buffer Dati Condiviso
 
-Core 0 writes → Core 1 reads (lock-free or mutex-protected):
+Core 0 scrive → Core 1 legge (lock-free o con mutex):
 
 ```c
 typedef struct {
@@ -185,52 +185,52 @@ typedef struct {
 } ecu_telemetry_t;
 ```
 
-### 4.5 CDI Output Scheduling
+### 4.5 Pianificazione Uscita CDI
 
-1. `rpm_task` calculates advance angle from lookup table
-2. Converts advance degrees → time delay from pick-up pulse (based on current RPM)
-3. Starts a hardware timer (ESP32 MCPWM or GP timer)
-4. Timer ISR fires → sets CDI GPIO high for spark duration → resets
+1. `rpm_task` calcola l'anticipo dalla lookup table
+2. Converte i gradi di anticipo → ritardo temporale dal impulso pick-up (in base agli RPM correnti)
+3. Avvia un timer hardware (ESP32 MCPWM o GP timer)
+4. L'ISR del timer scatta → porta alto il GPIO CDI per la durata scintilla → reset
 
-### 4.6 HTTP + WebSocket Server
+### 4.6 Server HTTP + WebSocket
 
-- **EspAsyncWebServer** (ESP-IDF port, formerly me-no-dev) handles both HTTP and WebSocket on a single async server
-- SvelteKit build files stored **gzip-compressed** (`.gz`) in LittleFS → served with `Content-Encoding: gzip` header → browser decompresses automatically
-- This halves flash usage for static assets (~50–70% compression on JS/CSS/HTML)
-- Endpoints:
-  - `GET /` → `index.html.gz` (SvelteKit entry point)
-  - `GET /assets/*` → static `.gz` files (JS/CSS/fonts)
-  - `WS /ws` → WebSocket for telemetry + commands
+- **EspAsyncWebServer** (port ESP-IDF, ex me-no-dev) gestisce HTTP e WebSocket su un unico server asincrono
+- File build SvelteKit salvati **compressi gzip** (`.gz`) in LittleFS → serviti con header `Content-Encoding: gzip` → il browser decomprime automaticamente
+- Questo dimezza l'uso flash per asset statici (~50–70% di compressione su JS/CSS/HTML)
+- Endpoint:
+  - `GET /` → `index.html.gz` (entry point SvelteKit)
+  - `GET /assets/*` → file `.gz` statici (JS/CSS/font)
+  - `WS /ws` → WebSocket per telemetria + comandi
 
 ---
 
-## 5. Node 3 — On-Bike Dashboard (SvelteKit)
+## 5. Nodo 3 — Dashboard a Bordo (SvelteKit)
 
 ### Hosting
-- Built with SvelteKit (static adapter → pre-rendered)
-- Build output **gzip-compressed** and flashed into LittleFS partition on ESP32
-- Served by EspAsyncWebServer with `Content-Encoding: gzip` — browser decompresses transparently
-- Accessed via phone/tablet browser over WiFi (STA mode, same network)
+- Sviluppata con SvelteKit (adapter statico → pre-rendered)
+- Output di build **compresso gzip** e flashato nella partizione LittleFS su ESP32
+- Servita da EspAsyncWebServer con `Content-Encoding: gzip` — il browser decomprime in modo trasparente
+- Accesso via browser telefono/tablet su WiFi (modalita STA, stessa rete)
 
-### Features
+### Funzionalita
 
-| Feature | Description |
+| Funzione | Descrizione |
 |---|---|
-| **RPM Gauge** | Large, prominent real-time RPM display |
-| **TPS Bar** | Throttle position percentage bar |
-| **EGT Indicator** | Temperature with color-coded threshold (green → yellow → red) |
-| **FSM State** | Current engine state badge (INIT / SYNCING / RUNNING / IDLE / ALARM / IGNCUT) |
-| **Active Map** | Which ignition/PJ map is currently active |
-| **Advance Angle** | Current calculated ignition advance |
-| **PJ Duty Cycle** | Current Power Jet duty percentage |
-| **Map Editor** | Add/remove/edit RPM breakpoints and values. Visual curve display. |
-| **Map Switcher** | Select active map from stored maps |
-| **QS Trigger** | Button to simulate quick-shifter input |
-| **OTA Status** | Current firmware version, check-for-update button (ESP32 polls server) |
+| **Indicatore RPM** | Visualizzazione RPM grande e ben visibile in tempo reale |
+| **Barra TPS** | Barra percentuale posizione gas |
+| **Indicatore EGT** | Temperatura con soglia a colori (verde → giallo → rosso) |
+| **Stato FSM** | Badge con stato motore corrente (INIT / SYNCING / RUNNING / IDLE / ALARM / IGNCUT) |
+| **Mappa Attiva** | Mappa accensione/PJ attualmente attiva |
+| **Angolo Anticipo** | Anticipo accensione calcolato corrente |
+| **Duty Cycle PJ** | Percentuale duty Power Jet corrente |
+| **Editor Mappa** | Aggiungi/rimuovi/modifica breakpoints RPM e valori. Curva visuale. |
+| **Selettore Mappa** | Selezione mappa attiva tra quelle memorizzate |
+| **Trigger QS** | Pulsante per simulare l'ingresso quick-shifter |
+| **Stato OTA** | Versione firmware corrente, pulsante verifica aggiornamenti (ESP32 fa polling al server) |
 
-### WebSocket Protocol
+### Protocollo WebSocket
 
-**Telemetry (ECU → Dashboard):**
+**Telemetria (ECU → Dashboard):**
 ```json
 {
   "type": "telemetry",
@@ -247,7 +247,7 @@ typedef struct {
 }
 ```
 
-**Commands (Dashboard → ECU):**
+**Comandi (Dashboard → ECU):**
 ```json
 {"cmd": "qs_trigger"}
 
@@ -267,7 +267,7 @@ typedef struct {
 {"cmd": "get_config"}
 ```
 
-**Responses (ECU → Dashboard):**
+**Risposte (ECU → Dashboard):**
 ```json
 {"type": "ack", "cmd": "set_active_map", "status": "ok"}
 
@@ -287,9 +287,9 @@ typedef struct {
 
 ---
 
-## 6. Node 4 — Server (Proxmox VM)
+## 6. Nodo 4 — Server (VM Proxmox)
 
-### Components
+### Componenti
 
 ```
 Proxmox VM
@@ -299,42 +299,42 @@ Proxmox VM
 └── React SPA (served by Express, static build)
 ```
 
-### MQTT — Session Logs
+### MQTT — Log Sessioni
 
 > [!IMPORTANT]
-> This section needs careful design. The data format must be driven by what the React dashboard needs to display, and constrained by ESP32 RAM limits.
+> Questa sezione richiede progettazione accurata. Il formato dati deve essere guidato da cio che la dashboard React deve visualizzare, ed e limitato dalla RAM disponibile su ESP32.
 
-#### What the React Dashboard Displays
+#### Cosa mostra la Dashboard React
 
-**Session List View** needs per-session summary:
-| Field | Source | Purpose |
+**Vista Lista Sessioni**: riepilogo per sessione:
+| Campo | Fonte | Scopo |
 |---|---|---|
-| Session ID | Generated by ESP32 | Unique identifier |
-| Start / End time | First and last sample timestamps | Duration calculation |
-| Duration | Derived | Quick overview |
-| Max RPM | Aggregated from samples | Session intensity indicator |
-| Avg RPM | Aggregated from samples | Session character |
-| Max EGT | Aggregated from samples | Safety review |
-| Alarm count | Count of ALARM events | Reliability indicator |
-| QS count | Count of IGNCUT events | Shift frequency |
-| Firmware version | From session metadata | Traceability |
+| ID sessione | Generato da ESP32 | Identificatore univoco |
+| Ora inizio / fine | Timestamp primo e ultimo campione | Calcolo durata |
+| Durata | Derivata | Panoramica rapida |
+| RPM max | Aggregato dai campioni | Indicatore intensita sessione |
+| RPM medi | Aggregato dai campioni | Carattere sessione |
+| EGT max | Aggregato dai campioni | Revisione sicurezza |
+| Conteggio allarmi | Numero eventi ALARM | Indicatore affidabilita |
+| Conteggio QS | Numero eventi IGNCUT | Frequenza cambi |
+| Versione firmware | Da metadata sessione | Tracciabilita |
 
-**Session Detail View** needs time-series data for charts:
-| Chart | X-axis | Y-axis | Notes |
+**Vista Dettaglio Sessione**: dati time-series per i grafici:
+| Grafico | Asse X | Asse Y | Note |
 |---|---|---|---|
-| RPM over time | timestamp | RPM (0–18k) | Primary chart, large |
-| TPS over time | timestamp | TPS % (0–100) | Overlay or separate |
-| EGT over time | timestamp | °C (0–900) | With alarm threshold line |
-| Ignition advance | timestamp | degrees | Shows map behavior |
-| Power Jet duty | timestamp | % (0–100) | Correlates with RPM |
-| FSM state | timestamp | state enum | Colored bands/regions on timeline |
-| Events | timestamp | markers | Vertical markers for QS, map switch, alarms |
+| RPM nel tempo | timestamp | RPM (0–18k) | Grafico principale, grande |
+| TPS nel tempo | timestamp | TPS % (0–100) | Sovrapposto o separato |
+| EGT nel tempo | timestamp | °C (0–900) | Con linea soglia allarme |
+| Anticipo accensione | timestamp | gradi | Mostra il comportamento mappa |
+| Duty Power Jet | timestamp | % (0–100) | Correlazione con RPM |
+| Stato FSM | timestamp | enum stato | Bande/regioni colorate sulla timeline |
+| Eventi | timestamp | marker | Marcatori verticali per QS, switch mappa, allarmi |
 
-#### ESP32 RAM Budget
+#### Budget RAM ESP32
 
-ESP32-S3 has ~512 KB total SRAM. After FreeRTOS, WiFi stack, TLS, WebSocket, and LittleFS, realistically **~100–150 KB** is available for the session buffer.
+ESP32-S3 ha ~512 KB di SRAM totale. Dopo FreeRTOS, stack WiFi, TLS, WebSocket e LittleFS, in pratica **~100–150 KB** sono disponibili per il buffer di sessione.
 
-Per-sample data (compact binary in RAM, JSON only at publish time):
+Dati per campione (binario compatto in RAM, JSON solo in fase di publish):
 
 ```c
 typedef struct {
@@ -348,39 +348,39 @@ typedef struct {
 } __attribute__((packed)) session_sample_t;  // = 12 bytes
 ```
 
-| Sample Rate | Buffer Size (100 KB) | Max Session Duration |
+| Sample Rate | Dimensione buffer (100 KB) | Durata massima sessione |
 |---|---|---|
-| 10 Hz | ~8,500 samples | ~14 minutes |
-| 5 Hz | ~8,500 samples | ~28 minutes |
-| 2 Hz | ~8,500 samples | ~70 minutes |
-| 1 Hz | ~8,500 samples | ~2.3 hours |
+| 10 Hz | ~8.500 campioni | ~14 minuti |
+| 5 Hz | ~8.500 campioni | ~28 minuti |
+| 2 Hz | ~8.500 campioni | ~70 minuti |
+| 1 Hz | ~8.500 campioni | ~2,3 ore |
 
 > [!WARNING]
-> At 10 Hz, a 14-minute buffer fills 100 KB. A real track session is 15–20 minutes. We need to decide:
-> - **1 Hz** is safe for buffer size but charts look blocky
-> - **5 Hz** is a good balance (28 min, smooth charts)
-> - **10 Hz** risks overflow on long sessions
+> A 10 Hz, un buffer da 14 minuti riempie 100 KB. Una sessione reale in pista dura 15–20 minuti. Occorre scegliere:
+> - **1 Hz** e sicuro per il buffer ma i grafici sono "a scalini"
+> - **5 Hz** e un buon compromesso (28 min, grafici fluidi)
+> - **10 Hz** rischia overflow su sessioni lunghe
 >
-> **Recommendation**: 5 Hz sampling for session logs, with a **circular buffer** that overwrites oldest data if the session exceeds the limit. The on-bike dashboard still gets telemetry at 10–20 Hz via WebSocket (not logged).
+> **Raccomandazione**: campionamento a 5 Hz per i log sessione, con **buffer circolare** che sovrascrive i dati piu vecchi se la sessione supera il limite. La dashboard a bordo continua a ricevere telemetria a 10–20 Hz via WebSocket (non loggata).
 
-#### MQTT Publish Strategy
+#### Strategia di Pubblicazione MQTT
 
-Session-based (option C from Q23):
+Basata su sessione (opzione C da Q23):
 
-1. **Session start**: FSM transitions to `SYNCING` → ESP32 starts buffering
-2. **During session**: Samples written to circular buffer at chosen rate
-3. **Session end**: FSM returns to `INIT` (RPM = 0 for T seconds) → session finalized
-4. **Publish**: ESP32 publishes session log over MQTT. If the payload is too large for a single MQTT message (broker limit, typically 256 KB), split into **chunks**.
+1. **Inizio sessione**: la FSM passa a `SYNCING` → ESP32 avvia il buffering
+2. **Durante la sessione**: i campioni sono scritti nel buffer circolare alla frequenza scelta
+3. **Fine sessione**: la FSM torna a `INIT` (RPM = 0 per T secondi) → sessione finalizzata
+4. **Publish**: ESP32 pubblica il log sessione via MQTT. Se il payload e troppo grande per un singolo messaggio MQTT (limite broker, tipicamente 256 KB), si divide in **chunk**.
 
-#### MQTT Topic Structure
+#### Struttura Topic MQTT
 
 ```
-ecu/{device_id}/session/meta      → session metadata + summary
-ecu/{device_id}/session/samples   → time-series sample data (may be chunked)
-ecu/{device_id}/session/events    → discrete events during session
+ecu/{device_id}/session/meta      → metadata sessione + riepilogo
+ecu/{device_id}/session/samples   → dati time-series dei campioni (possibilmente in chunk)
+ecu/{device_id}/session/events    → eventi discreti durante la sessione
 ```
 
-**Meta payload:**
+**Payload meta:**
 ```json
 {
   "session_id": "uuid",
@@ -399,7 +399,7 @@ ecu/{device_id}/session/events    → discrete events during session
 }
 ```
 
-**Samples payload** (chunked if needed):
+**Payload campioni** (in chunk se necessario):
 ```json
 {
   "session_id": "uuid",
@@ -413,7 +413,7 @@ ecu/{device_id}/session/events    → discrete events during session
 }
 ```
 
-**Events payload:**
+**Payload eventi:**
 ```json
 {
   "session_id": "uuid",
@@ -428,42 +428,42 @@ ecu/{device_id}/session/events    → discrete events during session
 ```
 
 > [!NOTE]
-> Timestamps in samples/events use `t` = milliseconds relative to `start_ts` (saves bytes vs. absolute timestamps). The backend reconstructs absolute times using `start_ts + t`.
+> I timestamp in campioni/eventi usano `t` = millisecondi relativi a `start_ts` (riduce i byte rispetto ai timestamp assoluti). Il backend ricostruisce i tempi assoluti usando `start_ts + t`.
 
 ---
 
-### Express.js Backend
+### Backend Express.js
 
-**MQTT subscriber:** Connects to Mosquitto broker. Subscribes to `ecu/+/session/#`. Reassembles chunked sample payloads. Inserts complete sessions into PostgreSQL.
+**Subscriber MQTT:** si connette al broker Mosquitto. Si sottoscrive a `ecu/+/session/#`. Riassembla i payload campioni in chunk. Inserisce le sessioni complete in PostgreSQL.
 
-**REST API (read-only):**
+**API REST (solo lettura):**
 
 | Method | Endpoint | Response |
 |---|---|---|
 | `GET` | `/api/sessions` | List: `[{id, device_id, start_ts, end_ts, duration_s, max_rpm, avg_rpm, max_egt, alarm_count, qs_count, fw_version}]` |
 | `GET` | `/api/sessions/:id` | Full session: `{meta, samples[], events[]}` |
 
-**OTA endpoint:**
+**Endpoint OTA:**
 
 | Method | Endpoint | Response |
 |---|---|---|
 | `GET` | `/api/ota/version` | `{"version": "1.3.0", "url": "/api/ota/firmware"}` |
 | `GET` | `/api/ota/firmware` | Binary `.bin` file download |
 
-### React SPA (Read-Only)
+### React SPA (Solo Lettura)
 
-**Session List View:**
-- Sortable/filterable table with columns: date, duration, max RPM, avg RPM, max EGT, alarm count, QS count
-- Click a row → navigate to detail
+**Vista Lista Sessioni:**
+- Tabella ordinabile/filtrabile con colonne: data, durata, RPM max, RPM medi, EGT max, conteggio allarmi, conteggio QS
+- Click su una riga → vai al dettaglio
 
-**Session Detail View:**
-- **Header**: session date, duration, firmware version, summary stats
-- **Main chart area**: stacked/overlaid time-series charts (RPM, TPS, EGT, advance, PJ duty)
-- **FSM timeline**: colored horizontal bar showing state regions (green = RUNNING, yellow = IDLE, red = ALARM, blue = IGNCUT)
-- **Event markers**: vertical lines on charts for QS triggers, map switches, alarms
-- **Zoom/pan**: ability to zoom into a time range for detailed analysis
+**Vista Dettaglio Sessione:**
+- **Header**: data sessione, durata, versione firmware, statistiche riepilogo
+- **Area grafici principale**: grafici time-series sovrapposti/impilati (RPM, TPS, EGT, anticipo, duty PJ)
+- **Timeline FSM**: barra orizzontale colorata con regioni di stato (verde = RUNNING, giallo = IDLE, rosso = ALARM, blu = IGNCUT)
+- **Marker eventi**: linee verticali sui grafici per trigger QS, switch mappa, allarmi
+- **Zoom/pan**: possibilita di zoomare su un intervallo temporale per analisi dettagliata
 
-### PostgreSQL Schema
+### Schema PostgreSQL
 
 ```sql
 CREATE TABLE sessions (
@@ -487,39 +487,39 @@ CREATE INDEX idx_sessions_device_time ON sessions(device_id, start_ts DESC);
 ```
 
 > [!NOTE]
-> Summary stats (`max_rpm`, `avg_rpm`, etc.) are stored as columns for efficient list queries. Full sample/event data lives in JSONB columns for the detail view. This avoids needing to parse JSONB just to render the session list.
+> Le statistiche di sintesi (`max_rpm`, `avg_rpm`, ecc.) sono salvate come colonne per query lista efficienti. I dati completi campioni/eventi stanno in colonne JSONB per la vista dettaglio. Cosi si evita di dover parsare JSONB solo per renderizzare la lista sessioni.
 
 ---
 
-## 7. Scope Boundary
+## 7. Confine di Scope
 
-### In Scope (Elaborato Deliverables)
+### In Scope (Deliverable Elaborato)
 
-| Component | Status |
+| Componente | Stato |
 |---|---|
-| ECU firmware (ESP-IDF, FreeRTOS, dual-core) | ✅ |
-| Engine FSM (6 states) | ✅ |
-| Pick-up ISR → RPM → CDI scheduling | ✅ |
-| ADC sampling (TPS, EGT) → Power Jet PWM | ✅ |
-| 1D lookup tables with interpolation (NVS) | ✅ |
-| WebSocket server (telemetry + commands) | ✅ |
-| MQTT client (session log publish) | ✅ |
-| OTA client (poll + download + apply) | ✅ |
-| On-bike dashboard (SvelteKit, LittleFS) | ✅ |
-| Simulator ESP32 (signals + web UI) | ✅ |
-| Express.js backend (MQTT sub + REST API) | ✅ |
-| React SPA (session list + session detail) | ✅ |
-| PostgreSQL schema + integration | ✅ |
+| Firmware ECU (ESP-IDF, FreeRTOS, dual-core) | ✅ |
+| FSM motore (6 stati) | ✅ |
+| ISR pick-up → RPM → scheduling CDI | ✅ |
+| Campionamento ADC (TPS, EGT) → PWM Power Jet | ✅ |
+| Lookup table 1D con interpolazione (NVS) | ✅ |
+| Server WebSocket (telemetria + comandi) | ✅ |
+| Client MQTT (pubblicazione log sessione) | ✅ |
+| Client OTA (poll + download + apply) | ✅ |
+| Dashboard a bordo (SvelteKit, LittleFS) | ✅ |
+| Simulatore ESP32 (segnali + web UI) | ✅ |
+| Backend Express.js (MQTT sub + REST API) | ✅ |
+| React SPA (lista sessioni + dettaglio sessione) | ✅ |
+| Schema PostgreSQL + integrazione | ✅ |
 
-### Out of Scope (Future Development)
+### Fuori Scope (Sviluppi Futuri)
 
-| Component | Notes |
+| Componente | Note |
 |---|---|
-| Knock sensor + active correction | Hardware not available |
-| Exhaust valve control | Mechanical not present |
-| 3D maps (RPM × TPS) | 1D maps for elaborato, 3D later |
-| HITL / CI pipeline | Too heavy for exam scope |
-| PCB design (KiCad) | Mention in report as future work |
-| OBD-II / CAN bus | Future integration |
-| AP + STA WiFi mode | STA-only for now |
-| Real EGT sensor (MAX6675) | Simulated for now |
+| Sensore knock + correzione attiva | Hardware non disponibile |
+| Controllo valvola di scarico | Meccanica non presente |
+| Mappe 3D (RPM × TPS) | Mappe 1D per elaborato, 3D piu avanti |
+| Pipeline HITL / CI | Troppo pesante per lo scope d'esame |
+| Progetto PCB (KiCad) | Da citare in relazione come sviluppo futuro |
+| OBD-II / CAN bus | Integrazione futura |
+| Modalita WiFi AP + STA | Solo STA per ora |
+| Sensore EGT reale (MAX6675) | Simulato per ora |
