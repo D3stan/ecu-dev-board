@@ -8,13 +8,15 @@ The **Simulator Web UI** is an interactive, lightweight control panel hosted dir
 
 To keep the simulator deployment simple and free from filesystem mounting dependencies, the entire frontend is implemented as a **single-file inline HTML/CSS/JS page** stored as a static character array in the firmware (`index_html.h`).
 
-- **Server Library**: ESP-IDF `esp_http_server` module.
+- **Server Library**: `ESPAsyncWebServer` library.
 - **Routing**: Two light endpoints:
   - `GET /` — Serves the inlined HTML/CSS/JS page.
-  - `WS /ws` — Dual-direction JSON communication channel.
+  - `WS /ws` — Dual-direction asynchronous JSON communication channel.
 
-### Non-Blocking Request Handling
-Although the server uses under-the-hood LwIP tasks (part of ESP-IDF's core networking), the state mutation interface is 100% thread-safe. Incoming WebSocket messages are queued in a light circular ring buffer, which is drained and processed deterministically by the MCU Core at the start of each simulation tick.
+### Asynchronous Request Handling & Thread Safety
+Because the web server is asynchronous, WebSocket callbacks are executed in a separate background thread context. To maintain maximal timing precision inside the simulator's core superloop, incoming command mutations (like virtual overrides or value edits) write directly to volatile state fields inside `sim_state_t`. 
+
+No complex blocking synchronization (e.g., mutex locks) is used, since manual operator overrides are not timing-critical and do not require strict lock-step synchronization.
 
 ---
 
@@ -76,16 +78,16 @@ The Web UI features a dark, dashboard-style responsive layout:
 ```
 
 ### 1. Live Engine Telemetry Block
-- **RPM Meter**: Digital display.
+- **RPM Meter**: Digital display showing current dynamically computed RPM.
 - **Spark Advance Monitor**: Shows the calculated ignition advance degree relative to the crankshaft position trigger (e.g. `32.5° BTDC`).
-- **Spark Indicator**: Pulsing virtual LED that flashes green whenever physical sparks are captured on `GPIO 34`. If the ECU cuts spark (e.g. during a Quick Shift cut), the LED goes dark.
+- **Spark Indicator**: Pulsing virtual LED that flashes green whenever physical sparks are captured. If the ECU cuts spark (e.g. during a Quick Shift cut), the LED goes dark.
 
 ### 2. Hardware Overrides Panel
-By default, the simulator reads physical potentiometers (TPS/EGT). Checking an "Override" box activates a software-lock:
+By default, the simulator reads physical potentiometers (TPS/EGT) connected to the ADC. Checking an "Override" box activates a software-lock:
 - **Override TPS**: Detaches the TPS parameter from the physical potentiometer and binds it to a smooth web slider (0–100%).
 - **Override EGT**: Detaches the EGT thermal calculation and binds it to a web slider (20°C to 1000°C).
 
 ### 3. Fault & Event Injector Panel
 Contains instant actions designed to stress-test the ECU:
 - **EGT Overheat Button**: Simulates thermocouple failure or engine overheat. Bypasses calculations to force simulated EGT to **850°C**. The operator can then verify that the ECU successfully transits to the `ALARM` state and trips safety outputs.
-- **Quick-Shifter Trigger Button**: Pulses a Simulator output pin connected to the ECU's physical QS switch to test trigger responsiveness.
+- **Quick-Shifter Trigger Button**: Sends a command to pull the digital output pin (`SIM_PIN_QS_OUT`) low for a brief duration (50ms–100ms) to simulate a physical shifter cut switch press, testing the ECU's shift cut detection code.

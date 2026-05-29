@@ -1,15 +1,16 @@
 # Simulator Node High-Level Architecture Prototyping
 
-This document outlines the high-level architecture of the **ECU Simulator Node**. The simulator runs on a secondary ESP32 development board, serving as a hardware-in-the-loop (HIL) test-bench. It physicalizes mechanical and thermal signals (Pick-up coil sensor, Throttle Position Sensor, Exhaust Gas Temperature) and measures the resulting ECU CDI (Capacitor Discharge Ignition) trigger output to calculate spark advance.
+This document outlines the high-level architecture of the **ECU Simulator Node**. The simulator runs on a secondary ESP32 development board (e.g., standard ESP32 or ESP32-S2), serving as a hardware-in-the-loop (HIL) test-bench. It physicalizes mechanical and thermal signals (Pick-up coil sensor, Throttle Position Sensor, Exhaust Gas Temperature) and measures the resulting ECU CDI (Capacitor Discharge Ignition) trigger output to calculate spark advance.
 
-## Design Philosophy: No FreeRTOS
+## Design Philosophy: Centralized Configuration & Async Processing
 
-To ensure sub-microsecond pulse timing accuracy, zero task-switching overhead, and maximal determinism, **the Simulator does not employ FreeRTOS multitasking**. Instead, it uses a **bare-metal-style superloop** paired with hardware interrupts and low-overhead timers. 
+To ensure sub-microsecond pulse timing accuracy, zero task-switching overhead, and maximal determinism in the kinematics calculations, **the core Simulator logic operates in a single-threaded superloop** paired with hardware interrupts and low-overhead timers. 
 
-### Why Skip FreeRTOS?
-- **Ultra-low latency**: Direct register manipulation and hardware interrupts avoid context-switching delays, preserving precise phase relationships between mechanical pulses and ignition triggers.
-- **Extreme simplicity**: Eliminates race conditions, mutex locks, and multi-threaded stack sizing problems.
-- **Deterministic signal timing**: High-precision square waves represent crankshaft rotation up to 18,000 RPM (300 Hz pick-up frequency) generated via hardware timers, unaffected by RTOS scheduler ticks.
+### Key Principles:
+- **Centralized Pin Mappings**: All simulator inputs and outputs are defined as macros in a centralized `pins.h` header file, allowing easy hardware portability across ESP32 and ESP32-S2 development boards.
+- **Asynchronous Communication**: Web interfaces and API endpoints are powered by `ESPAsyncWebServer`, ensuring that WebSocket network handling is non-blocking and does not impact the timing of the engine simulation.
+- **Open-Loop Signal Generation**: The pick-up coil pulse generator operates independently of the ECU's spark output, dynamically translating the selected RPM (from Web UI or potentiometer) to a corresponding frequency in Hz.
+- **Passive Monitoring**: The spark advance capture system acts as a passive observer, measuring the phase relationship of the ECU's output relative to the generated pickup signal without feeding back into the signal generation logic.
 
 ---
 
@@ -32,7 +33,7 @@ graph TD
     end
 
     subgraph WebUI [Simulator Web UI & API]
-        HTTPServer[esp_http_server - Web & WS Interfaces]
+        HTTPServer[ESPAsyncWebServer - Async HTTP & WS]
         OverrideMgr[Manual Override / Fault Injector]
     end
 
@@ -56,8 +57,8 @@ To keep the codebase modular and organized, the architecture is split into three
 Responsible for engine rotation kinematics, thermal rise/decay equations, virtual overrides, and telemetry compilation. It coordinates the overall logic of the simulation without spawning concurrent tasks.
 
 ### 2. [I/O Interface (Hardware Layer)](file:///Users/puddu/Documents/GitHub/ecu-dev-board/idf/docs/sim/io.md)
-Responsible for physical interaction:
-- **Generation**: Creating the pick-up sensor square wave (0–300 Hz) using the ESP32 hardware timer or LEDC.
+Responsible for physical interaction, using pin assignments defined in `pins.h`:
+- **Generation**: Creating the pick-up sensor square wave based on the selected RPM using hardware LEDC.
 - **Measurement**: Capturing the ECU's CDI spark output with a high-precision input capture GPIO interrupt.
 - **Sampling**: Reading physical potentiometers using the ADC to simulate TPS and EGT sensors.
 
@@ -71,12 +72,14 @@ A lightweight web interface hosted directly on the simulator's flash filesystem.
 
 ## HIL Hardware Connections
 
-The ECU (ESP32-S3) and the Simulator (ESP32) are cross-connected to construct a closed-loop system:
+All pins listed below are configurable via `pins.h` to support various development boards (ESP32 / ESP32-S2):
 
-| Simulator Pin (ESP32) | Connection Type | ECU Pin (ESP32-S3) | Signal Description |
-|-----------------------|-----------------|---------------------|--------------------|
-| **GPIO 25 (DAC/PWM)** | Output → Input   | **GPIO 4**          | Pick-up Coil Pulse (0-300 Hz square wave) |
-| **GPIO 26 (DAC/PWM)** | Output → Input   | **GPIO 5**          | Throttle Position Sensor (TPS) Analog Voltage (0-3.3V) |
-| **GPIO 27 (DAC/PWM)** | Output → Input   | **GPIO 6**          | Exhaust Gas Temp (EGT) Analog Voltage (0-3.3V) |
-| **GPIO 34 (Input)**   | Input ← Output   | **GPIO 7**          | CDI Ignition Spark Trigger |
-| **GND**               | Ground Share    | **GND**             | Common Ground Reference |
+| Simulator Pin Macro | Signal Type | ECU Pin (ESP32-S3) | Signal Description |
+|---------------------|-------------|---------------------|--------------------|
+| `SIM_PIN_PICKUP`    | Output → Input | **GPIO 4**          | Pick-up Coil Pulse (0-300 Hz square wave) |
+| `SIM_PIN_TPS_OUT`   | Output → Input | **GPIO 5**          | Throttle Position Sensor (TPS) Analog Voltage (0-3.3V) |
+| `SIM_PIN_EGT_OUT`   | Output → Input | **GPIO 6**          | Exhaust Gas Temp (EGT) Analog Voltage (0-3.3V) |
+| `SIM_PIN_SPARK`     | Input ← Output | **GPIO 7**          | CDI Ignition Spark Trigger |
+| `SIM_PIN_QS_OUT`    | Output → Input | **GPIO 8**          | Quick-Shifter (QS) Switch Trigger (Active-Low pulse) |
+| **GND**             | Ground Share| **GND**             | Common Ground Reference |
+
