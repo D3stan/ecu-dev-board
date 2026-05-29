@@ -2,13 +2,14 @@
 
 This document outlines the high-level architecture of the **ECU Simulator Node**. The simulator runs on a secondary ESP32 development board (e.g., standard ESP32 or ESP32-S2), serving as a hardware-in-the-loop (HIL) test-bench. It physicalizes mechanical and thermal signals (Pick-up coil sensor, Throttle Position Sensor, Exhaust Gas Temperature) and measures the resulting ECU CDI (Capacitor Discharge Ignition) trigger output to calculate spark advance.
 
-## Design Philosophy: Centralized Configuration & Async Processing
+## Design Philosophy: Centralized Configuration & Native ESP-IDF
 
 To ensure sub-microsecond pulse timing accuracy, zero task-switching overhead, and maximal determinism in the kinematics calculations, **the core Simulator logic operates in a single-threaded superloop** paired with hardware interrupts and low-overhead timers. 
 
 ### Key Principles:
 - **Centralized Pin Mappings**: All simulator inputs and outputs are defined as macros in a centralized `pins.h` header file, allowing easy hardware portability across ESP32 and ESP32-S2 development boards.
-- **Asynchronous Communication**: Web interfaces and API endpoints are powered by `ESPAsyncWebServer`, ensuring that WebSocket network handling is non-blocking and does not impact the timing of the engine simulation.
+- **ESP-IDF Native Components**: Web interfaces and API endpoints are powered by ESP-IDF's native `esp_http_server` module, avoiding third-party Arduino dependencies and maintaining compliance with standard ESP-IDF workflows.
+- **Dual Hardware DACs**: Both TPS and EGT simulated analog voltages are generated via the ESP32/ESP32-S2's dual on-board Digital-to-Analog Converters (DACs). This provides highly accurate 8-bit DC voltage outputs without requiring high-frequency PWM or external RC smoothing filters.
 - **Open-Loop Signal Generation**: The pick-up coil pulse generator operates independently of the ECU's spark output, dynamically translating the selected RPM (from Web UI or potentiometer) to a corresponding frequency in Hz.
 - **Passive Monitoring**: The spark advance capture system acts as a passive observer, measuring the phase relationship of the ECU's output relative to the generated pickup signal without feeding back into the signal generation logic.
 
@@ -33,7 +34,7 @@ graph TD
     end
 
     subgraph WebUI [Simulator Web UI & API]
-        HTTPServer[ESPAsyncWebServer - Async HTTP & WS]
+        HTTPServer[esp_http_server - Native Web & WS]
         OverrideMgr[Manual Override / Fault Injector]
     end
 
@@ -77,8 +78,8 @@ All pins listed below are configurable via `pins.h` to support various developme
 | Simulator Pin Macro | Signal Type | ECU Pin (ESP32-S3) | Signal Description |
 |---------------------|-------------|---------------------|--------------------|
 | `SIM_PIN_PICKUP`    | Output → Input | **GPIO 4**          | Pick-up Coil Pulse (0-300 Hz square wave) |
-| `SIM_PIN_TPS_OUT`   | Output → Input | **GPIO 5**          | Throttle Position Sensor (TPS) Analog Voltage (0-3.3V) |
-| `SIM_PIN_EGT_OUT`   | Output → Input | **GPIO 6**          | Exhaust Gas Temp (EGT) Analog Voltage (0-3.3V) |
+| `SIM_PIN_TPS_OUT`   | Output → Input | **GPIO 5**          | TPS Analog Voltage (0-3.3V via hardware DAC Channel 2) |
+| `SIM_PIN_EGT_OUT`   | Output → Input | **GPIO 6**          | EGT Analog Voltage (0-3.3V via hardware DAC Channel 1) |
 | `SIM_PIN_SPARK`     | Input ← Output | **GPIO 7**          | CDI Ignition Spark Trigger |
 | `SIM_PIN_QS_OUT`    | Output → Input | **GPIO 8**          | Quick-Shifter (QS) Switch Trigger (Active-Low pulse) |
 | **GND**             | Ground Share| **GND**             | Common Ground Reference |

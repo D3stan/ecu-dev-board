@@ -9,9 +9,9 @@ The **MCU Core** of the Simulator orchestrates the kinematics of the engine, mod
 To ensure sub-microsecond pulse timing accuracy and maximal execution determinism, the Simulator MCU Core operates on a strict **time-sliced, poll-based loop**. 
 
 ### Concurrency Model:
-1. **Asynchronous Web Interface**: Network handling (HTTP requests, WebSocket frames) runs entirely asynchronously in the background, powered by the `ESPAsyncWebServer` library. 
+1. **Under-the-Hood Network Threading**: Network handling (HTTP requests, WebSocket frames) runs asynchronously in background threads spawned by ESP-IDF's native `esp_http_server` module.
 2. **Pragmatic Thread-Safety**: WebSocket callback handlers directly update volatile parameter fields (such as manual overrides or slider values) in the simulator state. Heavy-overhead locking mechanisms (e.g., mutexes, semaphores) are intentionally avoided as absolute thread safety in 100% of edge cases is not required for these non-critical operator control values.
-3. **Queue Draining**: The function `sim_net_poll()` is run at the start of each superloop iteration to process queued command structures or state updates passed from the asynchronous network thread.
+3. **Queue Draining**: The function `sim_net_poll()` is run at the start of each superloop iteration to process queued command structures or state updates passed from the WebSocket handlers.
 
 ### Main Loop Template
 ```c
@@ -19,7 +19,7 @@ void app_main(void) {
     // 1. Hardware Initialization (Configured via macros in pins.h)
     sim_io_init();
     
-    // 2. Network Initialization (Starts ESPAsyncWebServer on background thread)
+    // 2. Network Initialization (Starts esp_http_server on background thread)
     sim_net_init();
 
     uint64_t last_sim_tick = esp_timer_get_time();
@@ -31,7 +31,7 @@ void app_main(void) {
     while (1) {
         uint64_t now = esp_timer_get_time();
 
-        // Process asynchronous network commands drained from ESPAsyncWebServer callbacks
+        // Process asynchronous network commands drained from esp_http_server callbacks
         sim_net_poll();
 
         // Engine Kinematics & Thermodynamic updates (100 Hz)

@@ -8,13 +8,13 @@ The **Simulator Web UI** is an interactive, lightweight control panel hosted dir
 
 To keep the simulator deployment simple and free from filesystem mounting dependencies, the entire frontend is implemented as a **single-file inline HTML/CSS/JS page** stored as a static character array in the firmware (`index_html.h`).
 
-- **Server Library**: `ESPAsyncWebServer` library.
+- **Server Library**: ESP-IDF `esp_http_server` module.
 - **Routing**: Two light endpoints:
   - `GET /` — Serves the inlined HTML/CSS/JS page.
-  - `WS /ws` — Dual-direction asynchronous JSON communication channel.
+  - `WS /ws` — Dual-direction JSON communication channel handler.
 
 ### Asynchronous Request Handling & Thread Safety
-Because the web server is asynchronous, WebSocket callbacks are executed in a separate background thread context. To maintain maximal timing precision inside the simulator's core superloop, incoming command mutations (like virtual overrides or value edits) write directly to volatile state fields inside `sim_state_t`. 
+Because the `esp_http_server` runs in its own FreeRTOS task spawned by `httpd_start()`, WebSocket callbacks are executed in a separate background thread context. To maintain maximal timing precision inside the simulator's core superloop, incoming command mutations (like virtual overrides or value edits) write directly to volatile state fields inside `sim_state_t`. 
 
 No complex blocking synchronization (e.g., mutex locks) is used, since manual operator overrides are not timing-critical and do not require strict lock-step synchronization.
 

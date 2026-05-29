@@ -13,8 +13,8 @@ To ensure portability across various development board variants (such as ESP32 a
 #pragma once
 
 #define SIM_PIN_PICKUP      25    // Pick-up Coil Pulse Output (LEDC)
-#define SIM_PIN_TPS_OUT     26    // TPS Simulated Analog Output (DAC Channel 2)
-#define SIM_PIN_EGT_OUT     27    // EGT Simulated Analog Output (LEDC PWM)
+#define SIM_PIN_TPS_OUT     26    // TPS Simulated Analog Output (DAC Channel 2 / GPIO 26 on ESP32, GPIO 18 on ESP32-S2)
+#define SIM_PIN_EGT_OUT     25    // EGT Simulated Analog Output (DAC Channel 1 / GPIO 25 on ESP32, GPIO 17 on ESP32-S2)
 #define SIM_PIN_SPARK       34    // CDI Spark Input (GPIO Interrupt)
 #define SIM_PIN_QS_OUT      12    // Quick-Shifter digital pulse output (Active-Low)
 
@@ -76,30 +76,37 @@ void sim_io_pickup_set_frequency(uint32_t freq) {
 
 ## 2. Analog Sensor Simulation (TPS & EGT Voltages)
 
-The ECU reads TPS and EGT via analog voltages (0–3.3V). The simulator produces these signals using the on-chip DAC or filtered PWM.
+The ECU reads TPS and EGT via analog voltages (0–3.3V). The simulator produces these signals using the on-chip dual Digital-to-Analog Converters (DAC).
 - **TPS Output Pin**: `SIM_PIN_TPS_OUT` (ECU TPS input).
 - **EGT Output Pin**: `SIM_PIN_EGT_OUT` (ECU EGT input).
 
-### Hardware Implementation
-1. **TPS**: Handled via DAC Channel 2 on `SIM_PIN_TPS_OUT` (direct analog voltage output).
-2. **EGT**: Handled via **High-Frequency LEDC PWM** on `SIM_PIN_EGT_OUT` (utilizing a dedicated LEDC timer separate from the pickup coil timer) paired with an external RC low-pass filter (e.g. 10 kΩ resistor, 10 μF capacitor) to smooth the signal into a noise-free DC voltage.
+### Hardware Implementation: Dual On-Chip DACs
+The ESP32/ESP32-S2 microcontrollers feature two independent 8-bit DAC channels:
+1. **TPS**: Handled via DAC Channel 2 on `SIM_PIN_TPS_OUT` (direct DC analog voltage output).
+2. **EGT**: Handled via DAC Channel 1 on `SIM_PIN_EGT_OUT` (direct DC analog voltage output).
+
+Using hardware DACs completely eliminates the need for high-frequency PWM timers and external RC low-pass smoothing filters.
 
 ```c
 #include "driver/dac.h"
 #include "pins.h"
 
 void sim_io_analog_out_init(void) {
-    // Enable DAC channel for TPS
-    dac_output_enable(DAC_CHANNEL_2); 
-    
-    // Initialize EGT PWM output channel on EGT pin using dedicated LEDC timer
-    // ... config of EGT PWM ...
+    // Enable both hardware DAC channels
+    dac_output_enable(DAC_CHANNEL_1); // EGT (Channel 1)
+    dac_output_enable(DAC_CHANNEL_2); // TPS (Channel 2)
 }
 
 void sim_io_set_tps_voltage(float percent) {
-    // Scale 0.0-100.0% to 0-255 DAC value
+    // Scale 0.0-100.0% to 0-255 DAC value (0V to 3.3V)
     uint8_t dac_val = (uint8_t)((percent / 100.0f) * 255.0f);
     dac_output_voltage(DAC_CHANNEL_2, dac_val);
+}
+
+void sim_io_set_egt_voltage(float percent) {
+    // Scale 0.0-100.0% to 0-255 DAC value (0V to 3.3V)
+    uint8_t dac_val = (uint8_t)((percent / 100.0f) * 255.0f);
+    dac_output_voltage(DAC_CHANNEL_1, dac_val);
 }
 ```
 
