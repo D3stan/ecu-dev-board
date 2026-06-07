@@ -88,7 +88,7 @@ void sim_io_init(void) {
     gpio_config_t qs_io_conf = {
         .pin_bit_mask = (1ULL << SIM_PIN_QS_OUT),
         .mode = GPIO_MODE_OUTPUT,
-        .pull_up_en = GPIO_PULLUP_EN,
+        .pull_up_en = GPIO_PULLUP_ENABLE,
         .pull_down_en = GPIO_PULLDOWN_DISABLE,
         .intr_type = GPIO_INTR_DISABLE
     };
