@@ -1,0 +1,75 @@
+/* ============= OTA STATUS ============= */
+.ota-status {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  padding: 16px;
+  background: var(--ecu-surface);
+  border: 1px solid var(--ecu-border);
+  border-radius: var(--radius-lg);
+}
+
+.ota-status__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ota-status__version {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--ecu-text);
+}
+
+.ota-status__version-label {
+  font-size: 0.75rem;
+  color: var(--ecu-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.ota-status__check-btn {
+  padding: 8px 16px;
+  background: var(--ecu-accent);
+  color: #ffffff;
+  border: none;
+  border-radius: var(--radius-md);
+  font-weight: 500;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.ota-status__check-btn:hover {
+  filter: brightness(1.1);
+}
+
+.ota-status__check-btn:disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* Available update banner */
+.ota-status__available {
+  padding: 12px;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid var(--ecu-green);
+  border-radius: var(--radius-md);
+  color: var(--ecu-green);
+  font-weight: 500;
+}
+
+/* Progress bar */
+.ota-status__progress {
+  height: 6px;
+  background: var(--ecu-surface-alt);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.ota-status__progress-fill {
+  height: 100%;
+  background: var(--ecu-accent);
+  border-radius: 3px;
+  transition: width 300ms ease;
+}

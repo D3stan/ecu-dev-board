@@ -91,3 +91,27 @@ By default, the simulator reads physical potentiometers (TPS/EGT) connected to t
 Contains instant actions designed to stress-test the ECU:
 - **EGT Overheat Button**: Simulates thermocouple failure or engine overheat. Bypasses calculations to force simulated EGT to **850°C**. The operator can then verify that the ECU successfully transits to the `ALARM` state and trips safety outputs.
 - **Quick-Shifter Trigger Button**: Sends a command to pull the digital output pin (`SIM_PIN_QS_OUT`) low for a brief duration (50ms–100ms) to simulate a physical shifter cut switch press, testing the ECU's shift cut detection code.
+
+---
+
+## Relocation & Build Chain
+
+The Web UI source code was relocated from the `idf/webui` directory to the `emulator/webui` directory to keep the emulator project self-contained and version-controlled.
+
+### Compilation and Inlining Flow
+
+To compile and integrate the Web UI into the native ESP-IDF firmware:
+1. **Build Tool**: The automation script [web_builder.py](file:///Users/puddu/Documents/GitHub/ecu-dev-board/emulator/web_builder.py) in the `emulator` directory automates the pipeline.
+2. **Execution Steps**:
+   - Executes `npm run build` inside [webui](file:///Users/puddu/Documents/GitHub/ecu-dev-board/emulator/webui) to compile static assets into `dist/`.
+   - Reads the built `index.html`.
+   - Decompresses and extracts the CSS (`style.css.gz`) and JavaScript (`app.js.gz`) assets.
+   - Inlines the CSS and JavaScript content directly into `index.html` using `<style>` and `<script>` tags, making it a single self-contained document.
+   - Replaces `const isDev = true;` with `const isDev = false;` to switch the UI to production mode (connecting to the ESP32 WebSocket server at `ws://<ESP_IP>/ws` rather than mock local telemetry).
+   - Compresses (gzip) the final inlined HTML to minimize flash footprint.
+   - Generates [index_html.h](file:///Users/puddu/Documents/GitHub/ecu-dev-board/emulator/main/index_html.h) containing the gzipped hex byte array `index_html_gz[]` and its length.
+3. **Usage Command**:
+   ```bash
+   python3 web_builder.py
+   ```
+

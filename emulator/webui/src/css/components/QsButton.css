@@ -1,0 +1,64 @@
+/* ============= QS (QUICK-START) BUTTON ============= */
+.qs-button {
+  width: 100%;
+  padding: 16px;
+  background: var(--ecu-purple);
+  color: #ffffff;
+  border: none;
+  border-radius: var(--radius-lg);
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  transition: all 200ms ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.qs-button:active {
+  transform: scale(0.95);
+}
+
+.qs-button:hover {
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
+}
+
+/* Disabled */
+.qs-button--disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+/* Firing animation */
+.qs-button--firing {
+  animation: qsPulse 200ms ease;
+}
+
+@keyframes qsPulse {
+  0% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+  50% {
+    transform: scale(1.05);
+    filter: brightness(1.3);
+  }
+  100% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+}
+
+/* Ripple effect (optional enhancement) */
+.qs-button__ripple {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}

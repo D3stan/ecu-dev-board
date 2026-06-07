@@ -1,0 +1,24 @@
+/* ============= FSM BADGE ============= */
+.fsm-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: all var(--transition-normal);
+  /* Colors set via inline style from FsmStateConfig */
+}
+
+.fsm-badge__icon {
+  font-size: 1rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.fsm-badge__label {
+  white-space: nowrap;
+}

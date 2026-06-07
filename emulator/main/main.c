@@ -106,6 +106,8 @@ void run_engine_simulation(float dt)
  */
 void broadcast_simulator_telemetry(void)
 {
+    char json_buf[300];
+    
     // Take local snapshots of volatile variables for atomic format consistency
     float rpm = g_sim_state.current_rpm;
     float tps = g_sim_state.current_tps;
@@ -116,13 +118,22 @@ void broadcast_simulator_telemetry(void)
     bool egt_overridden = g_sim_state.egt.is_overridden;
     bool fault_active = g_sim_state.fault_egt_overheat;
 
-    // Output JSON format directly to stdout / UART debug console
-    printf("{\"type\": \"sim_telemetry\", \"data\": {\"rpm\": %.1f, \"tps\": %.1f, \"egt\": %.1f, \"ecu_advance\": %.2f, \"spark_detected\": %s, \"overrides\": {\"tps\": %s, \"egt\": %s, \"egt_fault\": %s}}}\n",
+    // Compose telemetry JSON string
+    int len = snprintf(json_buf, sizeof(json_buf),
+           "{\"type\": \"sim_telemetry\", \"data\": {\"rpm\": %.1f, \"tps\": %.1f, \"egt\": %.1f, \"ecu_advance\": %.2f, \"spark_detected\": %s, \"overrides\": {\"tps\": %s, \"egt\": %s, \"egt_fault\": %s}}}",
            rpm, tps, egt, spark_adv,
            spark_det ? "true" : "false",
            tps_overridden ? "true" : "false",
            egt_overridden ? "true" : "false",
            fault_active ? "true" : "false");
+
+    if (len > 0 && len < sizeof(json_buf)) {
+        // Output JSON format directly to stdout / UART debug console (with newline)
+        printf("%s\n", json_buf);
+        
+        // Broadcast to all connected Web clients
+        sim_net_broadcast(json_buf, len);
+    }
 }
 
 /**
@@ -152,6 +163,7 @@ void app_main(void)
 
         // 100 Hz Kinematics and Thermodynamics physics engine tick
         if (now - last_sim_tick >= SIM_TICK_INTERVAL_US) {
+            sim_io_read_potentiometers();
             run_engine_simulation(SIM_TICK_INTERVAL_US / 1000000.0f);
             last_sim_tick += SIM_TICK_INTERVAL_US;
             

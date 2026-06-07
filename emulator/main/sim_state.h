@@ -32,3 +32,6 @@ typedef struct {
     bool spark_detected;    // True if active spark captured within past rotation periods
     float spark_advance;    // Calculated spark advance angle (BTDC degrees)
 } sim_state_t;
+
+extern volatile sim_state_t g_sim_state;
+

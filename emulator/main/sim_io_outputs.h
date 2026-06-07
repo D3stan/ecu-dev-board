@@ -39,4 +39,9 @@ void sim_io_qs_trigger(void);
  */
 void sim_io_fast_poll(void);
 
+/**
+ * @brief Read analog cockpit potentiometer values (TPS and EGT) and update global simulator state.
+ */
+void sim_io_read_potentiometers(void);
+
 #endif // SIM_IO_OUTPUTS_H

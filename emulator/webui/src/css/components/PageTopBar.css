@@ -1,0 +1,76 @@
+/**
+ * PageTopBar.css
+ * ==============
+ * Stili per il componente PageTopBar (sub-header con back button e titolo)
+ * Ricicla CSS da styles.css per consistenza
+ */
+
+/* ============================================
+   PAGE TOP BAR (SUB-HEADER)
+   ============================================ */
+
+.sub-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  margin-bottom: 0.25rem;
+  padding-left: 0.5rem;
+}
+
+.back-btn {
+  position: absolute;
+  left: 0;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: none;
+  background: var(--card);
+  border-radius: 0.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text);
+  transition: all 150ms;
+  box-shadow: var(--shadow);
+}
+
+.back-btn:hover {
+  background: var(--border);
+}
+
+.back-btn:active {
+  transform: scale(0.95);
+}
+
+.back-btn svg {
+  width: 24px;
+  height: 24px;
+}
+
+.sub-header-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 385px) {
+  .sub-header-title {
+    font-size: 1.25rem;
+  }
+  
+  .back-btn {
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+  
+  .back-btn svg {
+    width: 20px;
+    height: 20px;
+  }
+}

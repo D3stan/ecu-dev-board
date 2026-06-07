@@ -1,0 +1,35 @@
+/* ============= MAP SELECTOR ============= */
+.map-selector {
+  display: flex;
+  flex-direction: row;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+}
+
+.map-selector__btn {
+  padding: 8px 16px;
+  background: var(--ecu-surface-alt);
+  border: 1px solid var(--ecu-border);
+  border-radius: var(--radius-md);
+  color: var(--ecu-text);
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: all 200ms ease;
+  white-space: nowrap;
+}
+
+.map-selector__btn:hover {
+  border-color: var(--ecu-accent);
+}
+
+.map-selector__btn--active {
+  background: var(--ecu-accent);
+  border-color: var(--ecu-accent);
+  color: #ffffff;
+}
+
+.map-selector__btn--active:hover {
+  border-color: var(--ecu-accent);
+  filter: brightness(1.1);
+}

@@ -15,6 +15,11 @@ static dac_oneshot_handle_t tps_dac_handle = NULL;
 static dac_oneshot_handle_t egt_dac_handle = NULL;
 #endif
 
+#include "esp_adc/adc_oneshot.h"
+#include "sim_state.h"
+
+static adc_oneshot_unit_handle_t adc1_handle = NULL;
+
 static const char *TAG = "SIM_IO";
 
 // Non-blocking Quick-Shifter state variables
@@ -81,6 +86,41 @@ static void sim_io_analog_out_init(void) {
 #endif
 }
 
+#if CONFIG_IDF_TARGET_ESP32
+#define SIM_ADC_ATTEN ADC_ATTEN_DB_11
+#else
+#define SIM_ADC_ATTEN ADC_ATTEN_DB_12
+#endif
+
+static void sim_io_adc_init(void) {
+    ESP_LOGI(TAG, "Initializing ADC1 for manual cockpit potentiometer inputs...");
+
+    adc_oneshot_unit_init_cfg_t init_config1 = {
+        .unit_id = ADC_UNIT_1,
+        .clk_src = 0,
+        .ulp_mode = ADC_ULP_MODE_DISABLE,
+    };
+    if (adc_oneshot_new_unit(&init_config1, &adc1_handle) != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to initialize ADC1 unit");
+        return;
+    }
+
+    adc_oneshot_chan_cfg_t config = {
+        .bitwidth = ADC_BITWIDTH_DEFAULT,
+        .atten = SIM_ADC_ATTEN,
+    };
+    
+    // Configure Channel 4 (GPIO 32 / SIM_PIN_TPS_POT)
+    if (adc_oneshot_config_channel(adc1_handle, ADC_CHANNEL_4, &config) != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to configure ADC1 Channel 4");
+    }
+
+    // Configure Channel 5 (GPIO 33 / SIM_PIN_EGT_POT)
+    if (adc_oneshot_config_channel(adc1_handle, ADC_CHANNEL_5, &config) != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to configure ADC1 Channel 5");
+    }
+}
+
 void sim_io_init(void) {
     ESP_LOGI(TAG, "Initializing Emulator Hardware I/O drivers...");
 
@@ -100,6 +140,9 @@ void sim_io_init(void) {
 
     // 3. Initialize dual DAC analog outputs
     sim_io_analog_out_init();
+
+    // 4. Initialize manual cockpit potentiometers ADC inputs
+    sim_io_adc_init();
 }
 
 void sim_io_pickup_set_frequency(uint32_t freq) {
@@ -148,4 +191,57 @@ void sim_io_fast_poll(void) {
             ESP_LOGI(TAG, "Quick-Shifter pulse finished: pin restored HIGH after %d us", (int)elapsed);
         }
     }
+}
+
+void sim_io_read_potentiometers(void) {
+    if (!adc1_handle) return;
+
+    static int tps_history[4] = {0};
+    static int egt_history[4] = {0};
+    static int history_idx = 0;
+    static bool history_filled = false;
+
+    int raw_tps = 0;
+    int raw_egt = 0;
+
+    if (adc_oneshot_read(adc1_handle, ADC_CHANNEL_4, &raw_tps) != ESP_OK) {
+        return;
+    }
+    if (adc_oneshot_read(adc1_handle, ADC_CHANNEL_5, &raw_egt) != ESP_OK) {
+        return;
+    }
+
+    tps_history[history_idx] = raw_tps;
+    egt_history[history_idx] = raw_egt;
+    history_idx = (history_idx + 1) % 4;
+    if (history_idx == 0) {
+        history_filled = true;
+    }
+
+    int count = history_filled ? 4 : history_idx;
+    if (count == 0) return;
+
+    float sum_tps = 0;
+    float sum_egt = 0;
+    for (int i = 0; i < count; i++) {
+        sum_tps += tps_history[i];
+        sum_egt += egt_history[i];
+    }
+    float avg_tps = sum_tps / count;
+    float avg_egt = sum_egt / count;
+
+    // Map raw ADC (0 to 4095) to physical values:
+    // TPS: 0.0% to 100.0%
+    float phys_tps = (avg_tps / 4095.0f) * 100.0f;
+    if (phys_tps < 0.0f) phys_tps = 0.0f;
+    if (phys_tps > 100.0f) phys_tps = 100.0f;
+
+    // EGT: 20.0°C to 1000.0°C (difference is 980.0)
+    float phys_egt = 20.0f + (avg_egt / 4095.0f) * 980.0f;
+    if (phys_egt < 20.0f) phys_egt = 20.0f;
+    if (phys_egt > 1000.0f) phys_egt = 1000.0f;
+
+    // Access the global volatile state instance
+    g_sim_state.tps.physical_val = phys_tps;
+    g_sim_state.egt.physical_val = phys_egt;
 }
