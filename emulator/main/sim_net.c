@@ -11,6 +11,10 @@
 #include "sim_io_outputs.h"
 #include "index_html.h"
 
+#include "esp_wifi.h"
+#include "esp_netif.h"
+#include "esp_event.h"
+#include "nvs_flash.h"
 #include <stdio.h>
 #include <string.h>
 #include "esp_log.h"
@@ -19,6 +23,47 @@
 
 static const char *TAG = "SIM_NET";
 static httpd_handle_t server = NULL;
+
+/**
+ * @brief Initialize WiFi in SoftAP (Access Point) mode.
+ */
+static void sim_wifi_init(void) {
+    esp_err_t ret = nvs_flash_init();
+    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+        ESP_ERROR_CHECK(nvs_flash_erase());
+        ret = nvs_flash_init();
+    }
+    ESP_ERROR_CHECK(ret);
+
+    ESP_LOGI(TAG, "Initializing WiFi SoftAP...");
+    ESP_ERROR_CHECK(esp_netif_init());
+    ESP_ERROR_CHECK(esp_event_loop_create_default());
+    esp_netif_create_default_wifi_ap();
+
+    wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
+    ESP_ERROR_CHECK(esp_wifi_init(&cfg));
+
+    wifi_config_t wifi_config = {
+        .ap = {
+            .ssid = "ESP32S2_ECU_SIM",
+            .ssid_len = strlen("ESP32S2_ECU_SIM"),
+            .channel = 1,
+            .password = "12345678",
+            .max_connection = 4,
+            .authmode = WIFI_AUTH_WPA2_PSK,
+            .pmf_cfg = {
+                .required = true,
+            },
+        },
+    };
+
+    ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_AP));
+    ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_AP, &wifi_config));
+    ESP_ERROR_CHECK(esp_wifi_start());
+
+    ESP_LOGI(TAG, "SoftAP initialized. SSID: %s, Password: %s", wifi_config.ap.ssid, wifi_config.ap.password);
+}
+
 
 /**
  * @brief Parse and execute incoming WebSocket control command.
@@ -153,10 +198,15 @@ static esp_err_t ws_handler(httpd_req_t *req) {
 }
 
 void sim_net_init(void) {
+    // 1. Initialize WiFi AP
+    sim_wifi_init();
+
+    // 2. Start HTTP server
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
     config.lru_purge_enable = true;
     
     ESP_LOGI(TAG, "Starting HTTP server on port %d...", config.server_port);
+
     
     if (httpd_start(&server, &config) == ESP_OK) {
         // GET /
