@@ -1,2 +1,6 @@
 idf_component_register(SRCS "main.c"
-                    INCLUDE_DIRS ".")
+                            "sim_io_outputs.c"
+                            "sim_io_capture.c"
+                            "sim_net.c"
+                    INCLUDE_DIRS "."
+                    REQUIRES driver esp_http_server esp_timer)
