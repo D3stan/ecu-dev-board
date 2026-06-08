@@ -19,7 +19,7 @@ import { QsButton } from '../components/QsButton/QsButton.js';
 export class DashboardPage extends Page {
   constructor() {
     super({
-      pageId: 'dashboardPage',
+      id: 'dashboardPage',
       cssClass: 'dashboard-page',
       title: 'Dashboard'
     });
@@ -42,8 +42,7 @@ export class DashboardPage extends Page {
   createSkeleton() {
     const el = document.createElement('div');
     el.id = this.pageId;
-    el.className = `page ${this.options.cssClass}`;
-    el.style.display = 'none';
+    el.className = `page left ${this._options.cssClass}`;
 
     el.innerHTML = `
       <!-- RPM Gauge Section -->
@@ -67,7 +66,12 @@ export class DashboardPage extends Page {
       </div>
     `;
 
+    this.el = el;
     this.root = el;
+    this.phase = 'rendered';
+    this.state.mounted = true;
+    this.onMount();
+    this._setupI18nBinding();
     return el;
   }
 

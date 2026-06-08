@@ -14,7 +14,7 @@ import { ConnectionBadge } from '../components/ConnectionBadge/ConnectionBadge.j
 export class SettingsPage extends Page {
   constructor() {
     super({
-      pageId: 'settingsPage',
+      id: 'settingsPage',
       cssClass: 'settings-page',
       title: 'Impostazioni'
     });
@@ -31,8 +31,7 @@ export class SettingsPage extends Page {
   createSkeleton() {
     const el = document.createElement('div');
     el.id = this.pageId;
-    el.className = `page ${this.options.cssClass}`;
-    el.style.display = 'none';
+    el.className = `page left ${this._options.cssClass}`;
 
     el.innerHTML = `
       <!-- Page Header -->
@@ -82,7 +81,12 @@ export class SettingsPage extends Page {
       </div>
     `;
 
+    this.el = el;
     this.root = el;
+    this.phase = 'rendered';
+    this.state.mounted = true;
+    this.onMount();
+    this._setupI18nBinding();
     return el;
   }
 

@@ -114,7 +114,7 @@ const Store = (() => {
 
     // Check if it's a leaf value (not a navigable object)
     // Exception: arrays and simple objects are considered leaf values
-    if (typeof obj === 'object' && obj !== null && !Array.isArray(obj)) {
+    if (typeof obj === 'object' && obj !== null && !Array.isArray(obj) && path !== 'telemetry.snapshot') {
       if (Object.keys(obj).length > 0) {
         return {
           valid: false,

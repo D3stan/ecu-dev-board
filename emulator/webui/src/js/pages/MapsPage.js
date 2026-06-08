@@ -16,7 +16,7 @@ import { MapSelector } from '../components/MapSelector/MapSelector.js';
 export class MapsPage extends Page {
   constructor() {
     super({
-      pageId: 'mapsPage',
+      id: 'mapsPage',
       cssClass: 'maps-page',
       title: 'Mappe'
     });
@@ -37,8 +37,7 @@ export class MapsPage extends Page {
   createSkeleton() {
     const el = document.createElement('div');
     el.id = this.pageId;
-    el.className = `page ${this.options.cssClass}`;
-    el.style.display = 'none';
+    el.className = `page left ${this._options.cssClass}`;
 
     el.innerHTML = `
       <!-- Page Header with back nav -->
@@ -67,7 +66,12 @@ export class MapsPage extends Page {
       <div class="maps-page__editor-section" id="maps-editor-container"></div>
     `;
 
+    this.el = el;
     this.root = el;
+    this.phase = 'rendered';
+    this.state.mounted = true;
+    this.onMount();
+    this._setupI18nBinding();
     return el;
   }
 
