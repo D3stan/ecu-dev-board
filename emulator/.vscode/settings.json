@@ -5,5 +5,6 @@
   "idf.openOcdConfigs": [
     "board/esp32s2-kaluga-1.cfg"
   ],
-  "idf.port": "detect"
+"idf.port": "detect",
+"idf.flashType": "UART"
 }

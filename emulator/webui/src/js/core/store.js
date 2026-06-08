@@ -20,6 +20,17 @@ const Store = (() => {
       activeMapId:  null,
       syncPulses:   0,
       egtAlarm:     0,
+      menu:         [],
+      software: {
+        version:    '',
+        macAddress:  '',
+      },
+      params:       [],
+      paramsStr:    [],
+    },
+    localization: {
+      currentLangIndex: null,
+      langs:            [],
     },
     ota: {
       available:      false,
@@ -36,6 +47,16 @@ const Store = (() => {
       loading:     false,
       initialized: false,
       error:       null,
+      selectedMenu: null,
+      auth: {
+        locked:      false,
+        pinRequired: false,
+      },
+    },
+    runtime: {
+      rtc: {
+        time: '--:--',
+      },
     },
   };
 
@@ -264,6 +285,14 @@ const Store = (() => {
     state.config.activeMapId = null;
     state.config.syncPulses = 0;
     state.config.egtAlarm = 0;
+    state.config.menu = [];
+    state.config.software.version = '';
+    state.config.software.macAddress = '';
+    state.config.params = [];
+    state.config.paramsStr = [];
+
+    state.localization.currentLangIndex = null;
+    state.localization.langs = [];
 
     state.ota.available = false;
     state.ota.remoteVersion = '';
@@ -276,6 +305,11 @@ const Store = (() => {
     state.app.loading = false;
     state.app.initialized = false;
     state.app.error = null;
+    state.app.selectedMenu = null;
+    state.app.auth.locked = false;
+    state.app.auth.pinRequired = false;
+
+    state.runtime.rtc.time = '--:--';
 
     // Reset initialization map to force re-notification after reset
     Object.keys(pathInitialized).forEach(key => delete pathInitialized[key]);

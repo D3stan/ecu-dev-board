@@ -18,6 +18,8 @@ export const Paths = {
       VERSION:     'config.software.version',
       MAC_ADDRESS: 'config.software.macAddress',
     },
+    PARAMS:        'config.params',
+    PARAMS_STR:    'config.paramsStr',
   },
   LOCALIZATION: {
     CURRENT_LANG_INDEX: 'localization.currentLangIndex',
@@ -39,6 +41,10 @@ export const Paths = {
     INITIALIZED:   'app.initialized',
     ERROR:         'app.error',
     SELECTED_MENU: 'app.selectedMenu',
+    AUTH: {
+      LOCKED:       'app.auth.locked',
+      PIN_REQUIRED: 'app.auth.pinRequired',
+    },
   },
 };
 
