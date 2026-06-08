@@ -7,11 +7,15 @@
 		"vscode": {
 			"settings": {
 				"terminal.integrated.defaultProfile.linux": "bash",
-				"idf.gitPath": "/usr/bin/git"
+				"idf.gitPath": "/usr/bin/git",
+				// Hardcode the container-side paths here so VS Code inside Docker instantly works
+				"idf.espIdfPath": "/opt/esp/idf",
+				"idf.customExtraPaths": "/opt/esp/tools/xtensa-esp-elf/esp-14.2.0_20260121/xtensa-esp-elf/bin:/opt/esp/tools/openocd-esp32/v0.12.0-esp32-20240318/openocd-esp32/bin",
+				"idf.pythonBinPath": "/opt/esp/python_env/idf5.4_py3.10_env/bin/python",
+				"idf.toolsPath": "/opt/esp"
 			},
 			"extensions": [
-				"espressif.esp-idf-extension",
-				"espressif.esp-idf-web"
+				"espressif.esp-idf-extension"
 			]
 		}
 	},
