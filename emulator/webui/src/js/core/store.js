@@ -1,5 +1,5 @@
 // store.js
-import { PumpState, PressureSwitch, SocketState, wifiStatus, wifiSignalLevel, wifiOp, wifiError, ConnectionMode } from "../utils/constants.js";
+import { SocketState } from "../utils/constants.js";
 
 /**
  * Store centralizzato con pattern Observer e path-based subscription
@@ -8,110 +8,22 @@ import { PumpState, PressureSwitch, SocketState, wifiStatus, wifiSignalLevel, wi
 const Store = (() => {
   // Stato globale dell'applicazione
   let state = {
-    runtime: {
-      rtc:{
-        time: "",
-        day: "",
-      },
-      alerts: {
-        isModifing: false,
-        isPumpBlocked: false,
-        isAntibacterialError: false,
-        pumpHours: 0,
-      },
-      sensors: {
-        temperature: { value: null, connected: false },
-        humidity: { value: null, connected: false },
-        pressureSwitch: PressureSwitch.OFF,
-      },
-      outputs: {
-        pumpState: PumpState.OFF,
-        extraRelay: false,
-        drainValve: false,
-      },
-      modes: {
-        temperature: { isEnabled: false, isActive: false },
-        humidity: { isEnabled: false, isActive: false },
-        timer: { isEnabled: false, isActive: false },
-        calendar: { isEnabled: false, isActive: false },
-        aux: { isEnabled: false, isActive: false },
-        wireless: { isEnabled: false, isActive: false },
-      },
-      timers: {
-        mode: { on: 0, off: 0 },
-        dispenser: { on: 0, off: 0 },
-        fan: { on: 0, off: 0 },
-        maintenance: {
-          absoluteTime: 0, 
-          timeLeft: 0, 
-          isMaintenance: false
-        }
-      },
-      scheduler: [],
+    telemetry: {
+      rpm: 1200.0,
+      tps: 0.0,
+      egt: 20.0,
+      ecu_advance: 15.0,
+      spark_detected: true
     },
-    wifi: {
-      // Connection mode from HELLO handshake: "AP", "STA", or "UNKNOWN"
-      connectionMode: ConnectionMode.UNKNOWN,
-
-      // STA IP address (from WIFI snapshot), null when STA not connected
-      staIp: null,
-
-      // List of scanned networks (max 30), no RSSI stored.
-      networks: [],
-
-      // Timestamp of last scan list update (Date.now())
-      networksUpdatedAt: 0,
-
-      connection: {
-        // High-level connection state (wifiStatus.*)
-        status: wifiStatus.DISCONNECTED,
-
-        // Network currently connected (summary)
-        connectedNetwork: {
-          ssid: "",
-          signalLevel: wifiSignalLevel.NONE
-        },
-
-        // Current operation in progress (wifiOp.*)
-        operation: wifiOp.NONE,
-
-        // Silence window duration (ms) suggested by ESP for current operation
-        silenceMs: 0,
-
-        // Error from last operation (wifiError.*)
-        error: {
-          type: wifiError.OK,
-          seenByUser: true
-        }
-      }
-    },
-    config: {
-      params: [],
-      paramsStr: [],
-      menu: [],
-      software: {
-        version: "",
-        macAddress: "",
-      }
-    },
-    localization: {
-      langs: [],
-      currentLang: "en",
-      currentLangIndex: 1, // Default: ITALIAN (vedi langEnum.h: 0=EN, 1=IT, 2=FR, 3=DE, 4=ES)
+    overrides: {
+      tps: { active: false, value: 0.0 },
+      egt: { active: false, value: 20.0 },
+      rpm: { active: false, value: 1200.0 },
+      egt_fault: { active: false }
     },
     socket: {
-      state: SocketState.DISCONNECTED,
-    },
-    app: {
-      loading: false,
-      initialized: false,
-      error: null,
-      selectedMenu: null,  // MenuId correntemente visualizzato in MenuSettingsPage
-      auth: {
-        locked: false,       // true = app bloccata, utente deve inserire PIN
-        pinRequired: false,  // true = param 41 presente (PIN configurato su ESP)
-      }
-    },
+      state: SocketState.DISCONNECTED
+    }
   };
 
   // Mappa dei subscriber: { "path": [callback1, callback2, ...] }
@@ -338,74 +250,21 @@ const Store = (() => {
    * Reset dello stato (per test o riconnessione)
    */
   function reset() {
-    state.runtime.alerts.isModifing = false;
-    state.runtime.alerts.isPumpBlocked = false;
-    state.runtime.alerts.isAntibacterial = false;
-    state.runtime.alerts.pumpHours = 0;
-
-    state.runtime.sensors = {
-      temperature: { value: null, connected: false },
-      humidity: { value: null, connected: false },
-      pressureSwitch: PressureSwitch.OFF,
+    state.telemetry = {
+      rpm: 1200.0,
+      tps: 0.0,
+      egt: 20.0,
+      ecu_advance: 15.0,
+      spark_detected: true
     };
-
-    state.runtime.outputs = {
-      pumpState: PumpState.OFF,
-      extraRelay: false,
-      drainValve: false,
+    state.overrides = {
+      tps: { active: false, value: 0.0 },
+      egt: { active: false, value: 20.0 },
+      rpm: { active: false, value: 1200.0 },
+      egt_fault: { active: false }
     };
-
-    state.runtime.modes = {
-      temperature: { isEnabled: false, isActive: false },
-      humidity: { isEnabled: false, isActive: false },
-      timer: { isEnabled: false, isActive: false },
-      calendar: { isEnabled: false, isActive: false },
-      aux: { isEnabled: false, isActive: false },
-      wireless: { isEnabled: false, isActive: false },
-    };
-
-    state.runtime.timers = {
-      mode: { on: 0, off: 0 },
-      dispenser: { on: 0, off: 0 },
-      fan: { on: 0, off: 0 },
-    };
-
-    state.wifi = {
-      networks: [],
-      networksUpdatedAt: 0,
-      connection: {
-        status: wifiStatus.DISCONNECTED,
-        connectedNetwork: {
-          ssid: "",
-          signalLevel: wifiSignalLevel.NONE
-        },
-        operation: wifiOp.NONE,
-        silenceMs: 0,
-        error: {
-          type: wifiError.OK,
-          seenByUser: true
-        }
-      }
-    };
-
-    state.runtime.scheduler = [];
-    state.config.params = [];
-    state.config.paramsStr = [];
-    state.config.menu = [];
-    state.config.software.version = "";
-    state.config.software.macAddress = "";
-    state.localization.langs = [];
-    state.localization.currentLang = "en";
-    state.localization.currentLangIndex = 1; // Default: ITALIAN
     state.socket.state = SocketState.DISCONNECTED;
-    state.app.loading = false;
-    state.app.initialized = false;
-    state.app.error = null;
-    state.app.selectedMenu = null;
-    state.app.auth = { locked: false, pinRequired: false };
 
-
-        
     // ⚠️ Reset anche la mappa di inizializzazione per forzare re-notifica dopo reset
     Object.keys(pathInitialized).forEach(key => delete pathInitialized[key]);
   }

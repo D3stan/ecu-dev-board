@@ -6,24 +6,24 @@
 
 /* ============= THEME VARS ============= */
 :root {
-  /* Brand Colors - Idrobase */
-  --brand: #16486f;
-  --brand-light: #1e5a89;
-  --brand-dark: #0f3652;
+  /* Brand Colors - Industrial Blue */
+  --brand: #0D2B45;
+  --brand-light: #1e3e5c;
+  --brand-dark: #07192b;
   
-  /* Backgrounds - Toni acqua chiari */
-  --bg: #f5f8fa;
-  --card: #ffffff;
-  --surface: #e8f1f7;
+  /* Backgrounds - soft light-blue */
+  --bg: #F4F8FA;
+  --card: #FFFFFF;
+  --surface: #EAF0F4;
   
   /* Text Colors */
-  --text: #0f3652;
-  --text-muted: #5b7a92;
+  --text: #1A1C1E;
+  --text-muted: #5C6E7E;
   
   /* Borders & Icons */
-  --border: #d1e3ed;
-  --ring: #c2d9e8;
-  --icon-bg: #e8f1f7;
+  --border: #D1DFE8;
+  --ring: #A9BFD0;
+  --icon-bg: #EAF0F4;
   
   /* Status Colors */
   --success: #10b981;
@@ -31,45 +31,44 @@
   --danger: #ef4444;
   
   /* Dragger Colors - Light Mode */
-  --drag-start: #3b82f6;        /* Azzurro brillante */
-  --drag-start-light: #60a5fa;  /* Azzurro chiaro per fill */
-  --drag-stop: #1e3a8a;         /* Blu scuro */
-  --drag-stop-light: #3b5998;   /* Blu medio per fill */
+  --drag-start: #3b82f6;
+  --drag-start-light: #60a5fa;
+  --drag-stop: #1e3a8a;
+  --drag-stop-light: #3b5998;
   
   /* Utility */
-  --overlay: rgba(15, 54, 82, 0.5);
+  --overlay: rgba(13, 43, 69, 0.5);
   --gap: 1rem;
   --radius: 1rem;
-  --shadow: 0 1px 3px 0 rgb(22 72 111 / 0.08), 0 1px 2px -1px rgb(22 72 111 / 0.06);
-  --shadow-lg: 0 10px 15px -3px rgb(22 72 111 / 0.1), 0 4px 6px -4px rgb(22 72 111 / 0.08);
+  --shadow: 0 4px 6px -1px rgba(13, 43, 69, 0.05), 0 2px 4px -1px rgba(13, 43, 69, 0.03);
+  --shadow-lg: 0 10px 15px -3px rgba(13, 43, 69, 0.08), 0 4px 6px -4px rgba(13, 43, 69, 0.05);
 }
 
 [data-theme="dark"] {
-  /* Brand Colors - Accent blu morbido */
-  --brand: #5b9fc9;
+  /* Brand Colors */
+  --brand: #58A6FF;
+  --brand-light: #79c0ff;
+  --brand-dark: #1f6feb;
   
-  --brand-light: #7db3d6;
-  --brand-dark: #4a8ab5;
+  /* Backgrounds */
+  --bg: #0D1117;
+  --card: #161B22;
+  --surface: #21262D;
   
-  /* Backgrounds - Quasi nero con tinte blu sottili */
-  --bg: #0f1419;
-  --card: #1a2028;
-  --surface: #242b35;
-  
-  /* Text Colors - Grigio chiaro tenue, non bianco puro */
-  --text: #c8d1dc;
-  --text-muted: #8b96a3;
+  /* Text Colors */
+  --text: #C9D1D9;
+  --text-muted: #8B949E;
   
   /* Borders & Icons */
-  --border: #2d3540;
-  --ring: #3a4553;
-  --icon-bg: #242b35;
+  --border: #30363D;
+  --ring: #484F58;
+  --icon-bg: #21262D;
   
   /* Dragger Colors - Dark Mode */
-  --drag-start: #60a5fa;        /* Azzurro chiaro */
-  --drag-start-light: #93c5fd;  /* Azzurro molto chiaro per fill */
-  --drag-stop: #1e40af;         /* Blu intenso */
-  --drag-stop-light: #3b82f6;   /* Blu brillante per fill */
+  --drag-start: #60a5fa;
+  --drag-start-light: #93c5fd;
+  --drag-stop: #1e40af;
+  --drag-stop-light: #3b82f6;
   
   /* Utility */
   --overlay: rgba(0, 0, 0, 0.75);

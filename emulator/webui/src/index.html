@@ -11,7 +11,7 @@
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
   
-  <title>FOG EXTRA — Idrobase rev3</title>
+  <title>ECU Simulator Control Center</title>
   
   <!-- Applica tema salvato IMMEDIATAMENTE per evitare flash -->
   <script>
@@ -33,33 +33,24 @@
        Bumped manually (or via package.json) on every firmware+asset release.
        The Vite build plugin overwrites this value from package.json automatically. -->
   <script>
-    window.APP_VERSION = "1.0.3";
+    window.APP_VERSION = "2.0.0";
   </script>
 
   <link rel="stylesheet" href="./css/styles.css">
   
   <!-- Component Styles -->
   <link rel="stylesheet" href="./css/components/Sidebar.css">
-  <link rel="stylesheet" href="./css/components/LanguageDropdown.css">
   <link rel="stylesheet" href="./css/components/Modal.css">
   <link rel="stylesheet" href="./css/components/PageTopBar.css">
   <link rel="stylesheet" href="./css/components/LoadingSpinner.css">
-  <link rel="stylesheet" href="./css/components/ParameterItem.css">
-  <link rel="stylesheet" href="./css/components/GanttChart.css">
-  <link rel="stylesheet" href="./css/components/TimeSlotRender.css">
-  <link rel="stylesheet" href="./css/components/AddTimeSlotButton.css">
-  <link rel="stylesheet" href="./css/components/WiFiCardInputSendBase.css">
-  <link rel="stylesheet" href="./css/components/TimeSlot.css">
-  <link rel="stylesheet" href="./css/components/TimeSlotGauge.css">
-  <link rel="stylesheet" href="./css/components/InputTimer.css">
-  <link rel="stylesheet" href="./css/components/InputNumber.css">
   <link rel="stylesheet" href="./css/components/Badge.css">
-  <link rel="stylesheet" href="./css/components/ModeSelector.css">
-  <link rel="stylesheet" href="./css/components/PowerButton.css">
   <link rel="stylesheet" href="./css/components/Banner.css">
   
   <!-- Page Styles -->
-  <link rel="stylesheet" href="./css/pages/WifiPage.css">
+  <link rel="stylesheet" href="./css/pages/DashboardPage.css">
+  <link rel="stylesheet" href="./css/pages/RpmSettingsPage.css">
+  <link rel="stylesheet" href="./css/pages/TpsSettingsPage.css">
+  <link rel="stylesheet" href="./css/pages/EgtSettingsPage.css">
 
 
 
@@ -112,10 +103,7 @@
       };
     } else {
       window.APP_CONFIG = {
-        // socketUrl: "192.168.4.1/ws" // AP
-        // socketUrl: "10.247.193.85/ws" // S22 Ultra
-        socketUrl: "192.168.1.65/ws" // wind andrea 10.247.193.85 ababab
-        // socketUrl: "10.247.193.85/ws" // wind andrea 
+        socketUrl: "192.168.4.1/ws" // Default ESP32 AP mode IP
       };
     }
 

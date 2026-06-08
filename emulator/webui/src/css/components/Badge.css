@@ -151,3 +151,38 @@
     height: 1rem;
   }
 }
+
+/* ============= CONNECTION STATUS BADGE ============= */
+.connection-status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.35rem 0.75rem;
+  border-radius: 10rem;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  border: 1px solid transparent;
+  transition: all 0.3s ease;
+  line-height: 1;
+  user-select: none;
+}
+
+.connection-status-badge.connected {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: rgba(16, 185, 129, 0.25);
+  color: #10b981;
+}
+
+.connection-status-badge.disconnected {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.25);
+  color: #ef4444;
+}
+
+.connection-status-badge.connecting,
+.connection-status-badge.reconnecting {
+  background: rgba(245, 158, 11, 0.15);
+  border-color: rgba(245, 158, 11, 0.25);
+  color: #f59e0b;
+}

@@ -141,17 +141,11 @@ const Socket = (() => {
    * Sends "PING|heartbeat" every pingIntervalMs to keep the connection alive.
    */
   function startHeartbeat() {
-    stopHeartbeat();
-    pingTimer = setInterval(() => {
-      if (ws && ws.readyState === WebSocket.OPEN) {
-        ws.send("PING|heartbeat");
-      }
-    }, CONFIG.pingIntervalMs);
+    // Heartbeat disabled for ECU Simulator to prevent console spam
   }
 
   function stopHeartbeat() {
-    clearInterval(pingTimer);
-    pingTimer = null;
+    // Heartbeat disabled for ECU Simulator
   }
 
   // --- API PUBBLICHE ---
