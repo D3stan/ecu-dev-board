@@ -3,17 +3,49 @@ import re
 import gzip
 import subprocess
 import sys
+import shutil
 
 def main():
     print("Building Web UI...")
     current_dir = os.path.dirname(os.path.abspath(__file__))
     webui_dir = os.path.join(current_dir, "webui")
     
+    # Locate npm executable in a cross-platform way (critical on Windows where it is often npm.cmd)
+    npm_executable = shutil.which("npm")
+    if npm_executable is None:
+        print("ERROR: 'npm' command not found in your PATH.", file=sys.stderr)
+        print("", file=sys.stderr)
+        print("Node.js (which includes npm) is required to build the web UI.", file=sys.stderr)
+        print("Please install Node.js from https://nodejs.org/ and ensure it is added to your system PATH.", file=sys.stderr)
+        print("", file=sys.stderr)
+        print("After installing, open a new terminal/PowerShell window and try again.", file=sys.stderr)
+        sys.exit(1)
+    
+    # Ensure dependencies are installed (very common on fresh clones / Windows)
+    node_modules_dir = os.path.join(webui_dir, "node_modules")
+    if not os.path.isdir(node_modules_dir):
+        print("node_modules not found — running 'npm install' first (this may take a minute)...")
+        try:
+            subprocess.run([npm_executable, "install"], cwd=webui_dir, check=True)
+        except subprocess.CalledProcessError as e:
+            print(f"Error running npm install: {e}", file=sys.stderr)
+            sys.exit(1)
+        except FileNotFoundError as e:
+            print(f"Failed to launch npm: {e}", file=sys.stderr)
+            sys.exit(1)
+        print("npm install completed.")
+    
     # Run npm run build in the webui folder
+    print("Running 'npm run build' in webui/ ...")
     try:
-        subprocess.run(["npm", "run", "build"], cwd=webui_dir, check=True)
+        subprocess.run([npm_executable, "run", "build"], cwd=webui_dir, check=True)
     except subprocess.CalledProcessError as e:
         print(f"Error running npm run build: {e}", file=sys.stderr)
+        print("Check the output above for Vite / npm errors (missing deps, syntax errors in webui/src, etc.).", file=sys.stderr)
+        sys.exit(1)
+    except FileNotFoundError as e:
+        print(f"Failed to launch npm: {e}", file=sys.stderr)
+        print("Make sure Node.js/npm is correctly installed and available in PATH.", file=sys.stderr)
         sys.exit(1)
 
     dist_dir = os.path.join(webui_dir, "dist")
@@ -22,6 +54,7 @@ def main():
     index_html_path = os.path.join(dist_dir, "index.html")
     if not os.path.exists(index_html_path):
         print(f"Error: {index_html_path} does not exist", file=sys.stderr)
+        print("Vite did not produce dist/index.html. The build may have failed silently or the root/index.html in webui/src is missing.", file=sys.stderr)
         sys.exit(1)
         
     with open(index_html_path, "r", encoding="utf-8") as f:
@@ -31,6 +64,8 @@ def main():
     app_js_gz_path = os.path.join(dist_dir, "app.js.gz")
     if not os.path.exists(app_js_gz_path):
         print(f"Error: {app_js_gz_path} does not exist", file=sys.stderr)
+        print("The Vite build did not produce the expected gzipped assets.", file=sys.stderr)
+        print("Check that vite-plugin-compression is working and that rollupOptions in vite.config.js are producing app.js + style.css.", file=sys.stderr)
         sys.exit(1)
         
     with gzip.open(app_js_gz_path, "rb") as f:
@@ -40,6 +75,8 @@ def main():
     style_css_gz_path = os.path.join(dist_dir, "style.css.gz")
     if not os.path.exists(style_css_gz_path):
         print(f"Error: {style_css_gz_path} does not exist", file=sys.stderr)
+        print("The Vite build did not produce the expected gzipped assets.", file=sys.stderr)
+        print("Check that vite-plugin-compression is working and that rollupOptions in vite.config.js are producing app.js + style.css.", file=sys.stderr)
         sys.exit(1)
         
     with gzip.open(style_css_gz_path, "rb") as f:
