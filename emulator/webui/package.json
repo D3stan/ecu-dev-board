@@ -1,9 +1,9 @@
 {
-  "name": "ecu-dashboard",
-  "version": "0.1.0",
+  "name": "fogextra-webui",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Dashboard telemetria e controllo ECU per ESP32-S3",
+  "description": "Interfaccia web per ESP32 FogExtra",
   "main": "index.js",
   "scripts": {
     "dev": "vite",

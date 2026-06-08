@@ -2,6 +2,8 @@
 import { Store } from "../core/store.js";
 import { Paths } from "./paths.js";
 import { log } from "./logger.js";
+import { getEnumValue } from './enumMappings.js';
+import { getEnumTypeString } from '../components/InputNumber/func.js';
 
 /**
  * Enum delle lingue (corrisponde a LangSequence in ESP)
@@ -1028,19 +1030,35 @@ class I18n {
     return this._interpolate(text, params);
   }
 
+  /**
+   * Traduce un nome menu usando i dati ricevuti da ESP
+   * Se il menu è locale (es: Wi-Fi), usa le traduzioni hardcoded
+   * @param {number} menuId - ID del menu (MenuType)
+   * @returns {string} Nome tradotto del menu
+   */
   tMenu(menuId) {
+    // Import MenuType inline per evitare dipendenze circolari
+    const WIFI_MENU_ID = 7; // MenuType.WIFI
+    
+    // Se è il menu Wi-Fi, usa traduzione hardcoded locale
+    if (menuId === WIFI_MENU_ID) {
+      const langIndex = this.getCurrentLangIndex();
+      const wifiLabels = ['Wi-Fi', 'Wi-Fi', 'Wi-Fi', 'Wi-Fi', 'Wi-Fi']; // Uguale per tutte le lingue
+      return wifiLabels[langIndex] || 'Wi-Fi';
+    }
+    
+    // Altrimenti usa i dati ricevuti da ESP
+    const langs = Store.get(Paths.LOCALIZATION.LANGS);
     const langIndex = this.getCurrentLangIndex();
     
-    // Static translations for ECU dashboard menus across LangIndex
-    const menus = {
-      0: ['Dashboard', 'Dashboard', 'Tableau de bord', 'Dashboard', 'Panel de control'], // DASHBOARD
-      1: ['Maps', 'Mappe', 'Cartes', 'Karten', 'Mapas'],                              // MAPS
-      2: ['Settings', 'Impostazioni', 'Paramètres', 'Einstellungen', 'Ajustes']        // SETTINGS
-    };
+    if (!langs || !langs[langIndex]) {
+      log.warn(`No language data available for index: ${langIndex}`);
+      return `Menu ${menuId}`;
+    }
 
-    return menus[menuId]?.[langIndex] || `Menu ${menuId}`;
+    const menuName = langs[langIndex].menuName?.[menuId];
+    return menuName || `Menu ${menuId}`;
   }
-
 
   /**
    * Traduce un nome parametro usando i dati ricevuti da ESP
@@ -1095,7 +1113,18 @@ class I18n {
    * @returns {string} Valore tradotto
    */
   tEnum(enumType, value) {
-    return String(value);
+    // Converte ParamType numerico in stringa
+    const enumTypeString = getEnumTypeString(enumType);
+    if (!enumTypeString) {
+      log.warn(`Invalid enum type: ${enumType}`);
+      return String(value);
+    }
+    
+    // Ottiene indice lingua corrente
+    const langIndex = this.getCurrentLangIndex();
+    
+    // Ottiene traduzione
+    return getEnumValue(enumTypeString, value, langIndex);
   }
 
   /**

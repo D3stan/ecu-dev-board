@@ -1,5 +1,6 @@
 // socket.js
-import { SocketState } from "../utils/constants.js";
+import { CommandManager } from "../managers/commandManager.js";
+import { MsgType, SocketState } from "../utils/constants.js"; // opzionale, se vuoi uniformità
 
 const Socket = (() => {
   // --- CONFIGURAZIONE ---
@@ -204,7 +205,7 @@ const Socket = (() => {
         resetWatchdog();
         
         // 🚨 FORCED_DISCONNECT: ESP richiede disconnessione
-        if (msg.startsWith('FORCE_DISCONNECT')) {
+        if (msg.startsWith(MsgType.FORCED_DISCONNECT)) {
           const parts = msg.split("|");
           const reason = parts[1] || "Unknown reason";
           

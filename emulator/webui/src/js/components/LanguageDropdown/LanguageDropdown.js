@@ -24,6 +24,8 @@ import { Component } from '../../core/Component.js';
 import { Store } from '../../core/store.js';
 import { Paths } from '../../utils/paths.js';
 import { log } from '../../utils/logger.js';
+import { CommandManager } from '../../managers/commandManager.js';
+import { LANG_PARAM_ID } from '../../utils/constants.js';
 import {
   getAvailableLanguages,
   getFlagPath,
@@ -264,13 +266,16 @@ export class LanguageDropdown extends Component {
       return;
     }
     
-    log.debug(`[LanguageDropdown] Selecting language index locally: ${langIndex}`);
+    log.debug(`[LanguageDropdown] Selecting language index: ${langIndex}`);
     
-    // Aggiorna lo Store locale con la nuova lingua
-    Store.set(Paths.LOCALIZATION.CURRENT_LANG_INDEX, langIndex);
+    // Invia comando a ESP per modificare il parametro lingua
+    CommandManager.modifyParameter(LANG_PARAM_ID, langIndex);
     
     // Chiudi il menu
     this.close();
+    
+    // NOTA: L'aggiornamento UI avverrà automaticamente quando ESP risponde
+    // e lo Store viene aggiornato con la nuova lingua
   }
 
   // ============================================
