@@ -1,4 +1,4 @@
-# ECU Telemetria e Accensione — Specifica Finale
+# ECU Telemetria e Accensione
 
 ## 1. Panoramica del Sistema
 
