@@ -121,6 +121,7 @@ At 10 Hz, the core formats a structured JSON telemetry string containing the sim
     "overrides": {
       "tps": false,
       "egt": false,
+      "rpm": false,
       "egt_fault": false
     }
   }

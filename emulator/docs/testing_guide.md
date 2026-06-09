@@ -86,7 +86,7 @@ Once booted, the ESP32-S2 initializes its internal NVS storage, spins up WiFi in
 - **Procedure**: Connect the ESP32-S2 to a terminal emulator (e.g. `idf.py monitor`).
 - **Pass Criteria**: Verify that a JSON telemetry payload is outputted at a 10 Hz frequency:
   ```json
-  {"type": "sim_telemetry", "data": {"rpm": 1200.0, "tps": 0.0, "egt": 20.0, "ecu_advance": 15.00, "spark_detected": true, "overrides": {"tps": false, "egt": false, "egt_fault": false}}}
+  {"type": "sim_telemetry", "data": {"rpm": 1200.0, "tps": 0.0, "egt": 20.0, "ecu_advance": 15.00, "spark_detected": true, "overrides": {"tps": false, "egt": false, "rpm": false, "egt_fault": false}}}
   ```
 
 ### Test Case 2: Analog Dial Tuning (TPS & EGT Potentiometers)
@@ -102,7 +102,8 @@ Once booted, the ESP32-S2 initializes its internal NVS storage, spins up WiFi in
 - **Procedure**:
   1. Open the dashboard, locate the **Hardware Overrides** panel, and toggle the **Override TPS** checkbox.
   2. Drag the TPS override slider.
-  3. Locate the **Override EGT** checkbox, toggle it, and drag the EGT override slider.
+  3. Open the RPM override page, enable RPM override, and set a target RPM.
+  4. Locate the **Override EGT** checkbox, toggle it, and drag the EGT override slider.
 - **Pass Criteria**:
   - Rotating physical potentiometers should no longer affect the values.
   - The simulated values should lock exactly to the web dashboard slider positions.

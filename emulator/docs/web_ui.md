@@ -22,7 +22,7 @@ No complex blocking synchronization (e.g., mutex locks) is used, since manual op
 
 ## Dual-Direction JSON API
 
-The Web UI and Simulator communicate over WebSockets using flat JSON payloads:
+The Web UI and Simulator communicate over WebSockets using flat JSON payloads. The simulator backend is the source of truth for live values: the Web UI sends operator commands, and telemetry reflects whether the active source is physical input or a Web UI override.
 
 ### 1. Telemetry Frame (Simulator → Web UI)
 Pushed at **10 Hz**:
@@ -38,6 +38,7 @@ Pushed at **10 Hz**:
     "overrides": {
       "tps": true,
       "egt": false,
+      "rpm": false,
       "egt_fault": false
     }
   }
@@ -52,6 +53,8 @@ Sent when the operator interacts with the Web UI controls:
   `{"cmd": "set_value", "param": "tps", "value": 78.4}`
 - **Inject Fault Condition**:
   `{"cmd": "inject_fault", "fault": "egt_overheat", "active": true}`
+- **Trigger Quick-Shifter**:
+  `{"cmd": "qs_trigger"}`
 
 ---
 
@@ -86,6 +89,7 @@ The Web UI features a dark, dashboard-style responsive layout:
 By default, the simulator reads physical potentiometers (TPS/EGT) connected to the ADC. Checking an "Override" box activates a software-lock:
 - **Override TPS**: Detaches the TPS parameter from the physical potentiometer and binds it to a smooth web slider (0–100%).
 - **Override EGT**: Detaches the EGT thermal calculation and binds it to a web slider (20°C to 1000°C).
+- **Override RPM**: Locks engine speed to a Web UI value (0–18000 RPM), bypassing TPS-driven kinematics.
 
 ### 3. Fault & Event Injector Panel
 Contains instant actions designed to stress-test the ECU:

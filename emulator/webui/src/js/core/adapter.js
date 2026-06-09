@@ -22,9 +22,24 @@ export function dispatchMessage(raw) {
       
       // Update override status flags in the Store
       if (data.overrides) {
-        Store.set(Paths.OVERRIDES.TPS.ACTIVE, !!data.overrides.tps);
-        Store.set(Paths.OVERRIDES.EGT.ACTIVE, !!data.overrides.egt);
+        const tpsOverrideActive = !!data.overrides.tps;
+        const egtOverrideActive = !!data.overrides.egt;
+        const rpmOverrideActive = !!data.overrides.rpm;
+
+        Store.set(Paths.OVERRIDES.TPS.ACTIVE, tpsOverrideActive);
+        Store.set(Paths.OVERRIDES.EGT.ACTIVE, egtOverrideActive);
+        Store.set(Paths.OVERRIDES.RPM.ACTIVE, rpmOverrideActive);
         Store.set(Paths.OVERRIDES.EGT_FAULT.ACTIVE, !!data.overrides.egt_fault);
+
+        if (tpsOverrideActive) {
+          Store.set(Paths.OVERRIDES.TPS.VALUE, data.tps ?? 0);
+        }
+        if (egtOverrideActive) {
+          Store.set(Paths.OVERRIDES.EGT.VALUE, data.egt ?? 20);
+        }
+        if (rpmOverrideActive) {
+          Store.set(Paths.OVERRIDES.RPM.VALUE, data.rpm ?? 1200);
+        }
       }
     }
   } catch (err) {

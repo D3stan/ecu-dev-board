@@ -116,15 +116,17 @@ void broadcast_simulator_telemetry(void)
     bool spark_det = g_sim_state.spark_detected;
     bool tps_overridden = g_sim_state.tps.is_overridden;
     bool egt_overridden = g_sim_state.egt.is_overridden;
+    bool rpm_overridden = g_sim_state.rpm.is_overridden;
     bool fault_active = g_sim_state.fault_egt_overheat;
 
     // Compose telemetry JSON string
     int len = snprintf(json_buf, sizeof(json_buf),
-           "{\"type\": \"sim_telemetry\", \"data\": {\"rpm\": %.1f, \"tps\": %.1f, \"egt\": %.1f, \"ecu_advance\": %.2f, \"spark_detected\": %s, \"overrides\": {\"tps\": %s, \"egt\": %s, \"egt_fault\": %s}}}",
+           "{\"type\": \"sim_telemetry\", \"data\": {\"rpm\": %.1f, \"tps\": %.1f, \"egt\": %.1f, \"ecu_advance\": %.2f, \"spark_detected\": %s, \"overrides\": {\"tps\": %s, \"egt\": %s, \"rpm\": %s, \"egt_fault\": %s}}}",
            rpm, tps, egt, spark_adv,
            spark_det ? "true" : "false",
            tps_overridden ? "true" : "false",
            egt_overridden ? "true" : "false",
+           rpm_overridden ? "true" : "false",
            fault_active ? "true" : "false");
 
     if (len > 0 && len < sizeof(json_buf)) {
