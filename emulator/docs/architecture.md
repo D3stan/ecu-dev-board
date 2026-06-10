@@ -31,6 +31,7 @@ graph TD
         ADC_Read[ADC: Read TPS & EGT Potentiometers]
         PulseGen[Hardware Timer: Pick-up Pulse Generator]
         SparkCapture[GPIO Interrupt: Spark Timing Capture]
+        QSButton[GPIO Poll: Physical QS Button]
     end
 
     subgraph WebUI [Simulator Web UI & API]
@@ -42,6 +43,7 @@ graph TD
     Superloop -->|Process Polls| ADC_Read
     EngineSim -->|Compute Target Freq| PulseGen
     SparkCapture -->|Record Spark Offset| EngineSim
+    QSButton -->|Trigger QS Pulse| EngineSim
     HTTPServer -->|Inject Overrides| OverrideMgr
     OverrideMgr -->|Override Params| EngineSim
     EngineSim -->|State Payload| Telemetry
@@ -75,12 +77,15 @@ A lightweight web interface hosted directly on the simulator's flash filesystem.
 
 All pins listed below are configurable via `pins.h` to support various development boards (ESP32 / ESP32-S2):
 
-| Simulator Pin Macro | Signal Type | ECU Pin (ESP32-S3) | Signal Description |
-|---------------------|-------------|---------------------|--------------------|
-| `SIM_PIN_PICKUP`    | Output → Input | **GPIO 4**          | Pick-up Coil Pulse (0-300 Hz square wave) |
-| `SIM_PIN_TPS_OUT`   | Output → Input | **GPIO 5**          | TPS Analog Voltage (0-3.3V via hardware DAC Channel 2) |
-| `SIM_PIN_EGT_OUT`   | Output → Input | **GPIO 6**          | EGT Analog Voltage (0-3.3V via hardware DAC Channel 1) |
-| `SIM_PIN_SPARK`     | Input ← Output | **GPIO 7**          | CDI Ignition Spark Trigger |
-| `SIM_PIN_QS_OUT`    | Output → Input | **GPIO 8**          | Quick-Shifter (QS) Switch Trigger (Active-Low pulse) |
-| **GND**             | Ground Share| **GND**             | Common Ground Reference |
+| Simulator Pin Macro | ESP32-S2 / Lolin S2 Mini GPIO | Signal Type | Signal Description |
+|---------------------|-------------------------------|-------------|--------------------|
+| `SIM_PIN_PICKUP`    | **GPIO 13** | Output to ECU | Pick-up Coil Pulse (0-300 Hz square wave) |
+| `SIM_PIN_TPS_OUT`   | **GPIO 18** | Output to ECU | TPS Analog Voltage (0-3.3V via hardware DAC Channel 2) |
+| `SIM_PIN_EGT_OUT`   | **GPIO 17** | Output to ECU | EGT Analog Voltage (0-3.3V via hardware DAC Channel 1) |
+| `SIM_PIN_SPARK`     | **GPIO 21** | Input from ECU | CDI Ignition Spark Trigger |
+| `SIM_PIN_QS_OUT`    | **GPIO 12** | Output to ECU | Quick-Shifter (QS) Switch Trigger (Active-Low pulse) |
+| `SIM_PIN_QS_IN`     | **GPIO 14** | Local input | Physical active-low QS button input; debounced in the fast superloop poll |
+| `SIM_PIN_TPS_POT`   | **GPIO 1** | Local analog input | Physical TPS potentiometer (ADC1_CH0) |
+| `SIM_PIN_EGT_POT`   | **GPIO 2** | Local analog input | Physical EGT potentiometer (ADC1_CH1) |
+| **GND**             | **GND** | Ground Share | Common Ground Reference |
 

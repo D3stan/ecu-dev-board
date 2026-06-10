@@ -94,7 +94,7 @@ By default, the simulator reads physical potentiometers (TPS/EGT) connected to t
 ### 3. Fault & Event Injector Panel
 Contains instant actions designed to stress-test the ECU:
 - **EGT Overheat Button**: Simulates thermocouple failure or engine overheat. Bypasses calculations to force simulated EGT to **850°C**. The operator can then verify that the ECU successfully transits to the `ALARM` state and trips safety outputs.
-- **Quick-Shifter Trigger Button**: Sends a command to pull the digital output pin (`SIM_PIN_QS_OUT`) low for a brief duration (50ms–100ms) to simulate a physical shifter cut switch press, testing the ECU's shift cut detection code.
+- **Quick-Shifter Trigger Button**: Sends a command to pull the digital output pin (`SIM_PIN_QS_OUT`) low for the calibrated 75ms pulse duration, testing the ECU's shift cut detection code. The same output pulse can also be triggered by the simulator-local physical QS button on `SIM_PIN_QS_IN`; both trigger sources share the same non-blocking pulse generator.
 
 ---
 

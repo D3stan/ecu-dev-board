@@ -27,6 +27,13 @@ static bool qs_pulse_active = false;
 static uint64_t qs_pulse_start_time = 0;
 #define QS_PULSE_DURATION_US (75 * 1000) // 75ms pulse duration (calibrated 50ms - 100ms)
 
+// Physical active-low Quick-Shifter button debounce state.
+static int qs_input_last_raw_level = 1;
+static int qs_input_debounced_level = 1;
+static uint64_t qs_input_last_change_time = 0;
+static bool qs_input_press_handled = false;
+#define SIM_QS_INPUT_DEBOUNCE_US (20 * 1000)
+
 /**
  * @brief Helper function to initialize LEDC Pick-up coil generator
  */
@@ -86,10 +93,18 @@ static void sim_io_analog_out_init(void) {
 #endif
 }
 
-#if CONFIG_IDF_TARGET_ESP32
+#if CONFIG_IDF_TARGET_ESP32S2
+#define SIM_ADC_ATTEN ADC_ATTEN_DB_12
+#define SIM_TPS_ADC_CHANNEL ADC_CHANNEL_0
+#define SIM_EGT_ADC_CHANNEL ADC_CHANNEL_1
+#elif CONFIG_IDF_TARGET_ESP32
 #define SIM_ADC_ATTEN ADC_ATTEN_DB_11
+#define SIM_TPS_ADC_CHANNEL ADC_CHANNEL_4
+#define SIM_EGT_ADC_CHANNEL ADC_CHANNEL_5
 #else
 #define SIM_ADC_ATTEN ADC_ATTEN_DB_12
+#define SIM_TPS_ADC_CHANNEL ADC_CHANNEL_4
+#define SIM_EGT_ADC_CHANNEL ADC_CHANNEL_5
 #endif
 
 static void sim_io_adc_init(void) {
@@ -110,14 +125,13 @@ static void sim_io_adc_init(void) {
         .atten = SIM_ADC_ATTEN,
     };
     
-    // Configure Channel 4 (GPIO 32 / SIM_PIN_TPS_POT)
-    if (adc_oneshot_config_channel(adc1_handle, ADC_CHANNEL_4, &config) != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to configure ADC1 Channel 4");
+    // Configure target-specific ADC channels for SIM_PIN_TPS_POT and SIM_PIN_EGT_POT.
+    if (adc_oneshot_config_channel(adc1_handle, SIM_TPS_ADC_CHANNEL, &config) != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to configure TPS ADC channel");
     }
 
-    // Configure Channel 5 (GPIO 33 / SIM_PIN_EGT_POT)
-    if (adc_oneshot_config_channel(adc1_handle, ADC_CHANNEL_5, &config) != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to configure ADC1 Channel 5");
+    if (adc_oneshot_config_channel(adc1_handle, SIM_EGT_ADC_CHANNEL, &config) != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to configure EGT ADC channel");
     }
 }
 
@@ -125,23 +139,37 @@ void sim_io_init(void) {
     ESP_LOGI(TAG, "Initializing Emulator Hardware I/O drivers...");
 
     // 1. Configure Quick-Shifter digital output pin
-    gpio_config_t qs_io_conf = {
+    gpio_config_t qs_out_conf = {
         .pin_bit_mask = (1ULL << SIM_PIN_QS_OUT),
         .mode = GPIO_MODE_OUTPUT,
         .pull_up_en = GPIO_PULLUP_ENABLE,
         .pull_down_en = GPIO_PULLDOWN_DISABLE,
         .intr_type = GPIO_INTR_DISABLE
     };
-    gpio_config(&qs_io_conf);
+    gpio_config(&qs_out_conf);
     gpio_set_level(SIM_PIN_QS_OUT, 1); // Default HIGH
 
-    // 2. Initialize Pick-up coil generator
+    // 2. Configure physical active-low Quick-Shifter button input
+    gpio_config_t qs_in_conf = {
+        .pin_bit_mask = (1ULL << SIM_PIN_QS_IN),
+        .mode = GPIO_MODE_INPUT,
+        .pull_up_en = GPIO_PULLUP_ENABLE,
+        .pull_down_en = GPIO_PULLDOWN_DISABLE,
+        .intr_type = GPIO_INTR_DISABLE
+    };
+    gpio_config(&qs_in_conf);
+    qs_input_last_raw_level = gpio_get_level(SIM_PIN_QS_IN);
+    qs_input_debounced_level = qs_input_last_raw_level;
+    qs_input_last_change_time = esp_timer_get_time();
+    qs_input_press_handled = (qs_input_debounced_level == 0);
+
+    // 3. Initialize Pick-up coil generator
     sim_io_pickup_init();
 
-    // 3. Initialize dual DAC analog outputs
+    // 4. Initialize dual DAC analog outputs
     sim_io_analog_out_init();
 
-    // 4. Initialize manual cockpit potentiometers ADC inputs
+    // 5. Initialize manual cockpit potentiometers ADC inputs
     sim_io_adc_init();
 }
 
@@ -182,7 +210,36 @@ void sim_io_qs_trigger(void) {
     ESP_LOGI(TAG, "Quick-Shifter pulse triggered: pulling Pin LOW");
 }
 
+static void sim_io_poll_qs_input(void) {
+    int raw_level = gpio_get_level(SIM_PIN_QS_IN);
+    uint64_t now = esp_timer_get_time();
+
+    if (raw_level != qs_input_last_raw_level) {
+        qs_input_last_raw_level = raw_level;
+        qs_input_last_change_time = now;
+        return;
+    }
+
+    if (raw_level == qs_input_debounced_level) {
+        return;
+    }
+
+    if ((now - qs_input_last_change_time) < SIM_QS_INPUT_DEBOUNCE_US) {
+        return;
+    }
+
+    qs_input_debounced_level = raw_level;
+    if (qs_input_debounced_level == 0 && !qs_input_press_handled) {
+        qs_input_press_handled = true;
+        sim_io_qs_trigger();
+    } else if (qs_input_debounced_level == 1) {
+        qs_input_press_handled = false;
+    }
+}
+
 void sim_io_fast_poll(void) {
+    sim_io_poll_qs_input();
+
     if (qs_pulse_active) {
         uint64_t elapsed = esp_timer_get_time() - qs_pulse_start_time;
         if (elapsed >= QS_PULSE_DURATION_US) {
@@ -204,10 +261,10 @@ void sim_io_read_potentiometers(void) {
     int raw_tps = 0;
     int raw_egt = 0;
 
-    if (adc_oneshot_read(adc1_handle, ADC_CHANNEL_4, &raw_tps) != ESP_OK) {
+    if (adc_oneshot_read(adc1_handle, SIM_TPS_ADC_CHANNEL, &raw_tps) != ESP_OK) {
         return;
     }
-    if (adc_oneshot_read(adc1_handle, ADC_CHANNEL_5, &raw_egt) != ESP_OK) {
+    if (adc_oneshot_read(adc1_handle, SIM_EGT_ADC_CHANNEL, &raw_egt) != ESP_OK) {
         return;
     }
 

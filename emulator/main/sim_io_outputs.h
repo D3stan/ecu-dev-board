@@ -35,7 +35,9 @@ void sim_io_set_egt_voltage(float percent);
 void sim_io_qs_trigger(void);
 
 /**
- * @brief Fast polling function to be called in the superloop to handle active pulses.
+ * @brief Fast polling function to be called in the superloop.
+ *
+ * Handles active QS output pulse timing and debounced physical QS input polling.
  */
 void sim_io_fast_poll(void);
 

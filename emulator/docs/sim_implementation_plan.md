@@ -21,12 +21,13 @@ Establish the basic project skeleton, build targets, and centralized pin mapping
 #### [NEW] [pins.h](file:///Users/puddu/Documents/GitHub/ecu-dev-board/emulator/main/pins.h) (Macro Configuration Header)
 - Define pin macros for all simulator functions to ensure portability.
 - Default pin assignments for ESP32-S2:
-  - `SIM_PIN_PICKUP` (Pick-up coil output)
+  - `SIM_PIN_PICKUP` (Pick-up coil output - GPIO 13 on ESP32-S2)
   - `SIM_PIN_TPS_OUT` (TPS analog output - DAC Channel 2 / GPIO 18)
   - `SIM_PIN_EGT_OUT` (EGT analog output - DAC Channel 1 / GPIO 17)
-  - `SIM_PIN_SPARK` (CDI Spark input interrupt)
+  - `SIM_PIN_SPARK` (CDI Spark input interrupt - GPIO 21 on ESP32-S2)
   - `SIM_PIN_QS_OUT` (Quick-Shifter pulse output)
-  - `SIM_PIN_TPS_POT` & `SIM_PIN_EGT_POT` (Analog manual cockpit inputs - ADC1 Channels 4 & 5 / GPIO 32 & 33)
+  - `SIM_PIN_QS_IN` (Physical Quick-Shifter button input - GPIO 14 on ESP32-S2)
+  - `SIM_PIN_TPS_POT` & `SIM_PIN_EGT_POT` (Analog manual cockpit inputs - ADC1 Channels 0 & 1 / GPIO 1 & 2 on ESP32-S2)
 
 #### [MODIFY] [CMakeLists.txt](file:///Users/puddu/Documents/GitHub/ecu-dev-board/emulator/CMakeLists.txt) (ESP-IDF Build Configuration)
 - Set up target board target configurations for ESP-IDF native compiling.
@@ -82,7 +83,8 @@ Set up signal generator outputs (crankshaft pick-up and dual DAC analog sensors)
   - Map analog voltage updates directly to DAC register writes (0-255 scale representing 0V to 3.3V), eliminating the need for PWM smoothing or external RC filters.
 - **Quick-Shifter Digital Switch Simulator**:
   - Configure `SIM_PIN_QS_OUT` as a digital output, initializing it to a High (inactive) state.
-  - Implement a non-blocking pulse trigger: when activated, pull the pin Low (active) and set a microsecond timer to release it High after a calibrated duration (50ms–100ms).
+  - Configure `SIM_PIN_QS_IN` as an active-low digital input with internal pull-up and 20ms debounce in the fast poll path.
+  - Implement a non-blocking pulse trigger: when activated, pull the pin Low (active) and set a microsecond timer to release it High after the calibrated 75ms duration.
 - **Physical Potentiometers (Manual Cockpit)**:
   - Configure `SIM_PIN_TPS_POT` and `SIM_PIN_EGT_POT` using the ESP-IDF v5 `adc_oneshot` driver.
   - Periodic sampling (e.g., at 100 Hz inside the main loop) smoothed using a **4-sample moving average filter** to eliminate ADC noise.
@@ -130,7 +132,7 @@ Develop the timing measurement block to calculate spark degrees relative to the 
 ## Verification Plan
 
 ### Automated Tests
-- Jumper `SIM_PIN_QS_OUT` to a test input pin to verify active-low pulse duration is exactly within 50ms–100ms.
+- Jumper `SIM_PIN_QS_OUT` to a test input pin to verify active-low pulse duration is exactly 75ms. Press the physical `SIM_PIN_QS_IN` button and verify it triggers the same pulse once per press.
 - Run `web_builder.py` and verify `index_html.h` is successfully compiled and inlined.
 
 ### Manual Verification

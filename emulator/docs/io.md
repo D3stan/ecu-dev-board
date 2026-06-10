@@ -12,14 +12,27 @@ To ensure portability across various development board variants (such as ESP32 a
 // pins.h - Centralized Pin Assignments
 #pragma once
 
-#define SIM_PIN_PICKUP      25    // Pick-up Coil Pulse Output (LEDC)
-#define SIM_PIN_TPS_OUT     26    // TPS Simulated Analog Output (DAC Channel 2 / GPIO 26 on ESP32, GPIO 18 on ESP32-S2)
-#define SIM_PIN_EGT_OUT     25    // EGT Simulated Analog Output (DAC Channel 1 / GPIO 25 on ESP32, GPIO 17 on ESP32-S2)
+#if CONFIG_IDF_TARGET_ESP32S2
+#define SIM_PIN_PICKUP      13    // Pick-up Coil Pulse Output (LEDC)
+#define SIM_PIN_TPS_OUT     18    // TPS Simulated Analog Output (DAC Channel 2)
+#define SIM_PIN_EGT_OUT     17    // EGT Simulated Analog Output (DAC Channel 1)
+#define SIM_PIN_SPARK       21    // CDI Spark Input (GPIO Interrupt)
+#define SIM_PIN_QS_OUT      12    // Quick-Shifter digital pulse output (Active-Low)
+#define SIM_PIN_QS_IN       14    // Physical Quick-Shifter button input (Active-Low)
+
+#define SIM_PIN_TPS_POT     1     // Physical TPS Potentiometer Input (ADC1_CH0)
+#define SIM_PIN_EGT_POT     2     // Physical EGT Potentiometer Input (ADC1_CH1)
+#else
+#define SIM_PIN_PICKUP      4     // Pick-up Coil Pulse Output (LEDC)
+#define SIM_PIN_TPS_OUT     26    // TPS Simulated Analog Output (DAC Channel 2)
+#define SIM_PIN_EGT_OUT     25    // EGT Simulated Analog Output (DAC Channel 1)
 #define SIM_PIN_SPARK       34    // CDI Spark Input (GPIO Interrupt)
 #define SIM_PIN_QS_OUT      12    // Quick-Shifter digital pulse output (Active-Low)
+#define SIM_PIN_QS_IN       13    // Physical Quick-Shifter button input (Active-Low)
 
-#define SIM_PIN_TPS_POT     32    // Physical TPS Potentiometer Input (ADC1)
-#define SIM_PIN_EGT_POT     33    // Physical EGT Potentiometer Input (ADC1)
+#define SIM_PIN_TPS_POT     32    // Physical TPS Potentiometer Input (ADC1_CH4)
+#define SIM_PIN_EGT_POT     33    // Physical EGT Potentiometer Input (ADC1_CH5)
+#endif
 ```
 
 ---
@@ -166,15 +179,18 @@ float sim_io_get_spark_advance(float current_rpm) {
 ## 4. Physical Potentiometers (Manual Cockpit)
 
 For quick bench-top manual tuning, the simulator reads physical knobs connected to ADC1:
-- **TPS Potentiometer**: `SIM_PIN_TPS_POT` (ADC1 Channel 4).
-- **EGT Potentiometer**: `SIM_PIN_EGT_POT` (ADC1 Channel 5).
+- **TPS Potentiometer**: `SIM_PIN_TPS_POT` (ESP32-S2 `GPIO 1` / `ADC1_CH0`; standard ESP32 `GPIO 32` / `ADC1_CH4`).
+- **EGT Potentiometer**: `SIM_PIN_EGT_POT` (ESP32-S2 `GPIO 2` / `ADC1_CH1`; standard ESP32 `GPIO 33` / `ADC1_CH5`).
 
 The inputs are read periodically inside the superloop, smoothed using a **4-sample moving average filter** to eliminate ADC noise, and passed to the MCU Core parameter engine.
 
 ---
 
-## 5. Quick-Shifter Switch Pulse Output
+## 5. Quick-Shifter Switch Pulse Output and Physical Input
 
 To support testing the ECU's Quick-Shifter (QS) trigger logic, the simulator features a digital pulse generator that acts as a physical button simulator.
 - **Physical Output Pin**: `SIM_PIN_QS_OUT` (connected to the ECU's active-low digital input).
-- **Operation**: In its default idle state, the simulator keeps `SIM_PIN_QS_OUT` in a high state (normally pulled high by the ECU or internal pullup). When triggered via the Web UI, the simulator pulls the pin low for a brief duration (e.g., 50–100ms) to simulate a physical shifter cut pulse.
+- **Physical Input Pin**: `SIM_PIN_QS_IN` (local active-low bench button, wired from the GPIO to GND).
+- **Operation**: In its default idle state, the simulator keeps `SIM_PIN_QS_OUT` in a high state (normally pulled high by the ECU or internal pullup). When triggered via either the Web UI or the physical `SIM_PIN_QS_IN` button, the simulator pulls the output low for the calibrated 75ms pulse duration.
+
+The physical QS input is polled from `sim_io_fast_poll()` instead of using a GPIO interrupt. This is intentional: the input is a slow mechanical button that needs debounce, and the fast superloop already runs often enough to catch operator presses. Precision timing inputs, such as spark capture, remain interrupt-oriented because their timestamp accuracy matters.

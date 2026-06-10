@@ -23,17 +23,18 @@ Refer to the table below for the physical GPIO assignments configured in [pins.h
 
 | Signal Name | ESP32-S2 GPIO | Mode | Description | Electrical Specification |
 |:---|:---:|:---:|:---|:---|
-| **SIM_PIN_PICKUP** | `GPIO 25` | Output | Crankshaft pick-up coil emulation | 0V to 3.3V square wave ($f = \text{RPM} / 60$) |
+| **SIM_PIN_PICKUP** | `GPIO 13` | Output | Crankshaft pick-up coil emulation | 0V to 3.3V square wave ($f = \text{RPM} / 60$) |
 | **SIM_PIN_TPS_OUT** | `GPIO 18` | Output | Simulated Throttle Position (TPS) voltage | Analog 0V to 3.3V (DAC Channel 2) |
 | **SIM_PIN_EGT_OUT** | `GPIO 17` | Output | Simulated Exhaust Gas Temp (EGT) voltage | Analog 0V to 3.3V (DAC Channel 1) |
-| **SIM_PIN_SPARK** | `GPIO 34` | Input | Spark ignition trigger feedback | Digital Input, Rising-Edge Interrupt |
+| **SIM_PIN_SPARK** | `GPIO 21` | Input | Spark ignition trigger feedback | Digital Input, Rising-Edge Interrupt |
 | **SIM_PIN_QS_OUT** | `GPIO 12` | Output | Quick-Shifter switch pull-down signal | Digital Output (Active-Low, default High) |
-| **SIM_PIN_TPS_POT** | `GPIO 32` | Input | Manual TPS tuning dial | Analog Input (ADC1 Channel 4) |
-| **SIM_PIN_EGT_POT** | `GPIO 33` | Input | Manual EGT tuning dial | Analog Input (ADC1 Channel 5) |
+| **SIM_PIN_QS_IN** | `GPIO 14` | Input | Physical Quick-Shifter button | Digital Input (Active-Low, internal pull-up, debounced in fast poll) |
+| **SIM_PIN_TPS_POT** | `GPIO 1` | Input | Manual TPS tuning dial | Analog Input (ADC1 Channel 0) |
+| **SIM_PIN_EGT_POT** | `GPIO 2` | Input | Manual EGT tuning dial | Analog Input (ADC1 Channel 1) |
 
 > [!CAUTION]
 > **CDI Spark Ignition Voltage Warning**
-> Direct connection of CDI coil spark outputs (which can spike to hundreds of volts) to the ESP32-S2 GPIO input (`GPIO 34`) will instantly destroy the MCU. You **must** utilize a high-speed optocoupler or a transistor level-shifter interface to decouple high-voltage ignition signals from the simulator.
+> Direct connection of CDI coil spark outputs (which can spike to hundreds of volts) to the ESP32-S2 GPIO input (`GPIO 21`) will instantly destroy the MCU. You **must** utilize a high-speed optocoupler or a transistor level-shifter interface to decouple high-voltage ignition signals from the simulator.
 
 ---
 
@@ -90,7 +91,7 @@ Once booted, the ESP32-S2 initializes its internal NVS storage, spins up WiFi in
   ```
 
 ### Test Case 2: Analog Dial Tuning (TPS & EGT Potentiometers)
-- **Setup**: Connect two physical $10\text{k}\Omega$ potentiometers (outer pins to `3.3V`/`GND`, wiper pins to `GPIO 32` and `GPIO 33`).
+- **Setup**: Connect two physical $10\text{k}\Omega$ potentiometers (outer pins to `3.3V`/`GND`, wiper pins to `GPIO 1` and `GPIO 2`).
 - **Procedure**: Rotate the TPS dial wiper.
 - **Pass Criteria**:
   1. The Web UI dashboard and terminal output should show the live TPS value rising/falling smoothly (0% to 100%).
@@ -116,13 +117,20 @@ Once booted, the ESP32-S2 initializes its internal NVS storage, spins up WiFi in
   - Toggling the fault button off should restore EGT values back to normal mapped levels.
 
 ### Test Case 5: Quick-Shifter Signal Verification
-- **Setup**: Connect an oscilloscope or logic analyzer to `GPIO 12` (`SIM_PIN_QS_OUT`).
-- **Procedure**: On the dashboard, click **TRIGGER QUICK-SHIFTER**.
+- **Setup**:
+  1. Connect an oscilloscope or logic analyzer to `GPIO 12` (`SIM_PIN_QS_OUT`).
+  2. Connect a momentary button between `GPIO 14` (`SIM_PIN_QS_IN`) and `GND`.
+- **Procedure**:
+  1. On the dashboard, click **TRIGGER QUICK-SHIFTER**.
+  2. Press and release the physical button on `GPIO 14`.
+  3. Hold the physical button down for longer than one second.
 - **Pass Criteria**:
   - The signal on `GPIO 12` should drop from `3.3V` (High) to `0V` (Low) for exactly **75ms** (calibrated trigger duration) and then return to `3.3V`.
+  - The Web UI button and physical button should produce the same output pulse.
+  - Holding the physical button should not repeatedly retrigger; a new pulse should occur only after release and another press.
 
 ### Test Case 6: Pick-up Coil Pulse Generator Verification
-- **Setup**: Connect an oscilloscope or frequency counter to `GPIO 25` (`SIM_PIN_PICKUP`).
+- **Setup**: Connect an oscilloscope or frequency counter to `GPIO 13` (`SIM_PIN_PICKUP`).
 - **Procedure**:
   1. Set target RPM to 3,000 RPM. Verify the output frequency is:
      $$f = \frac{3000}{60} = 50\text{ Hz}$$
