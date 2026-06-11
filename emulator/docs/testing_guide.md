@@ -91,7 +91,7 @@ Once booted, the ESP32-S2 initializes its internal NVS storage, spins up WiFi in
   ```
 
 ### Test Case 2: Analog Dial Tuning (TPS & EGT Potentiometers)
-- **Setup**: Connect two physical $10\text{k}\Omega$ potentiometers (outer pins to `3.3V`/`GND`, wiper pins to `GPIO 1` and `GPIO 2`).
+- **Setup**: Connect two physical $10\text{k}\Omega$ potentiometers (outer pins to `2.5V`/`GND` on ESP32-S2, wiper pins to `GPIO 1` and `GPIO 2`). If only `3.3V` is available, add a divider so the wiper presented to the ESP32-S2 ADC does not exceed about `2.5V`.
 - **Procedure**: Rotate the TPS dial wiper.
 - **Pass Criteria**:
   1. The Web UI dashboard and terminal output should show the live TPS value rising/falling smoothly (0% to 100%).

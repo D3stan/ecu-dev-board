@@ -56,6 +56,12 @@ __pycache__/
 *.egg-info/
 dist/
 tests/
+!tests/
+tests/*
+!tests/test_web_builder_assets.py
+!tests/test_sim_io_adc_scaling.py
+!tests/test_sim_net_server_config.py
+tests/debug/
 
 # Virtual environment folders
 venv/

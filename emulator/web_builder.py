@@ -1,9 +1,47 @@
 import os
 import re
 import gzip
+import base64
+import mimetypes
 import subprocess
 import sys
 import shutil
+from pathlib import Path
+
+
+ASSET_URL_RE = re.compile(
+    r'(?P<quote>["\'])(?P<url>(?:\./)?assets/[^"\']+\.(?:png|jpe?g|gif|webp|ico|svg))(?P=quote)',
+    re.IGNORECASE,
+)
+
+
+def inline_asset_urls(text, dist_dir):
+    """Replace built local asset URLs with data URIs so firmware serves one document."""
+    dist_path = Path(dist_dir)
+
+    def replace(match):
+        quote = match.group("quote")
+        url = match.group("url")
+        relative_url = url[2:] if url.startswith("./") else url
+        asset_path = dist_path / Path(relative_url.replace("/", os.sep))
+        if not asset_path.is_file():
+            return match.group(0)
+
+        mime_type, _ = mimetypes.guess_type(asset_path.name)
+        if mime_type is None:
+            mime_type = "application/octet-stream"
+
+        encoded = base64.b64encode(asset_path.read_bytes()).decode("ascii")
+        return f'{quote}data:{mime_type};base64,{encoded}{quote}'
+
+    return ASSET_URL_RE.sub(replace, text)
+
+
+def add_inline_favicon(html):
+    """Prevent the browser's automatic /favicon.ico request on the ESP server."""
+    if re.search(r'<link\b[^>]*\brel=["\'](?:shortcut icon|icon)["\']', html, re.IGNORECASE):
+        return html
+    return html.replace("</head>", '  <link rel="icon" href="data:,">\n</head>', 1)
 
 def main():
     print("Building Web UI...")
@@ -70,6 +108,7 @@ def main():
         
     with gzip.open(app_js_gz_path, "rb") as f:
         js = f.read().decode("utf-8")
+    js = inline_asset_urls(js, dist_dir)
 
     # Read and decompress style.css.gz
     style_css_gz_path = os.path.join(dist_dir, "style.css.gz")
@@ -81,6 +120,7 @@ def main():
         
     with gzip.open(style_css_gz_path, "rb") as f:
         css = f.read().decode("utf-8")
+    css = inline_asset_urls(css, dist_dir)
 
     # Inline JS: find the script tag matching app.js (possibly with cache buster query)
     html = re.sub(
@@ -98,6 +138,7 @@ def main():
 
     # Force isDev to false for production
     html = html.replace("const isDev = true;", "const isDev = false;")
+    html = add_inline_favicon(html)
 
     # Gzip the final inlined HTML
     inlined_html_bytes = html.encode("utf-8")

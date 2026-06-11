@@ -149,7 +149,16 @@ static void sim_net_handle_command(const char *payload, size_t len) {
 static esp_err_t index_get_handler(httpd_req_t *req) {
     httpd_resp_set_type(req, "text/html");
     httpd_resp_set_hdr(req, "Content-Encoding", "gzip");
+    httpd_resp_set_hdr(req, "Cache-Control", "no-store");
     return httpd_resp_send(req, (const char *)index_html_gz, index_html_gz_len);
+}
+
+/**
+ * @brief Handler for GET /favicon.ico.
+ */
+static esp_err_t favicon_get_handler(httpd_req_t *req) {
+    httpd_resp_set_status(req, HTTPD_204);
+    return httpd_resp_send(req, NULL, 0);
 }
 
 /**
@@ -203,7 +212,7 @@ void sim_net_init(void) {
 
     // 2. Start HTTP server
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
-    config.lru_purge_enable = true;
+    config.lru_purge_enable = false;
     
     ESP_LOGI(TAG, "Starting HTTP server on port %d...", config.server_port);
 
@@ -217,6 +226,15 @@ void sim_net_init(void) {
             .user_ctx = NULL
         };
         httpd_register_uri_handler(server, &index_uri);
+
+        // GET /favicon.ico
+        httpd_uri_t favicon_uri = {
+            .uri = "/favicon.ico",
+            .method = HTTP_GET,
+            .handler = favicon_get_handler,
+            .user_ctx = NULL
+        };
+        httpd_register_uri_handler(server, &favicon_uri);
         
         // WS /ws
         httpd_uri_t ws_uri = {

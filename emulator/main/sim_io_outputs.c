@@ -16,9 +16,13 @@ static dac_oneshot_handle_t egt_dac_handle = NULL;
 #endif
 
 #include "esp_adc/adc_oneshot.h"
+#include "esp_adc/adc_cali.h"
+#include "esp_adc/adc_cali_scheme.h"
 #include "sim_state.h"
 
 static adc_oneshot_unit_handle_t adc1_handle = NULL;
+static adc_cali_handle_t adc1_cali_handle = NULL;
+static bool adc1_cali_enabled = false;
 
 static const char *TAG = "SIM_IO";
 
@@ -95,17 +99,60 @@ static void sim_io_analog_out_init(void) {
 
 #if CONFIG_IDF_TARGET_ESP32S2
 #define SIM_ADC_ATTEN ADC_ATTEN_DB_12
+#define SIM_ADC_BITWIDTH ADC_BITWIDTH_12
+#define SIM_POT_FULL_SCALE_MV 2500
 #define SIM_TPS_ADC_CHANNEL ADC_CHANNEL_0
 #define SIM_EGT_ADC_CHANNEL ADC_CHANNEL_1
 #elif CONFIG_IDF_TARGET_ESP32
 #define SIM_ADC_ATTEN ADC_ATTEN_DB_11
+#define SIM_ADC_BITWIDTH ADC_BITWIDTH_12
+#define SIM_POT_FULL_SCALE_MV 3300
 #define SIM_TPS_ADC_CHANNEL ADC_CHANNEL_4
 #define SIM_EGT_ADC_CHANNEL ADC_CHANNEL_5
 #else
 #define SIM_ADC_ATTEN ADC_ATTEN_DB_12
+#define SIM_ADC_BITWIDTH ADC_BITWIDTH_12
+#define SIM_POT_FULL_SCALE_MV 3300
 #define SIM_TPS_ADC_CHANNEL ADC_CHANNEL_4
 #define SIM_EGT_ADC_CHANNEL ADC_CHANNEL_5
 #endif
+
+#define SIM_ADC_RAW_MAX 4095.0f
+
+static bool sim_io_adc_calibration_init(void) {
+#if ADC_CALI_SCHEME_LINE_FITTING_SUPPORTED
+    adc_cali_line_fitting_config_t cali_config = {
+        .unit_id = ADC_UNIT_1,
+        .atten = SIM_ADC_ATTEN,
+        .bitwidth = SIM_ADC_BITWIDTH,
+    };
+    esp_err_t ret = adc_cali_create_scheme_line_fitting(&cali_config, &adc1_cali_handle);
+    if (ret == ESP_OK) {
+        ESP_LOGI(TAG, "ADC calibration enabled using line fitting");
+        return true;
+    }
+    ESP_LOGW(TAG, "ADC calibration unavailable (%s); falling back to raw ADC scaling", esp_err_to_name(ret));
+#else
+    ESP_LOGW(TAG, "ADC calibration scheme is not supported by this target");
+#endif
+    return false;
+}
+
+static float sim_io_adc_raw_to_pot_fraction(float raw_avg) {
+    float fraction = raw_avg / SIM_ADC_RAW_MAX;
+
+    if (adc1_cali_enabled && adc1_cali_handle) {
+        int voltage_mv = 0;
+        int raw = (int)(raw_avg + 0.5f);
+        if (adc_cali_raw_to_voltage(adc1_cali_handle, raw, &voltage_mv) == ESP_OK) {
+            fraction = (float)voltage_mv / (float)SIM_POT_FULL_SCALE_MV;
+        }
+    }
+
+    if (fraction < 0.0f) fraction = 0.0f;
+    if (fraction > 1.0f) fraction = 1.0f;
+    return fraction;
+}
 
 static void sim_io_adc_init(void) {
     ESP_LOGI(TAG, "Initializing ADC1 for manual cockpit potentiometer inputs...");
@@ -121,7 +168,7 @@ static void sim_io_adc_init(void) {
     }
 
     adc_oneshot_chan_cfg_t config = {
-        .bitwidth = ADC_BITWIDTH_DEFAULT,
+        .bitwidth = SIM_ADC_BITWIDTH,
         .atten = SIM_ADC_ATTEN,
     };
     
@@ -133,6 +180,8 @@ static void sim_io_adc_init(void) {
     if (adc_oneshot_config_channel(adc1_handle, SIM_EGT_ADC_CHANNEL, &config) != ESP_OK) {
         ESP_LOGE(TAG, "Failed to configure EGT ADC channel");
     }
+
+    adc1_cali_enabled = sim_io_adc_calibration_init();
 }
 
 void sim_io_init(void) {
@@ -287,14 +336,16 @@ void sim_io_read_potentiometers(void) {
     float avg_tps = sum_tps / count;
     float avg_egt = sum_egt / count;
 
-    // Map raw ADC (0 to 4095) to physical values:
+    // Map calibrated ADC voltage to physical values:
     // TPS: 0.0% to 100.0%
-    float phys_tps = (avg_tps / 4095.0f) * 100.0f;
+    float tps_fraction = sim_io_adc_raw_to_pot_fraction(avg_tps);
+    float phys_tps = tps_fraction * 100.0f;
     if (phys_tps < 0.0f) phys_tps = 0.0f;
     if (phys_tps > 100.0f) phys_tps = 100.0f;
 
     // EGT: 20.0°C to 1000.0°C (difference is 980.0)
-    float phys_egt = 20.0f + (avg_egt / 4095.0f) * 980.0f;
+    float egt_fraction = sim_io_adc_raw_to_pot_fraction(avg_egt);
+    float phys_egt = 20.0f + egt_fraction * 980.0f;
     if (phys_egt < 20.0f) phys_egt = 20.0f;
     if (phys_egt > 1000.0f) phys_egt = 1000.0f;
 
