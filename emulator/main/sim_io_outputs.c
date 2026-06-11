@@ -1,6 +1,7 @@
 #include "sim_io_outputs.h"
 #include "pins.h"
 
+#include <math.h>
 #include <stdio.h>
 #include "esp_timer.h"
 #include "esp_log.h"
@@ -139,11 +140,21 @@ static bool sim_io_adc_calibration_init(void) {
     return false;
 }
 
-static float sim_io_adc_raw_to_pot_fraction(float raw_avg) {
+static uint8_t sim_io_percent_to_dac_code(float percent) {
+    if (!isfinite(percent)) {
+        percent = 0.0f;
+    }
+    if (percent < 0.0f) percent = 0.0f;
+    if (percent > 100.0f) percent = 100.0f;
+
+    return (uint8_t)((percent / 100.0f) * 255.0f + 0.5f);
+}
+
+static float sim_io_adc_raw_to_pot_fraction(float raw_avg, int *voltage_mv_out) {
     float fraction = raw_avg / SIM_ADC_RAW_MAX;
+    int voltage_mv = (int)(fraction * (float)SIM_POT_FULL_SCALE_MV + 0.5f);
 
     if (adc1_cali_enabled && adc1_cali_handle) {
-        int voltage_mv = 0;
         int raw = (int)(raw_avg + 0.5f);
         if (adc_cali_raw_to_voltage(adc1_cali_handle, raw, &voltage_mv) == ESP_OK) {
             fraction = (float)voltage_mv / (float)SIM_POT_FULL_SCALE_MV;
@@ -152,7 +163,29 @@ static float sim_io_adc_raw_to_pot_fraction(float raw_avg) {
 
     if (fraction < 0.0f) fraction = 0.0f;
     if (fraction > 1.0f) fraction = 1.0f;
+    if (voltage_mv_out) {
+        *voltage_mv_out = voltage_mv;
+    }
     return fraction;
+}
+
+static float sim_io_average_sample(int sample, int history[4], int *history_idx, bool *history_filled) {
+    history[*history_idx] = sample;
+    *history_idx = (*history_idx + 1) % 4;
+    if (*history_idx == 0) {
+        *history_filled = true;
+    }
+
+    int count = *history_filled ? 4 : *history_idx;
+    if (count == 0) {
+        return (float)sample;
+    }
+
+    float sum = 0.0f;
+    for (int i = 0; i < count; i++) {
+        sum += history[i];
+    }
+    return sum / count;
 }
 
 static void sim_io_adc_init(void) {
@@ -234,21 +267,27 @@ void sim_io_pickup_set_frequency(uint32_t freq) {
 }
 
 void sim_io_set_tps_voltage(float percent) {
+    uint8_t dac_val = sim_io_percent_to_dac_code(percent);
+    g_sim_state.io_debug.tps_dac_code = dac_val;
+    g_sim_state.io_debug.tps_dac_ok = false;
+
 #if SOC_DAC_SUPPORTED
     if (tps_dac_handle) {
-        // Scale 0.0 - 100.0% to 0 - 255 DAC value (0V to 3.3V)
-        uint8_t dac_val = (uint8_t)((percent / 100.0f) * 255.0f);
-        dac_oneshot_output_voltage(tps_dac_handle, dac_val);
+        esp_err_t ret = dac_oneshot_output_voltage(tps_dac_handle, dac_val);
+        g_sim_state.io_debug.tps_dac_ok = (ret == ESP_OK);
     }
 #endif
 }
 
 void sim_io_set_egt_voltage(float percent) {
+    uint8_t dac_val = sim_io_percent_to_dac_code(percent);
+    g_sim_state.io_debug.egt_dac_code = dac_val;
+    g_sim_state.io_debug.egt_dac_ok = false;
+
 #if SOC_DAC_SUPPORTED
     if (egt_dac_handle) {
-        // Scale 0.0 - 100.0% to 0 - 255 DAC value (0V to 3.3V)
-        uint8_t dac_val = (uint8_t)((percent / 100.0f) * 255.0f);
-        dac_oneshot_output_voltage(egt_dac_handle, dac_val);
+        esp_err_t ret = dac_oneshot_output_voltage(egt_dac_handle, dac_val);
+        g_sim_state.io_debug.egt_dac_ok = (ret == ESP_OK);
     }
 #endif
 }
@@ -305,52 +344,52 @@ void sim_io_read_potentiometers(void) {
 
     static int tps_history[4] = {0};
     static int egt_history[4] = {0};
-    static int history_idx = 0;
-    static bool history_filled = false;
+    static int tps_history_idx = 0;
+    static int egt_history_idx = 0;
+    static bool tps_history_filled = false;
+    static bool egt_history_filled = false;
 
-    int raw_tps = 0;
-    int raw_egt = 0;
+    if (!g_sim_state.tps.is_overridden) {
+        int raw_tps = 0;
+        if (adc_oneshot_read(adc1_handle, SIM_TPS_ADC_CHANNEL, &raw_tps) == ESP_OK) {
+            float avg_tps = sim_io_average_sample(raw_tps, tps_history, &tps_history_idx, &tps_history_filled);
+            int tps_mv = 0;
+            float tps_fraction = sim_io_adc_raw_to_pot_fraction(avg_tps, &tps_mv);
+            float phys_tps = tps_fraction * 100.0f;
+            if (phys_tps < 0.0f) phys_tps = 0.0f;
+            if (phys_tps > 100.0f) phys_tps = 100.0f;
 
-    if (adc_oneshot_read(adc1_handle, SIM_TPS_ADC_CHANNEL, &raw_tps) != ESP_OK) {
-        return;
+            g_sim_state.tps.physical_val = phys_tps;
+            g_sim_state.io_debug.tps_raw = raw_tps;
+            g_sim_state.io_debug.tps_mv = tps_mv;
+            g_sim_state.io_debug.tps_fraction = tps_fraction;
+            g_sim_state.io_debug.tps_physical = phys_tps;
+        }
+    } else {
+        g_sim_state.io_debug.tps_physical = g_sim_state.tps.physical_val;
     }
-    if (adc_oneshot_read(adc1_handle, SIM_EGT_ADC_CHANNEL, &raw_egt) != ESP_OK) {
-        return;
+
+    if (!g_sim_state.egt.is_overridden) {
+        int raw_egt = 0;
+        if (adc_oneshot_read(adc1_handle, SIM_EGT_ADC_CHANNEL, &raw_egt) == ESP_OK) {
+            float avg_egt = sim_io_average_sample(raw_egt, egt_history, &egt_history_idx, &egt_history_filled);
+            int egt_mv = 0;
+            float egt_fraction = sim_io_adc_raw_to_pot_fraction(avg_egt, &egt_mv);
+            float phys_egt = 20.0f + egt_fraction * 980.0f;
+            if (phys_egt < 20.0f) phys_egt = 20.0f;
+            if (phys_egt > 1000.0f) phys_egt = 1000.0f;
+
+            g_sim_state.egt.physical_val = phys_egt;
+            g_sim_state.io_debug.egt_raw = raw_egt;
+            g_sim_state.io_debug.egt_mv = egt_mv;
+            g_sim_state.io_debug.egt_fraction = egt_fraction;
+            g_sim_state.io_debug.egt_physical = phys_egt;
+        }
+    } else {
+        g_sim_state.io_debug.egt_physical = g_sim_state.egt.physical_val;
     }
 
-    tps_history[history_idx] = raw_tps;
-    egt_history[history_idx] = raw_egt;
-    history_idx = (history_idx + 1) % 4;
-    if (history_idx == 0) {
-        history_filled = true;
-    }
 
-    int count = history_filled ? 4 : history_idx;
-    if (count == 0) return;
 
-    float sum_tps = 0;
-    float sum_egt = 0;
-    for (int i = 0; i < count; i++) {
-        sum_tps += tps_history[i];
-        sum_egt += egt_history[i];
-    }
-    float avg_tps = sum_tps / count;
-    float avg_egt = sum_egt / count;
 
-    // Map calibrated ADC voltage to physical values:
-    // TPS: 0.0% to 100.0%
-    float tps_fraction = sim_io_adc_raw_to_pot_fraction(avg_tps);
-    float phys_tps = tps_fraction * 100.0f;
-    if (phys_tps < 0.0f) phys_tps = 0.0f;
-    if (phys_tps > 100.0f) phys_tps = 100.0f;
-
-    // EGT: 20.0°C to 1000.0°C (difference is 980.0)
-    float egt_fraction = sim_io_adc_raw_to_pot_fraction(avg_egt);
-    float phys_egt = 20.0f + egt_fraction * 980.0f;
-    if (phys_egt < 20.0f) phys_egt = 20.0f;
-    if (phys_egt > 1000.0f) phys_egt = 1000.0f;
-
-    // Access the global volatile state instance
-    g_sim_state.tps.physical_val = phys_tps;
-    g_sim_state.egt.physical_val = phys_egt;
 }

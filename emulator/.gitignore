@@ -63,6 +63,7 @@ tests/*
 !tests/test_sim_net_server_config.py
 !tests/test_engine_simulation.py
 !tests/test_socket_status.py
+!tests/test_io_diagnostics.py
 tests/debug/
 
 # Virtual environment folders
