@@ -18,6 +18,15 @@ class SimNetServerConfigTests(unittest.TestCase):
         self.assertIn('.uri = "/favicon.ico"', source)
         self.assertIn('HTTPD_204', source)
 
+    def test_websocket_broadcast_uses_httpd_async_send_with_owned_payload(self):
+        source = (ROOT / "main" / "sim_net.c").read_text(encoding="utf-8")
+
+        self.assertIn("httpd_ws_send_data_async", source)
+        self.assertIn("sim_net_ws_send_done", source)
+        self.assertIn("malloc(sizeof(sim_ws_payload_t) + len)", source)
+        self.assertIn("memcpy(payload->data, data, len)", source)
+        self.assertNotIn("httpd_ws_send_frame_async(server, fd, &ws_pkt)", source)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -16,6 +16,7 @@
 #include "esp_event.h"
 #include "nvs_flash.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include "esp_log.h"
 #include "esp_http_server.h"
@@ -23,6 +24,11 @@
 
 static const char *TAG = "SIM_NET";
 static httpd_handle_t server = NULL;
+
+typedef struct {
+    size_t len;
+    char data[];
+} sim_ws_payload_t;
 
 /**
  * @brief Initialize WiFi in SoftAP (Access Point) mode.
@@ -255,6 +261,13 @@ void sim_net_poll(void) {
     // Throttled by esp_http_server internally, no superloop polling required
 }
 
+static void sim_net_ws_send_done(esp_err_t err, int socket, void *arg) {
+    if (err != ESP_OK) {
+        ESP_LOGW(TAG, "WebSocket telemetry send failed on fd=%d: %s", socket, esp_err_to_name(err));
+    }
+    free(arg);
+}
+
 void sim_net_broadcast(const char *data, size_t len) {
     if (server == NULL) return;
     
@@ -264,13 +277,25 @@ void sim_net_broadcast(const char *data, size_t len) {
         for (size_t i = 0; i < max_clients; i++) {
             int fd = client_fds[i];
             if (httpd_ws_get_fd_info(server, fd) == HTTPD_WS_CLIENT_WEBSOCKET) {
+                sim_ws_payload_t *payload = malloc(sizeof(sim_ws_payload_t) + len);
+                if (payload == NULL) {
+                    ESP_LOGW(TAG, "Skipping WebSocket telemetry for fd=%d: out of memory", fd);
+                    continue;
+                }
+                payload->len = len;
+                memcpy(payload->data, data, len);
+
                 httpd_ws_frame_t ws_pkt = {
-                    .payload = (uint8_t *)data,
-                    .len = len,
+                    .payload = (uint8_t *)payload->data,
+                    .len = payload->len,
                     .type = HTTPD_WS_TYPE_TEXT,
                     .final = true
                 };
-                httpd_ws_send_frame_async(server, fd, &ws_pkt);
+                esp_err_t ret = httpd_ws_send_data_async(server, fd, &ws_pkt, sim_net_ws_send_done, payload);
+                if (ret != ESP_OK) {
+                    ESP_LOGW(TAG, "Failed to queue WebSocket telemetry for fd=%d: %s", fd, esp_err_to_name(ret));
+                    free(payload);
+                }
             }
         }
     }
