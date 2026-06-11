@@ -61,6 +61,8 @@ tests/*
 !tests/test_web_builder_assets.py
 !tests/test_sim_io_adc_scaling.py
 !tests/test_sim_net_server_config.py
+!tests/test_engine_simulation.py
+!tests/test_socket_status.py
 tests/debug/
 
 # Virtual environment folders

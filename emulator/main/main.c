@@ -67,18 +67,21 @@ void run_engine_simulation(float dt)
         const float tau_thermal_fault = 0.2f; // Rapid thermal response (5x faster)
         g_sim_state.current_egt += ((EGT_target_fault - g_sim_state.current_egt) / tau_thermal_fault) * dt;
     } else {
-        const float EGT_ambient = 20.0f;
         const float C_load = 4.0f;
         const float C_speed = 0.03f;
         const float tau_thermal = 2.0f;
+        float active_egt_baseline = g_sim_state.egt.physical_val;
+
+        if (active_egt_baseline < 20.0f) active_egt_baseline = 20.0f;
+        if (active_egt_baseline > 1000.0f) active_egt_baseline = 1000.0f;
 
         float egt_target;
         if (!g_sim_state.spark_detected) {
-            // Decays towards ambient if there's no ignition spark
-            egt_target = EGT_ambient;
+            // Decays towards the physical EGT input if there's no ignition spark
+            egt_target = active_egt_baseline;
         } else {
             // Normal EGT calculation based on TPS engine load and rotational speed
-            egt_target = EGT_ambient + (g_sim_state.current_tps * C_load) + (g_sim_state.current_rpm * C_speed);
+            egt_target = active_egt_baseline + (g_sim_state.current_tps * C_load) + (g_sim_state.current_rpm * C_speed);
         }
 
         // First-order thermal lag system

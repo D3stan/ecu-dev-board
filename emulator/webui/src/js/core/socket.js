@@ -268,6 +268,12 @@ const Socket = (() => {
         }
         
         // �🔍 Log dettagliato per messaggi MENU
+        if (state !== SocketState.CONNECTED) {
+          reconnectAttempts = 0;
+          stayDisconnected = false;
+          setState(SocketState.CONNECTED);
+        }
+
         messageSubscribers.forEach(cb => cb(msg));
       };
 
