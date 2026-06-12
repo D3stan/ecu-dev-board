@@ -11,11 +11,11 @@ The architecture is structured across four distinct nodes:
 3. **On-Board Dashboard (Vanilla JS/Vite)**: An interactive web application hosted in the ECU's LittleFS filesystem, ported from an older project. It connects to the ECU via WebSocket for real-time visualization and map tuning.
 4. **Remote Server (Proxmox VM)**: Houses the central logging and historical data viewer suite, consisting of an MQTT Broker, an Express.js API Gateway, a PostgreSQL database, and a React SPA for read-only session analysis.
 
-> [!NOTE]
-> Detailed technical specifications, low-level design details, and specific sub-system implementation steps are documented in dedicated subfiles inside the [docs/](file:///Users/puddu/Documents/GitHub/ecu-dev-board/idf/docs) directory:
-> - Detailed FSM transitions and hardware timings: [elaborato.md](file:///Users/puddu/Documents/GitHub/ecu-dev-board/idf/docs/elaborato.md)
-> - Detailed WebUI migration plan and component mappings: [webui-conversion-plan.md](file:///Users/puddu/Documents/GitHub/ecu-dev-board/idf/docs/webui-conversion-plan.md)
-> - Overall project objectives and hardware details: [ECU.md](file:///Users/puddu/Documents/GitHub/ecu-dev-board/idf/docs/ECU.md)
+> **Note:**
+> Detailed technical specifications, low-level design details, and specific sub-system implementation steps are documented in dedicated subfiles inside the [docs/](.) directory:
+> - Detailed FSM transitions and hardware timings: [elaborato.md](elaborato.md)
+> - Detailed WebUI migration plan and component mappings: [webui-conversion-plan.md](webui-conversion-plan.md)
+> - Overall project objectives and hardware details: [ECU.md](ECU.md)
 
 ---
 
@@ -23,11 +23,11 @@ The architecture is structured across four distinct nodes:
 
 Please review the following key decisions and architectural paradigms before proceeding:
 
-> [!IMPORTANT]
+> **Important:**
 > **WebUI Architecture Porting**
 > The transition from the older project's WebUI to the ECU Dashboard will retain the core infrastructure (custom store, component lifecycle, socket reconnect logic, Vite build configurations). Older components will also be retained in case of necessity. New components will be built to suit the new domain, and the communication logic will be replaced.
 
-> [!WARNING]
+> **Warning:**
 > **Telemetry Logging Strategy**
 > For local session telemetry recording on the ECU, data will be captured at **2 Hz** and stored using a **circular buffer** configuration on the ECU. Real-time dashboard telemetry will stream at 10-20 Hz via WebSockets without persisting to flash memory.
 
@@ -73,21 +73,21 @@ Please review the following key decisions and architectural paradigms before pro
 For detailed, mid-level file modifications, reference the corresponding subfiles within the `docs/` folder. The primary file organization is outlined below:
 
 ### ECU Firmware (ESP-IDF)
-#### [MODIFY] [CMakeLists.txt](file:///Users/puddu/Documents/GitHub/ecu-dev-board/idf/CMakeLists.txt)
-#### [MODIFY] [main.c](file:///Users/puddu/Documents/GitHub/ecu-dev-board/idf/main/main.c)
+#### [MODIFY] [CMakeLists.txt](../CMakeLists.txt)
+#### [MODIFY] [main.c](../main/main.c)
 
 ### WebUI Dashboard (Static build for LittleFS)
-#### [MODIFY] [package.json](file:///Users/puddu/Downloads/webui/package.json)
-#### [MODIFY] [vite.config.js](file:///Users/puddu/Downloads/webui/vite.config.js)
-#### [MODIFY] [index.html](file:///Users/puddu/Downloads/webui/src/index.html)
-#### [MODIFY] [adapter.js](file:///Users/puddu/Downloads/webui/src/js/core/adapter.js)
-#### [MODIFY] [App.js](file:///Users/puddu/Downloads/webui/src/js/core/App.js)
-#### [MODIFY] [commandManager.js](file:///Users/puddu/Downloads/webui/src/js/managers/commandManager.js)
-#### [MODIFY] [constants.js](file:///Users/puddu/Downloads/webui/src/js/utils/constants.js)
-#### [MODIFY] [paths.js](file:///Users/puddu/Downloads/webui/src/js/utils/paths.js)
+#### [MODIFY] [package.json](../webui/package.json)
+#### [MODIFY] [vite.config.js](../webui/vite.config.js)
+#### [MODIFY] [index.html](../webui/src/index.html)
+#### [MODIFY] [adapter.js](../webui/src/js/core/adapter.js)
+#### [MODIFY] [App.js](../webui/src/js/core/App.js)
+#### [MODIFY] [commandManager.js](../webui/src/js/managers/commandManager.js)
+#### [MODIFY] [constants.js](../webui/src/js/utils/constants.js)
+#### [MODIFY] [paths.js](../webui/src/js/utils/paths.js)
 
 ### Documentation Structure
-To keep the codebase tidy and organized, documentation files for individual frontend components must be placed within dedicated subfolders under [src/docs](file:///Users/puddu/Downloads/webui/src/docs).
+To keep the codebase tidy and organized, documentation files for individual frontend components must be placed within dedicated subfolders under [src/docs](../webui/src/docs).
 - Each component will have its own subdirectory matching its component name (e.g., `src/docs/[ComponentName]/`).
 - The corresponding documentation markdown files and any local design assets/diagrams must reside inside that subfolder (e.g., `src/docs/WifiConnectionCard/WIFI_CONNECTION_CARD.md`).
 
