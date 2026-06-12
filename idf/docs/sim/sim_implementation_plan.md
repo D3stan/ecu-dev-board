@@ -6,7 +6,7 @@ This document outlines a high-level, phased implementation plan to build the **E
 
 ## User Review Required
 
-> [!IMPORTANT]
+> **Important:**
 > **Centralized Pin Configurations (`pins.h`)**
 > All physical pin definitions are completely decoupled from driver logic. You must review the default GPIO selections in `pins.h` once hardware is wired, or adjust them for specific ESP32-S2 pinouts.
 
@@ -18,7 +18,7 @@ This document outlines a high-level, phased implementation plan to build the **E
 
 Establish the basic project skeleton, build targets, and centralized pin mappings inside a native ESP-IDF environment.
 
-#### [NEW] [pins.h](file:///Users/puddu/Documents/GitHub/ecu-dev-board/idf/docs/sim/pins.h) (Macro Configuration Header)
+#### [NEW] [pins.h](pins.h) (Macro Configuration Header)
 - Define pin macros for all simulator functions to ensure portability.
 - Default pin assignments for ESP32-S2:
   - `SIM_PIN_PICKUP` (Pick-up coil output)
@@ -28,7 +28,7 @@ Establish the basic project skeleton, build targets, and centralized pin mapping
   - `SIM_PIN_QS_OUT` (Quick-Shifter pulse output)
   - `SIM_PIN_TPS_POT` & `SIM_PIN_EGT_POT` (Analog manual cockpit inputs - ADC1 Channels)
 
-#### [MODIFY] [CMakeLists.txt](file:///Users/puddu/Documents/GitHub/ecu-dev-board/idf/CMakeLists.txt) (ESP-IDF Build Configuration)
+#### [MODIFY] [CMakeLists.txt](../../CMakeLists.txt) (ESP-IDF Build Configuration)
 - Set up target board target configurations for ESP-IDF native compiling.
 - Include standard ESP-IDF component lists (driver, esp_http_server, esp_timer, adc, dac).
 
@@ -38,7 +38,7 @@ Establish the basic project skeleton, build targets, and centralized pin mapping
 
 Implement the main non-blocking control loop and physical state integration models.
 
-#### [NEW] [sim_state.h](file:///Users/puddu/Documents/GitHub/ecu-dev-board/idf/docs/sim/sim_state.h) (Core Global Memory Model)
+#### [NEW] [sim_state.h](sim_state.h) (Core Global Memory Model)
 - Define state structs tracking dynamic and virtual variables:
 ```c
 typedef struct {
@@ -50,7 +50,7 @@ typedef struct {
 } sim_state_t;
 ```
 
-#### [NEW] [main.c](file:///Users/puddu/Documents/GitHub/ecu-dev-board/idf/main/main.c) (Loop Control & Kinematics)
+#### [NEW] [main.c](../../main/main.c) (Loop Control & Kinematics)
 - Implement `app_main` running a strict, non-blocking time-sliced scheduler using `esp_timer_get_time()`:
   - **100 Hz simulation tick**: Runs kinematics integrations (integrates TPS load to calculate transient RPM under simulated flywheel inertia; computes EGT rise/decay equations).
   - **10 Hz telemetry tick**: Serializes `sim_state` parameters to JSON format and broadcasts via UART and WebSockets.
@@ -62,7 +62,7 @@ typedef struct {
 
 Set up signal generator outputs (crankshaft pick-up and dual DAC analog sensors) and the Quick-Shifter digital pulse.
 
-#### [NEW] [sim_io_outputs.c](file:///Users/puddu/Documents/GitHub/ecu-dev-board/idf/docs/sim/sim_io_outputs.c) (LEDC & Dual DAC Outputs)
+#### [NEW] [sim_io_outputs.c](sim_io_outputs.c) (LEDC & Dual DAC Outputs)
 - **Pick-up Coil Generator**:
   - Initialize LEDC on `SIM_PIN_PICKUP` using a dedicated timer running a 50% duty cycle.
   - Implement a dynamic frequency updater function translating target RPM to Hz:
@@ -80,13 +80,13 @@ Set up signal generator outputs (crankshaft pick-up and dual DAC analog sensors)
 
 Embed the compiled Web UI assets and set up the native WebSocket server.
 
-#### [NEW] [index_html.h](file:///Users/puddu/Documents/GitHub/ecu-dev-board/idf/docs/sim/index_html.h) (Inlined Web UI Assets)
+#### [NEW] [index_html.h](index_html.h) (Inlined Web UI Assets)
 - Store the compiled and bundled single-file Vite HTML page as a static C character array (`const char index_html[]`).
 
-#### [NEW] [web_builder.py](file:///Users/puddu/Documents/GitHub/ecu-dev-board/idf/docs/sim/web_builder.py) (Asset Bundling Script)
-- Create a Python script in the build chain to compile the Vite project in `/Users/puddu/Downloads/webui`, bundle the built assets into a single static file, and export it directly as `index_html.h`.
+#### [NEW] [web_builder.py](web_builder.py) (Asset Bundling Script)
+- Create a Python script in the build chain to compile the Vite project (see webui/), bundle the built assets into a single static file, and export it directly as `index_html.h`.
 
-#### [NEW] [sim_net.c](file:///Users/puddu/Documents/GitHub/ecu-dev-board/idf/docs/sim/sim_net.c) (esp_http_server Routing)
+#### [NEW] [sim_net.c](sim_net.c) (esp_http_server Routing)
 - Spin up `esp_http_server` on port 80.
 - Register endpoints:
   - `GET /` -> Serves `index_html`.
@@ -102,7 +102,7 @@ Embed the compiled Web UI assets and set up the native WebSocket server.
 
 Develop the timing measurement block to calculate spark degrees relative to the generated pick-up signal.
 
-#### [NEW] [sim_io_capture.c](file:///Users/puddu/Documents/GitHub/ecu-dev-board/idf/docs/sim/sim_io_capture.c) (Timing Interrupt Service Routine)
+#### [NEW] [sim_io_capture.c](sim_io_capture.c) (Timing Interrupt Service Routine)
 - Configure `SIM_PIN_SPARK` with an active-high rising-edge GPIO interrupt.
 - Create a low-latency Interrupt Service Routine (ISR) that records the hardware timestamp of the ECU's spark trigger:
   `t_spark = esp_timer_get_time();`
