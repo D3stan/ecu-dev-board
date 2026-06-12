@@ -2,7 +2,7 @@
 
 ## 1. Current State Assessment
 
-The project is at **ground zero** — [main.c](file:///c:/Users/puddu/Documents/Github/ecu-dev-board/idf/main/main.c) contains an empty `app_main()`, and the full specification lives in [elaborato.md](file:///c:/Users/puddu/Documents/Github/ecu-dev-board/idf/docs/elaborato.md) and [ECU.md](file:///c:/Users/puddu/Documents/Github/ecu-dev-board/idf/docs/ECU.md). This is the **ideal** moment to choose an architecture: there is no legacy code to refactor, only a well-defined spec to implement.
+The project is at **ground zero** — [main.c](../main/main.c) contains an empty `app_main()`, and the full specification lives in [elaborato.md](elaborato.md) and [ECU.md](ECU.md). This is the **ideal** moment to choose an architecture: there is no legacy code to refactor, only a well-defined spec to implement.
 
 The specification already reveals natural domain boundaries:
 - A **sensor input layer** (Pick-up ISR, TPS ADC, EGT ADC)
@@ -231,11 +231,16 @@ classDiagram
 classDiagram
     direction TB
 
+    %% Diagram-only C++ type aliases (for portable Mermaid; not present in source)
+    class BreakpointArray
+    class BreakpointSpan
+    class MapSetArray
+
     class LookupTable1D {
-        -std::array~Breakpoint, MAX_BP~ breakpoints
+        -breakpoints : BreakpointArray
         -uint8_t count
         +interpolate(rpm : uint16_t) float
-        +setBreakpoints(bp : span~Breakpoint~) void
+        +setBreakpoints(bp : BreakpointSpan) void
         +breakpointCount() uint8_t
     }
 
@@ -254,14 +259,14 @@ classDiagram
     }
 
     class MapManager {
-        -std::array~MapSet, MAX_MAPS~ maps
+        -maps : MapSetArray
         -uint8_t activeMapId
         -uint8_t mapCount
         +loadFromNvs() void
         +saveToNvs() void
         +activeMap() MapSet&
         +setActiveMap(id : uint8_t) bool
-        +editMap(id : uint8_t, type : MapType, breakpoints : span~Breakpoint~) bool
+        +editMap(id : uint8_t, type : MapType, breakpoints : BreakpointSpan) bool
         +toJson(buf : char*, len : size_t) size_t
     }
 
@@ -276,8 +281,13 @@ classDiagram
 classDiagram
     direction TB
 
+    %% Diagram-only C++ type aliases (portable rendering)
+    class SessionSampleArray
+    class SessionSampleSpan
+    class SessionEventSpan
+
     class TelemetrySnapshot {
-        <<POD / trivially copyable>>
+        <<trivially_copyable>>
         +rpm : uint16_t
         +tpsPercent : float
         +egtCelsius : float
@@ -300,7 +310,7 @@ classDiagram
     }
 
     class SessionBuffer {
-        -std::array~SessionSample, MAX_SAMPLES~ buffer
+        -buffer : SessionSampleArray
         -uint16_t head
         -uint16_t count
         -int64_t sessionStartUs
@@ -310,13 +320,13 @@ classDiagram
         +pushSample(snap : TelemetrySnapshot&) void
         +isRecording() bool
         +sampleCount() uint16_t
-        +samples() span~SessionSample~
+        +samples() SessionSampleSpan
     }
 
     class SessionSerializer {
         +serializeMeta(buf : SessionBuffer&, out : char*, len : size_t) size_t
         +serializeSamplesChunk(buf : SessionBuffer&, chunkIdx : uint8_t, out : char*, len : size_t) size_t
-        +serializeEvents(events : span~SessionEvent~, out : char*, len : size_t) size_t
+        +serializeEvents(events : SessionEventSpan, out : char*, len : size_t) size_t
     }
 
     SessionBuffer *-- SessionSample
@@ -334,7 +344,7 @@ classDiagram
         -bool connected
         +init(ssid : const char*, pass : const char*) void
         +isConnected() bool
-        -eventHandler()$ void
+        -eventHandler() void
     }
 
     class WebSocketServer {
@@ -359,7 +369,7 @@ classDiagram
         -bool connected
         +init(brokerUri : const char*) void
         +publishSession() void
-        -eventHandler()$ void
+        -eventHandler() void
     }
 
     class OtaClient {
@@ -422,7 +432,7 @@ classDiagram
 
 ## 4. Heap Usage & Modern C++ on ESP32 — Guidelines
 
-> [!IMPORTANT]
+> **Important:**
 > ESP32-S3 has ~512 KB SRAM total. After FreeRTOS kernel, WiFi/TLS stack, and LittleFS, only **~100–150 KB** remain. Every `new`/`malloc` competes for this pool and fragments it. The OOP design must be **allocation-aware**.
 
 ### 4.1 Strategies to Avoid Dynamic Allocation
@@ -574,16 +584,16 @@ Dashboard cmd → WebSocketServer → CommandDispatcher → MapManager / EngineF
 
 ## 6. Open Questions
 
-> [!IMPORTANT]
+> **Important:**
 > **C++ Standard version**: ESP-IDF v5.x supports C++20 (`-std=gnu++20`). Do you want to target C++20 (enables `std::span`, concepts, `consteval`) or stay conservative with C++17?
 
-> [!IMPORTANT]
+> **Important:**
 > **ETL (Embedded Template Library)**: Do you want to add [etl](https://www.etlcpp.com/) as a dependency? It provides heap-free containers (`etl::vector<T,N>`, `etl::string<N>`, `etl::map<K,V,N>`) that are more ergonomic than raw `std::array`. The trade-off is one more dependency.
 
-> [!IMPORTANT]
+> **Important:**
 > **Virtual dispatch**: The HAL classes (`GpioPin`, `AdcChannel`, etc.) could use `virtual` methods to enable mock-based unit testing (inject a `MockAdcChannel` in tests). This adds a vtable pointer (4 bytes per object) and one indirection per call. Is testability via mocks a priority, or do you prefer zero-virtual, template-based (CRTP) static dispatch?
 
-> [!WARNING]
+> **Warning:**
 > **Thread safety model**: The `TelemetrySnapshot` cross-core shared buffer can be protected with either:
 > - A **FreeRTOS mutex** (safe, simple, adds ~1 µs latency per access)
 > - An **atomic copy** via `std::atomic` on a packed struct (lock-free, but struct must be ≤ 8 bytes for true atomicity on Xtensa — yours is 26 bytes, so not viable)
