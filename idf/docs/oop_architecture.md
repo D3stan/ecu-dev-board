@@ -122,6 +122,12 @@ main/
 classDiagram
     direction TB
 
+    %% Diagram-only C++ type aliases (portable Mermaid rendering per requirements; not in C++ source)
+    class BreakpointArray
+    class CharArray16
+    class BreakpointSpan
+    class OptionalEngineEvent
+
     class EngineState {
         <<enumeration>>
         Init
@@ -166,7 +172,7 @@ classDiagram
     class SafetySupervisor {
         -float egtAlarmThreshold_
         -uint16_t revLimitRpm_
-        +evaluate(egt : float, rpm : uint16_t) EngineEvent*
+        +evaluate(egt : float, rpm : uint16_t) OptionalEngineEvent
         +setEgtThreshold(deg : float) void
         +setRevLimit(rpm : uint16_t) void
     }
@@ -181,46 +187,46 @@ classDiagram
     }
 
     class OperatingPoint {
-        <<value object>>
+        <<value_object>>
         +rpm : uint16_t
         +tpsPercent : float
         +egtCelsius : float
     }
 
     class Breakpoint {
-        <<value object>>
+        <<value_object>>
         +rpm : uint16_t
         +value : float
     }
 
     class AdvanceMap {
-        -std::array~Breakpoint, MAX_BP~ bp_
+        -bp_ : BreakpointArray
         -uint8_t count_
         +interpolate(rpm : uint16_t) float
-        +setBreakpoints(bp : std::span~const Breakpoint~) bool
+        +setBreakpoints(bp : BreakpointSpan) bool
         +count() uint8_t
-        +breakpoints() std::span~const Breakpoint~
+        +breakpoints() BreakpointSpan
     }
 
     class PowerJetMap {
-        -std::array~Breakpoint, MAX_BP~ bp_
+        -bp_ : BreakpointArray
         -uint8_t count_
         +interpolate(rpm : uint16_t) float
-        +setBreakpoints(bp : std::span~const Breakpoint~) bool
+        +setBreakpoints(bp : BreakpointSpan) bool
         +count() uint8_t
-        +breakpoints() std::span~const Breakpoint~
+        +breakpoints() BreakpointSpan
     }
 
     class MapSet {
-        <<value object>>
+        <<value_object>>
         +id : uint8_t
-        +name : std::array~char, 16~
+        +name : CharArray16
         +ignition : AdvanceMap
         +powerJet : PowerJetMap
     }
 
     class TelemetrySnapshot {
-        <<trivially copyable>>
+        <<trivially_copyable>>
         +rpm : uint16_t
         +tpsPercent : float
         +egtCelsius : float
@@ -242,7 +248,7 @@ classDiagram
     TelemetrySnapshot --> EngineState
 ```
 
-> [!NOTE]
+> **Note:**
 > `AdvanceMap` and `PowerJetMap` are **separate classes** despite identical structure. This is intentional — they represent different domain concepts and will likely diverge when 3D maps (RPM × TPS) are added for ignition but not necessarily for Power Jet. If you want to share the interpolation implementation, extract a private `LookupTable1D` utility they both delegate to — but keep the public types distinct.
 
 ### 3.2 Ports Layer — The Dependency Inversion Boundary
@@ -251,87 +257,90 @@ classDiagram
 classDiagram
     direction TB
 
+    %% Diagram-only alias
+    class MapSetSpan
+
     class ICrankInput {
         <<interface>>
-        +lastPulseTimestampUs()* int64_t
-        +attachPulseCallback(cb : void(*)(int64_t, void*), arg : void*)* void
+        +lastPulseTimestampUs() int64_t
+        +attachPulseCallback(cb : void(*)(int64_t, void*), arg : void*) void
     }
 
     class IThrottleInput {
         <<interface>>
-        +readTpsPercent()* float
+        +readTpsPercent() float
     }
 
     class IEgtInput {
         <<interface>>
-        +readEgtCelsius()* float
+        +readEgtCelsius() float
     }
 
     class IAdvanceProvider {
         <<interface>>
-        +advanceDeg(op : OperatingPoint)* float
+        +advanceDeg(op : OperatingPoint) float
     }
 
     class IPowerJetProvider {
         <<interface>>
-        +dutyPercent(op : OperatingPoint)* float
+        +dutyPercent(op : OperatingPoint) float
     }
 
     class ISparkScheduler {
         <<interface>>
-        +scheduleSparkUs(delayUs : uint32_t)* void
-        +cancelPending()* void
+        +scheduleSparkUs(delayUs : uint32_t) void
+        +cancelPending() void
     }
 
     class IPwmOutput {
         <<interface>>
-        +setDutyPercent(pct : float)* void
+        +setDutyPercent(pct : float) void
     }
 
     class ITelemetrySink {
         <<interface>>
-        +publish(snap : TelemetrySnapshot const&)* void
+        +publish(snap : TelemetrySnapshot const&) void
     }
 
     class ITelemetryReader {
         <<interface>>
-        +latest()* TelemetrySnapshot
+        +latest() TelemetrySnapshot
     }
 
     class IMapRepository {
         <<interface>>
-        +loadAll(out : std::span~MapSet~)* uint8_t
-        +save(map : MapSet const&)* bool
-        +saveActiveId(id : uint8_t)* bool
-        +loadActiveId()* uint8_t
+        +loadAll(out : MapSetSpan) uint8_t
+        +save(map : MapSet const&) bool
+        +saveActiveId(id : uint8_t) bool
+        +loadActiveId() uint8_t
     }
 
     class ISessionTransport {
         <<interface>>
-        +publishMeta(json : const char*, len : size_t)* bool
-        +publishSamplesChunk(json : const char*, len : size_t)* bool
-        +publishEvents(json : const char*, len : size_t)* bool
+        +publishMeta(json : const char*, len : size_t) bool
+        +publishSamplesChunk(json : const char*, len : size_t) bool
+        +publishEvents(json : const char*, len : size_t) bool
     }
 
     class IFirmwareUpdater {
         <<interface>>
-        +checkAvailable()* OtaVersionInfo
-        +applyUpdate()* bool
+        +checkAvailable() OtaVersionInfo
+        +applyUpdate() bool
     }
 
     class IWebSocketBroadcaster {
         <<interface>>
-        +broadcast(json : const char*, len : size_t)* void
-        +sendTo(clientId : uint32_t, json : const char*, len : size_t)* void
+        +broadcast(json : const char*, len : size_t) void
+        +sendTo(clientId : uint32_t, json : const char*, len : size_t) void
     }
 
     class ICommandSink {
         <<interface>>
-        +onCommand(json : const char*, len : size_t, clientId : uint32_t)* void
+        +onCommand(json : const char*, len : size_t, clientId : uint32_t) void
     }
 ```
 
-> [!TIP]
+> **Tip:**
 > **Why separate `ITelemetrySink` and `ITelemetryReader`?** ISP: Core 0 only needs write access, Core 1 only needs read access. The concrete `TelemetryStore` implements both, but each consumer sees only the facet it needs — which also prevents accidental writes from Core 1.
 
 ### 3.3 Application Layer — Use-Case Orchestration
@@ -339,6 +348,12 @@ classDiagram
 ```mermaid
 classDiagram
     direction TB
+
+    %% Diagram-only aliases (C++ normalization)
+    class MapSetArray
+    class RingBufferSessionSample
+    class CommandHandlerPtrArray
+    class MapSetPtr
 
     class EngineController {
         -EngineStateMachine& fsm
@@ -374,23 +389,23 @@ classDiagram
         -IMapRepository& repo
         +activeMapId() uint8_t
         +setActiveMap(id : uint8_t) bool
-        +editIgnitionMap(id : uint8_t, bp : std::span~const Breakpoint~) bool
-        +editPowerJetMap(id : uint8_t, bp : std::span~const Breakpoint~) bool
+        +editIgnitionMap(id : uint8_t, bp : BreakpointSpan) bool
+        +editPowerJetMap(id : uint8_t, bp : BreakpointSpan) bool
         +allMapsJson(buf : char*, len : size_t) size_t
     }
 
     class MapCatalog {
-        -std::array~MapSet, MAX_MAPS~ maps_
+        -maps_ : MapSetArray
         -uint8_t activeId_
         -uint8_t count_
         +activeMap() MapSet&
-        +map(id : uint8_t) MapSet*
+        +map(id : uint8_t) MapSetPtr
         +setActiveId(id : uint8_t) bool
         +loadFrom(repo : IMapRepository&) void
     }
 
     class SessionRecorder {
-        -RingBuffer~SessionSample, MAX_SAMPLES~ buffer_
+        -buffer_ : RingBufferSessionSample
         -int64_t sessionStartUs_
         -bool recording_
         +startSession() void
@@ -406,7 +421,7 @@ classDiagram
     }
 
     class CommandRouter {
-        -std::array~ICommandHandler*, MAX_HANDLERS~ handlers_
+        -handlers_ : CommandHandlerPtrArray
         -uint8_t handlerCount_
         +registerHandler(handler : ICommandHandler&) void
         +dispatch(json : const char*, len : size_t, clientId : uint32_t) void
@@ -414,8 +429,8 @@ classDiagram
 
     class ICommandHandler {
         <<interface>>
-        +commandName()* const char*
-        +handle(params : JsonView, clientId : uint32_t)* CommandResult
+        +commandName() const char*
+        +handle(params : JsonView, clientId : uint32_t) CommandResult
     }
 
     class SetActiveMapHandler {
@@ -482,6 +497,10 @@ classDiagram
 classDiagram
     direction TB
 
+    %% Diagram-only aliases
+    class MapSetSpan
+    class AtomicUint8
+
     class EspPickupInput {
         -gpio_num_t pin_
         -volatile int64_t lastTimestamp_
@@ -490,7 +509,7 @@ classDiagram
         +EspPickupInput(pin : gpio_num_t)
         +lastPulseTimestampUs() int64_t
         +attachPulseCallback(cb, arg) void
-        -isrHandler()$ void
+        -isrHandler() void
     }
 
     class EspAdcThrottleSensor {
@@ -517,7 +536,7 @@ classDiagram
         +GptimerSparkScheduler(pin : gpio_num_t, dwellUs : uint32_t)
         +scheduleSparkUs(delayUs : uint32_t) void
         +cancelPending() void
-        -onAlarm()$ bool
+        -onAlarm() bool
     }
 
     class LedcPowerJetOutput {
@@ -529,7 +548,7 @@ classDiagram
 
     class TelemetryStore {
         -TelemetrySnapshot buffers_[2]
-        -std::atomic~uint8_t~ activeIdx_
+        -activeIdx_ : AtomicUint8
         +publish(snap : TelemetrySnapshot const&) void
         +latest() TelemetrySnapshot
     }
@@ -537,16 +556,16 @@ classDiagram
     class NvsMapRepository {
         -nvs_handle_t handle_
         +NvsMapRepository(ns : const char*)
-        +loadAll(out : std::span~MapSet~) uint8_t
+        +loadAll(out : MapSetSpan) uint8_t
         +save(map : MapSet const&) bool
         +saveActiveId(id : uint8_t) bool
         +loadActiveId() uint8_t
     }
 
     class DashboardWebSocketServer {
-        -AsyncWebServer* server_
-        -AsyncWebSocket* ws_
-        -ICommandSink* cmdSink_
+        -server_ : AsyncWebServerPtr
+        -ws_ : AsyncWebSocketPtr
+        -cmdSink_ : ICommandSinkPtr
         +DashboardWebSocketServer(port : uint16_t)
         +broadcast(json : const char*, len : size_t) void
         +sendTo(clientId : uint32_t, json : const char*, len : size_t) void
@@ -591,7 +610,7 @@ classDiagram
     direction TB
 
     class EcuApplication {
-        <<singleton, static storage>>
+        <<singleton>>
         -domain objects (by value)
         -infrastructure adapters (by value)
         -application controllers (by value)
@@ -610,8 +629,8 @@ classDiagram
         -StaticTask engineTask_
         -StaticTask adcTask_
         +start() void
-        -engineTaskFn()$ void
-        -adcTaskFn()$ void
+        -engineTaskFn() void
+        -adcTaskFn() void
     }
 
     class Core1Runtime {
@@ -623,9 +642,9 @@ classDiagram
         -StaticTask mqttTask_
         -StaticTask otaTask_
         +start() void
-        -wsTaskFn()$ void
-        -mqttTaskFn()$ void
-        -otaTaskFn()$ void
+        -wsTaskFn() void
+        -mqttTaskFn() void
+        -otaTaskFn() void
     }
 
     EcuApplication *-- Core0Runtime
@@ -797,7 +816,7 @@ This keeps `IgnitionController` and `PowerJetController` decoupled from map stor
 
 ## 5. Heap Usage & Modern C++ — Updated Guidelines
 
-> [!IMPORTANT]
+> **Important:**
 > All user-written objects live in **static storage** or on **task stacks**. Zero calls to `new` / `malloc` in project code.
 
 ### 5.1 Allocation Strategy by Layer
@@ -926,16 +945,16 @@ Every spec item traces through all four columns. Any gap = a missing piece.
 
 ## 7. Open Questions (Updated)
 
-> [!IMPORTANT]
+> **Important:**
 > **C++ Standard**: ESP-IDF v5.x supports `gnu++20`. This architecture benefits from `std::span`, `concepts`, and `consteval`. Recommend C++20. Confirm?
 
-> [!IMPORTANT]
+> **Important:**
 > **ETL dependency**: `etl::string<N>` and `etl::vector<T,N>` would simplify JSON building and handler registration vs raw `char[]` + `std::array`. Worth the extra dependency? It's header-only and widely used in embedded.
 
-> [!WARNING]
+> **Warning:**
 > **Virtual dispatch cost**: This architecture uses `virtual` for port interfaces (~14 interfaces). Each adds one vtable pointer (4 bytes) per adapter instance and one pointer indirection per call. On ESP32 Xtensa at 240 MHz, this is **<10 ns per call** — negligible even in the ISR-adjacent hot path. However, if you want to eliminate even that, CRTP + templates can replace virtuals at the cost of more complex syntax. Recommendation: **use virtual** — the cost is immeasurable, and the testability gain (mock injection) is significant.
 
-> [!IMPORTANT]
+> **Important:**
 > **TelemetryStore thread safety**: The diagram shows a **double-buffer atomic swap** pattern:
 > - Core 0 writes to `buffers_[!activeIdx_]`, then does `activeIdx_.store(newIdx, std::memory_order_release)`
 > - Core 1 reads `buffers_[activeIdx_.load(std::memory_order_acquire)]`
