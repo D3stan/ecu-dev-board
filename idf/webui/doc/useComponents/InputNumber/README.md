@@ -219,17 +219,14 @@ this.subscribeToStore(Paths.CONFIG.PARAMS, (params) => {
 ### Flusso Conferma
 
 ```mermaid
-User → [Conferma] → displayToInternal() → CommandManager.modifyParameter()
-                                        ↓
-                                    ESP32 riceve
-                                        ↓
-                                    ESP32 ACK
-                                        ↓
-                                Store.params updated
-                                        ↓
-                                InputNumber._updateFromStore()
-                                        ↓
-                                    UI updated ✅
+graph TD
+    User[User] -->|Conferma| Display["displayToInternal()"]
+    Display --> Cmd["CommandManager.modifyParameter()"]
+    Cmd --> Esp[ESP32 riceve]
+    Esp --> Ack[ESP32 ACK]
+    Ack --> Store[Store.params updated]
+    Store --> Update["InputNumber._updateFromStore()"]
+    Update --> UI["UI updated ✅"]
 ```
 
 ---

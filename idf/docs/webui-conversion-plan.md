@@ -6,9 +6,9 @@
 
 ## Sommario
 
-Il progetto `fogextra-webui` è una Single Page Application vanilla JS con Vite, già collaudata su ESP32 con WebSocket, gzip build, e deploy su LittleFS. Il piano copre la conversione completa verso la dashboard ECU definita nella sezione §5 di [elaborato.md](file:///Users/puddu/Documents/GitHub/ecu-dev-board/idf/docs/elaborato.md).
+Il progetto `fogextra-webui` è una Single Page Application vanilla JS con Vite, già collaudata su ESP32 con WebSocket, gzip build, e deploy su LittleFS. Il piano copre la conversione completa verso la dashboard ECU definita nella sezione §5 di [elaborato.md](elaborato.md).
 
-> [!IMPORTANT]
+> **Important:**
 > La conversione **non è un refactor**: è una riscrittura chirurgica del layer dominio (adapter, store paths, componenti, pagine) mantenendo intatta l'infrastruttura core (Store, Component, Page, Socket, Vite pipeline).
 
 ---
@@ -399,7 +399,7 @@ function parseTelemetry(data) {
 }
 ```
 
-> [!WARNING]
+> **Warning:**
 > **Performance critica**: A 20 Hz (50ms tra messaggi), ogni `Store.set()` triggera i subscriber. Valutare se usare `Store.batch()` (da implementare) per aggregare gli update e notificare una sola volta per frame telemetria. Alternativa: usare un singolo path `Paths.TELEMETRY.SNAPSHOT` e fare `Store.set(Paths.TELEMETRY.SNAPSHOT, data)` — i componenti estraggono i campi dal singolo oggetto.
 
 **Raccomandazione**: Approccio **snapshot singolo**. Un solo `Store.set()` per frame telemetria. I componenti subscribono a `telemetry.snapshot` e leggono i campi che servono. Questo è 7x più efficiente a 20 Hz.
@@ -1029,7 +1029,7 @@ Il tema ECU deve evocare **motorsport, telemetria, cockpit**:
 }
 ```
 
-> [!TIP]
+> **Tip:**
 > Il tema ECU è **dark-first**. La modalità light è opzionale (e probabilmente inutile — un pilota in pista guarda il display sotto il sole, ma il dark mode ha meno riflessi). Tuttavia il sistema tema del fogextra (`data-theme`) è già pronto se servisse.
 
 ### 8.3 Responsività
@@ -1160,7 +1160,7 @@ export const CommandManager = (() => {
 
 **Opzione B**: Mantenere semplificato per gestire retry se `get_config` non riceve risposta entro timeout.
 
-> [!TIP]
+> **Tip:**
 > **Raccomandazione**: Opzione A (eliminare). Se la connessione WS è aperta, il messaggio arriva. Se si disconnette, il socket handler ricollega e re-invia. Il pipeline fog era necessario perché l'ESP mandava 5 messaggi diversi e poteva perderne uno.
 
 ### 10.3 File utils da mantenere senza modifiche
@@ -1281,7 +1281,7 @@ const dest = path.resolve(__dirname, '../data');
 // const dest = path.resolve(__dirname, '../main/littlefs_data');
 ```
 
-> [!IMPORTANT]
+> **Important:**
 > Il path `../data` deve corrispondere alla cartella che viene flashata nella partizione LittleFS dell'ESP32-S3. Verificare con il `CMakeLists.txt` del progetto ESP-IDF quale cartella viene usata per `spiffs_create_partition_image` o `littlefs_create_partition_image`.
 
 ### 11.2 Dimensione bundle stimata
@@ -1471,5 +1471,5 @@ graph TD
     style K fill:#3b82f6,color:#fff
 ```
 
-> [!TIP]
+> **Tip:**
 > **Tempo stimato**: 3–5 giorni di lavoro per uno sviluppatore che conosce il codebase fogextra. La complessità principale è nel MapEditor (componente interattivo) e nell'RPM Gauge (SVG animato a 20Hz).
