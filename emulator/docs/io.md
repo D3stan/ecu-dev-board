@@ -14,7 +14,7 @@ To ensure portability across various development board variants (such as ESP32 a
 
 #if CONFIG_IDF_TARGET_ESP32S2
 #define SIM_PIN_PICKUP      13    // Pick-up Coil Pulse Output (LEDC)
-#define SIM_PIN_TPS_OUT     18    // TPS Simulated Analog Output (DAC Channel 2)
+#define SIM_PIN_TPS_OUT     16    // TPS Simulated Analog Output (PWM + external RC filter)
 #define SIM_PIN_EGT_OUT     17    // EGT Simulated Analog Output (DAC Channel 1)
 #define SIM_PIN_SPARK       21    // CDI Spark Input (GPIO Interrupt)
 #define SIM_PIN_QS_OUT      12    // Quick-Shifter digital pulse output (Active-Low)
@@ -89,37 +89,34 @@ void sim_io_pickup_set_frequency(uint32_t freq) {
 
 ## 2. Analog Sensor Simulation (TPS & EGT Voltages)
 
-The ECU reads TPS and EGT via analog voltages (0–3.3V). The simulator produces these signals using the on-chip dual Digital-to-Analog Converters (DAC).
+The ECU reads TPS and EGT via analog voltages (0-3.3V). On the LOLIN ESP32-S2 mini, TPS is generated as PWM on GPIO16 and filtered externally, while EGT uses the on-chip DAC on GPIO17. Standard ESP32 targets keep using both on-chip DAC channels.
 - **TPS Output Pin**: `SIM_PIN_TPS_OUT` (ECU TPS input).
 - **EGT Output Pin**: `SIM_PIN_EGT_OUT` (ECU EGT input).
 
-### Hardware Implementation: Dual On-Chip DACs
-The ESP32/ESP32-S2 microcontrollers feature two independent 8-bit DAC channels:
-1. **TPS**: Handled via DAC Channel 2 on `SIM_PIN_TPS_OUT` (direct DC analog voltage output).
-2. **EGT**: Handled via DAC Channel 1 on `SIM_PIN_EGT_OUT` (direct DC analog voltage output).
+### Hardware Implementation: ESP32-S2 TPS PWM + EGT DAC
+The LOLIN ESP32-S2 mini board pulls up GPIO18/DAC_2, so TPS does not use DAC Channel 2 on this board:
+1. **TPS**: Handled via 16 kHz LEDC PWM on GPIO16. Wire `GPIO16 -> 1k resistor -> TPS_OUT node`, and `TPS_OUT node -> 4.7uF capacitor -> GND`. Connect the ECU TPS input to `TPS_OUT`.
+2. **EGT**: Handled via DAC Channel 1 on GPIO17 (direct DC analog voltage output).
 
-Using hardware DACs completely eliminates the need for high-frequency PWM timers and external RC low-pass smoothing filters.
+On standard ESP32 targets, TPS remains DAC Channel 2 on GPIO26 and EGT remains DAC Channel 1 on GPIO25.
 
 ```c
-#include "driver/dac.h"
+#include "driver/dac_oneshot.h"
+#include "driver/ledc.h"
 #include "pins.h"
 
 void sim_io_analog_out_init(void) {
-    // Enable both hardware DAC channels
-    dac_output_enable(DAC_CHANNEL_1); // EGT (Channel 1)
-    dac_output_enable(DAC_CHANNEL_2); // TPS (Channel 2)
+    // ESP32-S2: configure TPS LEDC PWM on GPIO16 and EGT DAC on GPIO17.
+    // Standard ESP32: configure TPS DAC2 and EGT DAC1.
 }
 
 void sim_io_set_tps_voltage(float percent) {
-    // Scale 0.0-100.0% to 0-255 DAC value (0V to 3.3V)
-    uint8_t dac_val = (uint8_t)((percent / 100.0f) * 255.0f);
-    dac_output_voltage(DAC_CHANNEL_2, dac_val);
+    // ESP32-S2: scale 0.0-100.0% to LEDC duty.
+    // Standard ESP32: scale 0.0-100.0% to DAC2 code.
 }
 
 void sim_io_set_egt_voltage(float percent) {
-    // Scale 0.0-100.0% to 0-255 DAC value (0V to 3.3V)
-    uint8_t dac_val = (uint8_t)((percent / 100.0f) * 255.0f);
-    dac_output_voltage(DAC_CHANNEL_1, dac_val);
+    // Scale 0.0-100.0% to DAC1 code.
 }
 ```
 

@@ -10,7 +10,7 @@ The ECU Simulator Node simulates engine physical behavior (crankshaft RPM pulses
 
 The simulator features:
 - **Kinematics Engine**: Simulates flywheel rotational inertia and thermodynamics (EGT).
-- **Physical Output Signals**: Generates pickup coil square waves (LEDC) and dual analog sensor signals (DAC).
+- **Physical Output Signals**: Generates pickup coil square waves (LEDC), TPS PWM filtered to analog voltage, and EGT DAC voltage.
 - **Embedded Web Server**: Serves a single-file, highly-responsive Vite-based monitoring dashboard.
 - **WebSocket Gateway**: Stream live telemetry at 10 Hz and receives manual overrides and faults from operators in real-time.
 - **ADC Sampling**: Reads physical potentiometers on-board to adjust TPS/EGT parameters.
@@ -24,7 +24,7 @@ Refer to the table below for the physical GPIO assignments configured in [pins.h
 | Signal Name | ESP32-S2 GPIO | Mode | Description | Electrical Specification |
 |:---|:---:|:---:|:---|:---|
 | **SIM_PIN_PICKUP** | `GPIO 13` | Output | Crankshaft pick-up coil emulation | 0V to 3.3V square wave ($f = \text{RPM} / 60$) |
-| **SIM_PIN_TPS_OUT** | `GPIO 18` | Output | Simulated Throttle Position (TPS) voltage | Analog 0V to 3.3V (DAC Channel 2) |
+| **SIM_PIN_TPS_OUT** | `GPIO 16` | Output | Simulated Throttle Position (TPS) voltage | 16 kHz PWM, filtered externally to analog 0V to 3.3V |
 | **SIM_PIN_EGT_OUT** | `GPIO 17` | Output | Simulated Exhaust Gas Temp (EGT) voltage | Analog 0V to 3.3V (DAC Channel 1) |
 | **SIM_PIN_SPARK** | `GPIO 21` | Input | Spark ignition trigger feedback | Digital Input, Rising-Edge Interrupt |
 | **SIM_PIN_QS_OUT** | `GPIO 12` | Output | Quick-Shifter switch pull-down signal | Digital Output (Active-Low, default High) |
@@ -100,6 +100,7 @@ Once booted, the ESP32-S2 initializes its internal NVS storage, spins up WiFi in
   4. Repeat with the EGT potentiometer to manually calibrate baseline temperature.
 
 ### Test Case 3: Web-Based Control Overrides
+- **TPS output filter setup**: Wire `GPIO 16` through a `1k` resistor to the `TPS_OUT` measurement node, then connect `4.7uF` from `TPS_OUT` to `GND`. Connect the ECU TPS input and oscilloscope probe to `TPS_OUT`, not directly to GPIO16.
 - **Procedure**:
   1. Open the dashboard, locate the **Hardware Overrides** panel, and toggle the **Override TPS** checkbox.
   2. Drag the TPS override slider.
@@ -108,7 +109,8 @@ Once booted, the ESP32-S2 initializes its internal NVS storage, spins up WiFi in
 - **Pass Criteria**:
   - Rotating physical potentiometers should no longer affect the values.
   - The simulated values should lock exactly to the web dashboard slider positions.
-  - Measure the analog voltages on `GPIO 18` (TPS) and `GPIO 17` (EGT) using a multimeter. Ensure that 0% throttle / 20°C corresponds to `~0V` and 100% throttle / 1000°C corresponds to `~3.3V` (scaling linearly).
+  - Measure TPS analog voltage at the filtered `TPS_OUT` node and EGT analog voltage on `GPIO 17` using a multimeter. Ensure that 0% throttle / 20°C corresponds to `~0V` and 100% throttle / 1000°C corresponds to `~3.3V` (scaling linearly).
+  - On the raw `GPIO 16` pin, an oscilloscope should show a 16 kHz PWM waveform.
 
 ### Test Case 4: EGT Overheat Fault Injection
 - **Procedure**: On the dashboard, click **INJECT EGT OVERHEAT**.

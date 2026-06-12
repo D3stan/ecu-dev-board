@@ -22,7 +22,7 @@ Establish the basic project skeleton, build targets, and centralized pin mapping
 - Define pin macros for all simulator functions to ensure portability.
 - Default pin assignments for ESP32-S2:
   - `SIM_PIN_PICKUP` (Pick-up coil output - GPIO 13 on ESP32-S2)
-  - `SIM_PIN_TPS_OUT` (TPS analog output - DAC Channel 2 / GPIO 18)
+  - `SIM_PIN_TPS_OUT` (TPS PWM output - GPIO 16 with external RC filter)
   - `SIM_PIN_EGT_OUT` (EGT analog output - DAC Channel 1 / GPIO 17)
   - `SIM_PIN_SPARK` (CDI Spark input interrupt - GPIO 21 on ESP32-S2)
   - `SIM_PIN_QS_OUT` (Quick-Shifter pulse output)
@@ -71,16 +71,16 @@ typedef struct {
 
 ### Phase 3: Hardware I/O Generation (Medium Complexity)
 
-Set up signal generator outputs (crankshaft pick-up and dual DAC analog sensors), the Quick-Shifter digital pulse, and cockpit potentiometer ADC sampling.
+Set up signal generator outputs (crankshaft pick-up, TPS PWM-filtered analog output, EGT DAC output), the Quick-Shifter digital pulse, and cockpit potentiometer ADC sampling.
 
 #### [NEW] [sim_io_outputs.c](file:///Users/puddu/Documents/GitHub/ecu-dev-board/emulator/main/sim_io_outputs.c) (LEDC, Dual DAC, & ADC1 Outputs/Inputs)
 - **Pick-up Coil Generator**:
   - Initialize LEDC on `SIM_PIN_PICKUP` using a dedicated timer running a 50% duty cycle.
   - Implement a dynamic frequency updater function translating target RPM to Hz:
     $$f = \frac{\text{RPM}}{60}$$
-- **Dual Hardware DAC Analog Outputs**:
-  - Initialize the hardware DAC on both channels (`DAC_CHANNEL_1` for EGT and `DAC_CHANNEL_2` for TPS).
-  - Map analog voltage updates directly to DAC register writes (0-255 scale representing 0V to 3.3V), eliminating the need for PWM smoothing or external RC filters.
+- **Analog Sensor Outputs**:
+  - On ESP32-S2, initialize TPS LEDC PWM on GPIO16 and filter it externally with `1k` plus `4.7uF`; initialize EGT on DAC Channel 1 / GPIO17.
+  - On standard ESP32, keep TPS on DAC Channel 2 and EGT on DAC Channel 1.
 - **Quick-Shifter Digital Switch Simulator**:
   - Configure `SIM_PIN_QS_OUT` as a digital output, initializing it to a High (inactive) state.
   - Configure `SIM_PIN_QS_IN` as an active-low digital input with internal pull-up and 20ms debounce in the fast poll path.

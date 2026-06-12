@@ -37,9 +37,6 @@ void run_engine_simulation(float dt)
     if (active_tps < 0.0f) active_tps = 0.0f;
     if (active_tps > 100.0f) active_tps = 100.0f;
     g_sim_state.current_tps = active_tps;
-    g_sim_state.io_debug.active_tps = active_tps;
-    g_sim_state.io_debug.tps_override = g_sim_state.tps.is_overridden;
-    g_sim_state.io_debug.egt_override = g_sim_state.egt.is_overridden;
 
     // --- 2. Engine Kinematics (RPM Calculation with Flywheel Inertia) ---
     if (g_sim_state.rpm.is_overridden) {
@@ -94,7 +91,6 @@ void run_engine_simulation(float dt)
     // Clamp integrated EGT to safe bounds
     if (g_sim_state.current_egt < 20.0f) g_sim_state.current_egt = 20.0f;
     if (g_sim_state.current_egt > 1000.0f) g_sim_state.current_egt = 1000.0f;
-    g_sim_state.io_debug.current_egt = g_sim_state.current_egt;
 
     // Update physical hardware outputs with integrated simulator state values
     sim_io_pickup_set_frequency((uint32_t)(g_sim_state.current_rpm / 60.0f));
@@ -114,7 +110,6 @@ void run_engine_simulation(float dt)
 void broadcast_simulator_telemetry(void)
 {
     char json_buf[300];
-    char ws_json_buf[800];
     
     // Take local snapshots of volatile variables for atomic format consistency
     float rpm = g_sim_state.current_rpm;
@@ -126,22 +121,6 @@ void broadcast_simulator_telemetry(void)
     bool egt_overridden = g_sim_state.egt.is_overridden;
     bool rpm_overridden = g_sim_state.rpm.is_overridden;
     bool fault_active = g_sim_state.fault_egt_overheat;
-    int dbg_tps_raw = g_sim_state.io_debug.tps_raw;
-    int dbg_tps_mv = g_sim_state.io_debug.tps_mv;
-    float dbg_tps_fraction = g_sim_state.io_debug.tps_fraction;
-    float dbg_tps_physical = g_sim_state.io_debug.tps_physical;
-    float dbg_active_tps = g_sim_state.io_debug.active_tps;
-    unsigned int dbg_tps_dac_code = g_sim_state.io_debug.tps_dac_code;
-    bool dbg_tps_dac_ok = g_sim_state.io_debug.tps_dac_ok;
-    bool dbg_tps_override = g_sim_state.io_debug.tps_override;
-    int dbg_egt_raw = g_sim_state.io_debug.egt_raw;
-    int dbg_egt_mv = g_sim_state.io_debug.egt_mv;
-    float dbg_egt_fraction = g_sim_state.io_debug.egt_fraction;
-    float dbg_egt_physical = g_sim_state.io_debug.egt_physical;
-    float dbg_current_egt = g_sim_state.io_debug.current_egt;
-    unsigned int dbg_egt_dac_code = g_sim_state.io_debug.egt_dac_code;
-    bool dbg_egt_dac_ok = g_sim_state.io_debug.egt_dac_ok;
-    bool dbg_egt_override = g_sim_state.io_debug.egt_override;
 
     // Compose telemetry JSON string
     int len = snprintf(json_buf, sizeof(json_buf),
@@ -153,28 +132,11 @@ void broadcast_simulator_telemetry(void)
            rpm_overridden ? "true" : "false",
            fault_active ? "true" : "false");
 
-    int ws_len = snprintf(ws_json_buf, sizeof(ws_json_buf),
-           "{\"type\": \"sim_telemetry\", \"data\": {\"rpm\": %.1f, \"tps\": %.1f, \"egt\": %.1f, \"ecu_advance\": %.2f, \"spark_detected\": %s, \"overrides\": {\"tps\": %s, \"egt\": %s, \"rpm\": %s, \"egt_fault\": %s}, \"io_debug\": {\"tps_raw\": %d, \"tps_mv\": %d, \"tps_fraction\": %.3f, \"tps_physical\": %.1f, \"active_tps\": %.1f, \"tps_dac_code\": %u, \"tps_dac_ok\": %s, \"tps_override\": %s, \"egt_raw\": %d, \"egt_mv\": %d, \"egt_fraction\": %.3f, \"egt_physical\": %.1f, \"current_egt\": %.1f, \"egt_dac_code\": %u, \"egt_dac_ok\": %s, \"egt_override\": %s}}}",
-           rpm, tps, egt, spark_adv,
-           spark_det ? "true" : "false",
-           tps_overridden ? "true" : "false",
-           egt_overridden ? "true" : "false",
-           rpm_overridden ? "true" : "false",
-           fault_active ? "true" : "false",
-           dbg_tps_raw, dbg_tps_mv, dbg_tps_fraction, dbg_tps_physical, dbg_active_tps,
-           dbg_tps_dac_code, dbg_tps_dac_ok ? "true" : "false", dbg_tps_override ? "true" : "false",
-           dbg_egt_raw, dbg_egt_mv, dbg_egt_fraction, dbg_egt_physical, dbg_current_egt,
-           dbg_egt_dac_code, dbg_egt_dac_ok ? "true" : "false", dbg_egt_override ? "true" : "false");
-
     if (len > 0 && len < sizeof(json_buf)) {
         // Output JSON format directly to stdout / UART debug console (with newline)
         printf("%s\n", json_buf);
-    }
 
-    if (ws_len > 0 && ws_len < sizeof(ws_json_buf)) {
         // Broadcast to all connected Web clients
-        sim_net_broadcast(ws_json_buf, ws_len);
-    } else if (len > 0 && len < sizeof(json_buf)) {
         sim_net_broadcast(json_buf, len);
     }
 }

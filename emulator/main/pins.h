@@ -5,7 +5,7 @@
 
 #if CONFIG_IDF_TARGET_ESP32S2
 #define SIM_PIN_PICKUP      13    // Pick-up Coil Pulse Output (LEDC)
-#define SIM_PIN_TPS_OUT     18    // TPS Simulated Analog Output (DAC Channel 2 / GPIO 18 on ESP32-S2)
+#define SIM_PIN_TPS_OUT     16    // TPS Simulated Analog Output (PWM + external RC filter on ESP32-S2)
 #define SIM_PIN_EGT_OUT     17    // EGT Simulated Analog Output (DAC Channel 1 / GPIO 17 on ESP32-S2)
 #define SIM_PIN_SPARK       21    // CDI Spark Input (GPIO Interrupt)
 #define SIM_PIN_QS_OUT      12    // Quick-Shifter digital pulse output (Active-Low)

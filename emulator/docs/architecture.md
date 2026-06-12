@@ -9,7 +9,7 @@ To ensure sub-microsecond pulse timing accuracy, zero task-switching overhead, a
 ### Key Principles:
 - **Centralized Pin Mappings**: All simulator inputs and outputs are defined as macros in a centralized `pins.h` header file, allowing easy hardware portability across ESP32 and ESP32-S2 development boards.
 - **ESP-IDF Native Components**: Web interfaces and API endpoints are powered by ESP-IDF's native `esp_http_server` module, avoiding third-party Arduino dependencies and maintaining compliance with standard ESP-IDF workflows.
-- **Dual Hardware DACs**: Both TPS and EGT simulated analog voltages are generated via the ESP32/ESP32-S2's dual on-board Digital-to-Analog Converters (DACs). This provides highly accurate 8-bit DC voltage outputs without requiring high-frequency PWM or external RC smoothing filters.
+- **Analog Sensor Outputs**: EGT is generated with the on-chip DAC. On the LOLIN ESP32-S2 mini, TPS is generated with LEDC PWM on GPIO16 and an external RC low-pass filter because GPIO18/DAC_2 is pulled up on the board.
 - **Open-Loop Signal Generation**: The pick-up coil pulse generator operates independently of the ECU's spark output, dynamically translating the selected RPM (from Web UI or potentiometer) to a corresponding frequency in Hz.
 - **Passive Monitoring**: The spark advance capture system acts as a passive observer, measuring the phase relationship of the ECU's output relative to the generated pickup signal without feeding back into the signal generation logic.
 
@@ -80,7 +80,7 @@ All pins listed below are configurable via `pins.h` to support various developme
 | Simulator Pin Macro | ESP32-S2 / Lolin S2 Mini GPIO | Signal Type | Signal Description |
 |---------------------|-------------------------------|-------------|--------------------|
 | `SIM_PIN_PICKUP`    | **GPIO 13** | Output to ECU | Pick-up Coil Pulse (0-300 Hz square wave) |
-| `SIM_PIN_TPS_OUT`   | **GPIO 18** | Output to ECU | TPS Analog Voltage (0-3.3V via hardware DAC Channel 2) |
+| `SIM_PIN_TPS_OUT`   | **GPIO 16** | Output to ECU | TPS PWM output; filter through 1k + 4.7uF before ECU TPS input |
 | `SIM_PIN_EGT_OUT`   | **GPIO 17** | Output to ECU | EGT Analog Voltage (0-3.3V via hardware DAC Channel 1) |
 | `SIM_PIN_SPARK`     | **GPIO 21** | Input from ECU | CDI Ignition Spark Trigger |
 | `SIM_PIN_QS_OUT`    | **GPIO 12** | Output to ECU | Quick-Shifter (QS) Switch Trigger (Active-Low pulse) |

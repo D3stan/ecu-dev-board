@@ -12,7 +12,9 @@
 #include "soc/soc_caps.h"
 #if SOC_DAC_SUPPORTED
 #include "driver/dac_oneshot.h"
+#if !CONFIG_IDF_TARGET_ESP32S2
 static dac_oneshot_handle_t tps_dac_handle = NULL;
+#endif
 static dac_oneshot_handle_t egt_dac_handle = NULL;
 #endif
 
@@ -38,6 +40,15 @@ static int qs_input_debounced_level = 1;
 static uint64_t qs_input_last_change_time = 0;
 static bool qs_input_press_handled = false;
 #define SIM_QS_INPUT_DEBOUNCE_US (20 * 1000)
+
+#if CONFIG_IDF_TARGET_ESP32S2
+#define SIM_TPS_PWM_TIMER LEDC_TIMER_1
+#define SIM_TPS_PWM_CHANNEL LEDC_CHANNEL_1
+#define SIM_TPS_PWM_MODE LEDC_LOW_SPEED_MODE
+#define SIM_TPS_PWM_RESOLUTION LEDC_TIMER_12_BIT
+#define SIM_TPS_PWM_FREQ_HZ 16000
+#define SIM_TPS_PWM_MAX_DUTY 4095
+#endif
 
 /**
  * @brief Helper function to initialize LEDC Pick-up coil generator
@@ -71,19 +82,58 @@ static void sim_io_pickup_init(void) {
     }
 }
 
+#if CONFIG_IDF_TARGET_ESP32S2
+static void sim_io_tps_pwm_init(void) {
+    ESP_LOGI(TAG, "Initializing TPS PWM output on GPIO %d...", SIM_PIN_TPS_OUT);
+
+    ledc_timer_config_t tps_pwm_timer = {
+        .speed_mode       = SIM_TPS_PWM_MODE,
+        .timer_num        = SIM_TPS_PWM_TIMER,
+        .duty_resolution  = SIM_TPS_PWM_RESOLUTION,
+        .freq_hz          = SIM_TPS_PWM_FREQ_HZ,
+        .clk_cfg          = LEDC_AUTO_CLK
+    };
+    if (ledc_timer_config(&tps_pwm_timer) != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to configure TPS PWM timer");
+        return;
+    }
+
+    ledc_channel_config_t tps_pwm_channel = {
+        .speed_mode     = SIM_TPS_PWM_MODE,
+        .channel        = SIM_TPS_PWM_CHANNEL,
+        .timer_sel      = SIM_TPS_PWM_TIMER,
+        .intr_type      = LEDC_INTR_DISABLE,
+        .gpio_num       = SIM_PIN_TPS_OUT,
+        .duty           = 0,
+        .hpoint         = 0
+    };
+    if (ledc_channel_config(&tps_pwm_channel) != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to configure TPS PWM channel");
+    }
+}
+#endif
+
 /**
- * @brief Helper function to initialize dual DAC channels if supported by the MCU
+ * @brief Helper function to initialize analog sensor outputs.
  */
 static void sim_io_analog_out_init(void) {
+#if CONFIG_IDF_TARGET_ESP32S2
+    sim_io_tps_pwm_init();
+#endif
+
 #if SOC_DAC_SUPPORTED
+#if CONFIG_IDF_TARGET_ESP32S2
+    ESP_LOGI(TAG, "Initializing EGT on-chip DAC channel...");
+#else
     ESP_LOGI(TAG, "Initializing on-chip dual DAC channels...");
 
     dac_oneshot_config_t tps_cfg = {
-        .chan_id = DAC_CHAN_1, // Channel 2 -> GPIO26 on ESP32, GPIO18 on ESP32-S2
+        .chan_id = DAC_CHAN_1, // Channel 2 -> GPIO26 on ESP32
     };
     if (dac_oneshot_new_channel(&tps_cfg, &tps_dac_handle) != ESP_OK) {
         ESP_LOGE(TAG, "Failed to initialize TPS DAC oneshot channel");
     }
+#endif
 
     dac_oneshot_config_t egt_cfg = {
         .chan_id = DAC_CHAN_0, // Channel 1 -> GPIO25 on ESP32, GPIO17 on ESP32-S2
@@ -92,7 +142,7 @@ static void sim_io_analog_out_init(void) {
         ESP_LOGE(TAG, "Failed to initialize EGT DAC oneshot channel");
     }
 
-    ESP_LOGI(TAG, "Dual DAC channels initialized successfully");
+    ESP_LOGI(TAG, "Analog output channels initialized successfully");
 #else
     ESP_LOGW(TAG, "Hardware DAC is not supported on this SoC target. Analog voltage generation is disabled.");
 #endif
@@ -140,15 +190,26 @@ static bool sim_io_adc_calibration_init(void) {
     return false;
 }
 
-static uint8_t sim_io_percent_to_dac_code(float percent) {
+static float sim_io_clamp_percent(float percent) {
     if (!isfinite(percent)) {
         percent = 0.0f;
     }
     if (percent < 0.0f) percent = 0.0f;
     if (percent > 100.0f) percent = 100.0f;
+    return percent;
+}
 
+static uint8_t sim_io_percent_to_dac_code(float percent) {
+    percent = sim_io_clamp_percent(percent);
     return (uint8_t)((percent / 100.0f) * 255.0f + 0.5f);
 }
+
+#if CONFIG_IDF_TARGET_ESP32S2
+static uint32_t sim_io_percent_to_pwm_duty(float percent) {
+    percent = sim_io_clamp_percent(percent);
+    return (uint32_t)((percent / 100.0f) * SIM_TPS_PWM_MAX_DUTY + 0.5f);
+}
+#endif
 
 static float sim_io_adc_raw_to_pot_fraction(float raw_avg, int *voltage_mv_out) {
     float fraction = raw_avg / SIM_ADC_RAW_MAX;
@@ -249,7 +310,7 @@ void sim_io_init(void) {
     // 3. Initialize Pick-up coil generator
     sim_io_pickup_init();
 
-    // 4. Initialize dual DAC analog outputs
+    // 4. Initialize analog sensor outputs
     sim_io_analog_out_init();
 
     // 5. Initialize manual cockpit potentiometers ADC inputs
@@ -268,27 +329,30 @@ void sim_io_pickup_set_frequency(uint32_t freq) {
 
 void sim_io_set_tps_voltage(float percent) {
     uint8_t dac_val = sim_io_percent_to_dac_code(percent);
-    g_sim_state.io_debug.tps_dac_code = dac_val;
-    g_sim_state.io_debug.tps_dac_ok = false;
 
-#if SOC_DAC_SUPPORTED
+#if CONFIG_IDF_TARGET_ESP32S2
+    (void)dac_val;
+    uint32_t duty = sim_io_percent_to_pwm_duty(percent);
+    ledc_set_duty(SIM_TPS_PWM_MODE, SIM_TPS_PWM_CHANNEL, duty);
+    ledc_update_duty(SIM_TPS_PWM_MODE, SIM_TPS_PWM_CHANNEL);
+#elif SOC_DAC_SUPPORTED
     if (tps_dac_handle) {
-        esp_err_t ret = dac_oneshot_output_voltage(tps_dac_handle, dac_val);
-        g_sim_state.io_debug.tps_dac_ok = (ret == ESP_OK);
+        dac_oneshot_output_voltage(tps_dac_handle, dac_val);
     }
+#else
+    (void)dac_val;
 #endif
 }
 
 void sim_io_set_egt_voltage(float percent) {
     uint8_t dac_val = sim_io_percent_to_dac_code(percent);
-    g_sim_state.io_debug.egt_dac_code = dac_val;
-    g_sim_state.io_debug.egt_dac_ok = false;
 
 #if SOC_DAC_SUPPORTED
     if (egt_dac_handle) {
-        esp_err_t ret = dac_oneshot_output_voltage(egt_dac_handle, dac_val);
-        g_sim_state.io_debug.egt_dac_ok = (ret == ESP_OK);
+        dac_oneshot_output_voltage(egt_dac_handle, dac_val);
     }
+#else
+    (void)dac_val;
 #endif
 }
 
@@ -353,43 +417,25 @@ void sim_io_read_potentiometers(void) {
         int raw_tps = 0;
         if (adc_oneshot_read(adc1_handle, SIM_TPS_ADC_CHANNEL, &raw_tps) == ESP_OK) {
             float avg_tps = sim_io_average_sample(raw_tps, tps_history, &tps_history_idx, &tps_history_filled);
-            int tps_mv = 0;
-            float tps_fraction = sim_io_adc_raw_to_pot_fraction(avg_tps, &tps_mv);
+            float tps_fraction = sim_io_adc_raw_to_pot_fraction(avg_tps, NULL);
             float phys_tps = tps_fraction * 100.0f;
             if (phys_tps < 0.0f) phys_tps = 0.0f;
             if (phys_tps > 100.0f) phys_tps = 100.0f;
 
             g_sim_state.tps.physical_val = phys_tps;
-            g_sim_state.io_debug.tps_raw = raw_tps;
-            g_sim_state.io_debug.tps_mv = tps_mv;
-            g_sim_state.io_debug.tps_fraction = tps_fraction;
-            g_sim_state.io_debug.tps_physical = phys_tps;
         }
-    } else {
-        g_sim_state.io_debug.tps_physical = g_sim_state.tps.physical_val;
     }
 
     if (!g_sim_state.egt.is_overridden) {
         int raw_egt = 0;
         if (adc_oneshot_read(adc1_handle, SIM_EGT_ADC_CHANNEL, &raw_egt) == ESP_OK) {
             float avg_egt = sim_io_average_sample(raw_egt, egt_history, &egt_history_idx, &egt_history_filled);
-            int egt_mv = 0;
-            float egt_fraction = sim_io_adc_raw_to_pot_fraction(avg_egt, &egt_mv);
+            float egt_fraction = sim_io_adc_raw_to_pot_fraction(avg_egt, NULL);
             float phys_egt = 20.0f + egt_fraction * 980.0f;
             if (phys_egt < 20.0f) phys_egt = 20.0f;
             if (phys_egt > 1000.0f) phys_egt = 1000.0f;
 
             g_sim_state.egt.physical_val = phys_egt;
-            g_sim_state.io_debug.egt_raw = raw_egt;
-            g_sim_state.io_debug.egt_mv = egt_mv;
-            g_sim_state.io_debug.egt_fraction = egt_fraction;
-            g_sim_state.io_debug.egt_physical = phys_egt;
         }
-    } else {
-        g_sim_state.io_debug.egt_physical = g_sim_state.egt.physical_val;
     }
-
-
-
-
 }
