@@ -301,7 +301,7 @@ Proxmox VM
 
 ### MQTT — Log Sessioni
 
-> [!IMPORTANT]
+> **Important:**
 > Questa sezione richiede progettazione accurata. Il formato dati deve essere guidato da cio che la dashboard React deve visualizzare, ed e limitato dalla RAM disponibile su ESP32.
 
 #### Cosa mostra la Dashboard React
@@ -355,7 +355,7 @@ typedef struct {
 | 2 Hz | ~8.500 campioni | ~70 minuti |
 | 1 Hz | ~8.500 campioni | ~2,3 ore |
 
-> [!WARNING]
+> **Warning:**
 > A 10 Hz, un buffer da 14 minuti riempie 100 KB. Una sessione reale in pista dura 15–20 minuti. Occorre scegliere:
 > - **1 Hz** e sicuro per il buffer ma i grafici sono "a scalini"
 > - **5 Hz** e un buon compromesso (28 min, grafici fluidi)
@@ -427,7 +427,7 @@ ecu/{device_id}/session/events    → eventi discreti durante la sessione
 }
 ```
 
-> [!NOTE]
+> **Note:**
 > I timestamp in campioni/eventi usano `t` = millisecondi relativi a `start_ts` (riduce i byte rispetto ai timestamp assoluti). Il backend ricostruisce i tempi assoluti usando `start_ts + t`.
 
 ---
@@ -486,7 +486,7 @@ CREATE TABLE sessions (
 CREATE INDEX idx_sessions_device_time ON sessions(device_id, start_ts DESC);
 ```
 
-> [!NOTE]
+> **Note:**
 > Le statistiche di sintesi (`max_rpm`, `avg_rpm`, ecc.) sono salvate come colonne per query lista efficienti. I dati completi campioni/eventi stanno in colonne JSONB per la vista dettaglio. Cosi si evita di dover parsare JSONB solo per renderizzare la lista sessioni.
 
 ---
