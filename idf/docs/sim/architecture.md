@@ -54,16 +54,16 @@ graph TD
 
 To keep the codebase modular and organized, the architecture is split into three main technical specifications:
 
-### 1. [MCU Core (Engine Simulator)](file:///Users/puddu/Documents/GitHub/ecu-dev-board/idf/docs/sim/mcu_core.md)
+### 1. [MCU Core (Engine Simulator)](mcu_core.md)
 Responsible for engine rotation kinematics, thermal rise/decay equations, virtual overrides, and telemetry compilation. It coordinates the overall logic of the simulation without spawning concurrent tasks.
 
-### 2. [I/O Interface (Hardware Layer)](file:///Users/puddu/Documents/GitHub/ecu-dev-board/idf/docs/sim/io.md)
+### 2. [I/O Interface (Hardware Layer)](io.md)
 Responsible for physical interaction, using pin assignments defined in `pins.h`:
 - **Generation**: Creating the pick-up sensor square wave based on the selected RPM using hardware LEDC.
 - **Measurement**: Capturing the ECU's CDI spark output with a high-precision input capture GPIO interrupt.
 - **Sampling**: Reading physical potentiometers using the ADC to simulate TPS and EGT sensors.
 
-### 3. [Simulator Web UI (Interactive Panel)](file:///Users/puddu/Documents/GitHub/ecu-dev-board/idf/docs/sim/web_ui.md)
+### 3. [Simulator Web UI (Interactive Panel)](web_ui.md)
 A lightweight web interface hosted directly on the simulator's flash filesystem. It allows developers to:
 - Actively override analog sensor values (TPS, EGT) via virtual sliders.
 - Artificially inject faults (e.g., EGT overheating) to test the ECU's `ALARM` state.
