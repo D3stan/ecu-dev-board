@@ -31,6 +31,8 @@ Table 2-9 Peripheral Pin Assignment highlights which pins can be assigned to eac
 
 If a peripheral interface does not have priority 2 to 4 pins, such as USB Serial/JTAG, it means it can be assigned only to priority 1 pins.
 
+**Board-specific note (ECU dev board):** GPIO18 has a 10K pullup resistor.
+
 | Pin No. | Pin Name | Pin Type | Pin Providing Power | Pin Settings At Reset | Pin Settings After Reset | RTC IO MUX Function | Analog Function | IO MUX Function |
 |---:|---|---|---|---|---|---|---|---|
 | 1 | VDDA | Power |  |  |  |  |  |  |
@@ -56,7 +58,7 @@ If a peripheral interface does not have priority 2 to 4 pins, such as USB Serial
 | 21 | XTAL_32K_P | IO | VDD3P3_RTC_IO |  |  | RTC_GPIO15 | XTAL_32K_P; ADC2_CH4 | GPIO15 (I/O/T); GPIO15 (I/O/T); U0RTS (O) |
 | 22 | XTAL_32K_N | IO | VDD3P3_RTC_IO |  |  | RTC_GPIO16 | XTAL_32K_N; ADC2_CH5 | GPIO16 (I/O/T); GPIO16 (I/O/T); U0CTS (I1) |
 | 23 | DAC_1 | IO | VDD3P3_RTC_IO | IE |  | RTC_GPIO17 | DAC_1; ADC2_CH6 | GPIO17 (I/O/T); GPIO17 (I/O/T); U1TXD (O) |
-| 24 | DAC_2 | IO | VDD3P3_RTC_IO | IE |  | RTC_GPIO18 | DAC_2; ADC2_CH7 | GPIO18 (I/O/T); GPIO18 (I/O/T); U1RXD (I1); CLK_OUT3 (O) |
+| 24 | DAC_2 (10k PU) | IO | VDD3P3_RTC_IO | IE |  | RTC_GPIO18 | DAC_2; ADC2_CH7 | GPIO18 (I/O/T); GPIO18 (I/O/T); U1RXD (I1); CLK_OUT3 (O) |
 | 25 | GPIO19 | IO | VDD3P3_RTC_IO |  |  | RTC_GPIO19 | USB_D-; ADC2_CH8 | GPIO19 (I/O/T); GPIO19 (I/O/T); U1RTS (O); CLK_OUT2 (O) |
 | 26 | GPIO20 | IO | VDD3P3_RTC_IO |  |  | RTC_GPIO20 | USB_D+; ADC2_CH9 | GPIO20 (I/O/T); GPIO20 (I/O/T); U1CTS (I1); CLK_OUT1 (O) |
 | 27 | VDD3P3_RTC_IO | Power |  |  |  |  |  |  |
