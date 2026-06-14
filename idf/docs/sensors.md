@@ -322,7 +322,7 @@ Excessive retard shall not be assumed to be safe because it may increase exhaust
 
 **Converter:** MAX31856 thermocouple-to-digital converter.
 
-**Purpose:** Thermal monitoring, engine protection, diagnostics and conservative ignition/load correction.
+**Purpose:** Exhaust-temperature monitoring, measurement and diagnostics. EGT provides a repeatable thermal reference for a validated engine setup.
 
 **Engine scope:** Two-stroke only.
 
@@ -346,7 +346,7 @@ The converter provides:
 | Property                  | Classification                                                                                                             |
 | ------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
 | **Name**                  | Exhaust Gas Temperature subsystem                                                                                          |
-| **Purpose**               | Detect high exhaust temperature, support thermal protection and identify abnormal combustion or fuelling behaviour         |
+| **Purpose**               | Measure exhaust-gas temperature, monitor thermal trends and identify abnormal combustion or fuelling behaviour            |
 | **Electrical type**       | Low-level K-type thermocouple voltage                                                                                      |
 | **Converter**             | MAX31856                                                                                                                   |
 | **Acquisition model**     | Periodic SPI acquisition                                                                                                   |
@@ -358,9 +358,9 @@ The converter provides:
 | **Filtering**             | Stable temperature estimate plus a less-delayed protection path where appropriate                                          |
 | **Plausibility**          | Open thermocouple, converter fault, invalid cold junction, implausible jumps, frozen reading and SPI failure               |
 | **Stale timeout**         | Longer than TPS but bounded so thermal protection is not silently lost                                                     |
-| **Startup behaviour**     | Electrical diagnostics active immediately; EGT-based correction delayed until the engine is confirmed running              |
-| **Fault behaviour**       | Disable EGT adaptation, publish a fault and enter a conservative limited-operating strategy                                |
-| **Consumers**             | Engine protection, ignition limits, power-jet strategy, RPM limits, telemetry and diagnostics                              |
+| **Startup behaviour**     | Electrical diagnostics active immediately; EGT-based protection actions delayed until the engine is confirmed running      |
+| **Fault behaviour**       | Disable EGT-dependent protection actions, publish a fault and enter a conservative limited-operating strategy              |
+| **Consumers**             | Engine protection, power-jet strategy, RPM limits, telemetry and diagnostics                                               |
 | **Publication model**     | Latest validated temperature, rate of rise, maximum temperature and health state                                           |
 | **Required task context** | Slow thermal or sensor service                                                                                             |
 | **Test strategy**         | Cold startup, controlled heating, threshold crossing, open circuit, converter loss, invalid cold junction and frozen value |
@@ -422,7 +422,6 @@ All thresholds, delays and hysteresis values shall remain configurable.
 ### Derating response
 
 * Request a richer power-jet target
-* Select a conservative ignition limit or protection map
 * Reduce the RPM limit
 * Restrict high-load operation where possible
 
@@ -433,20 +432,19 @@ All thresholds, delays and hysteresis values shall remain configurable.
 * Require temperature reduction before resuming normal operation
 * Require restart or explicit fault acknowledgement if configured
 
-## 7.8 Ignition-control use
+## 7.8 EGT interpretation
 
 High EGT may indicate excessive thermal load, unsuitable ignition timing, poor fuelling or other abnormal operating conditions.
 
-EGT may therefore limit the permitted ignition advance or select a conservative ignition strategy.
+EGT shall not be used by itself to advance, retard or otherwise select ignition timing.
 
-Ignition retard shall not be the primary EGT-reduction mechanism because excessive retard can increase exhaust temperature.
+Ignition timing shall be established from power, detonation margin and validated calibration data. EGT is used to monitor the exhaust-temperature result of that calibration and to detect departures from a previously validated setup.
 
 Preferred initial responses are:
 
 1. Mixture enrichment
 2. Load or RPM reduction
-3. Conservative ignition-limit selection
-4. Controlled shutdown if the temperature remains critical
+3. Controlled shutdown if the temperature remains critical
 
 ## 7.9 Cold-start behaviour
 
@@ -454,7 +452,7 @@ During cold start:
 
 * Ambient-temperature readings are valid
 * Low EGT shall not be treated as a fault
-* EGT-based correction shall remain inactive
+* EGT-based protection actions shall remain inactive
 * Electrical, communication and open-circuit diagnostics shall remain active
 
 Protection activation may require:
@@ -472,9 +470,8 @@ A provisional activation delay is approximately 10 seconds.
 When EGT becomes unavailable during operation, the ECU shall:
 
 * Avoid an immediate hard ignition cut based only on sensor failure
-* Disable EGT-derived adaptive corrections
+* Disable EGT-dependent protection actions
 * Latch and report an EGT fault
-* Select a conservative ignition limit or map
 * Request a conservative rich power-jet target
 * Reduce maximum permitted RPM
 * Disable performance modes
@@ -937,7 +934,7 @@ Examples include:
 * Thermal protection while the pickup indicates high RPM
 * Quick-shifter request during a thermal or ignition fault
 
-Knock, EGT and water temperature may all restrict the maximum permitted ignition advance.
+Knock and water temperature may restrict the maximum permitted ignition advance. EGT may contribute to thermal protection through monitoring, diagnostics, enrichment requests, load or RPM limits and shutdown requests, but not by selecting ignition advance or retard.
 
 The final ignition strategy should evaluate the most conservative applicable limit rather than allowing each sensor to independently modify the ignition output.
 
@@ -945,7 +942,6 @@ Conceptually:
 
 * Base ignition strategy produces a requested advance
 * Knock protection produces a maximum permitted advance
-* EGT protection produces another maximum permitted advance
 * Water-temperature protection produces another maximum permitted advance
 * Safety logic produces final enable or inhibit conditions
 * Ignition control selects a bounded final command
