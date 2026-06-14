@@ -7,8 +7,8 @@
 5. **Define the high-level OOP boundaries**: hardware interfaces, sensor objects, processing policies, acquisition services and published snapshots. Implemented in [sensor_oop.md](sensor_oop.md#phase-5---high-level-oop-boundaries).
 6. **Define ownership and communication** between interrupts, tasks, engine control, safety and telemetry. Implemented in [sensor_ownership_faults.md](sensor_ownership_faults.md#phase-6---ownership-and-communication).
 7. **Design failure behaviour and testability** before implementing drivers. Implemented in [sensor_ownership_faults.md](sensor_ownership_faults.md#phase-7---failure-behavior-and-testability).
-8. **Resolve the remaining sensor macro-area decisions** tracked in [sensor_decision_queue.md](sensor_decision_queue.md).
-9. Only after these decisions, create the final class diagram, task matrix and implementation backlog.
+8. **Create the final sensor architecture package** from the resolved decisions in [sensor_decision_queue.md](sensor_decision_queue.md). Implemented below in [Roadmap point 8 - final sensor architecture package](#roadmap-point-8---final-sensor-architecture-package).
+9. Only after point 8 is reviewed, start implementation from the ordered backlog.
 
 ---
 
@@ -899,3 +899,443 @@ Unless later requirements contradict them, I would establish these initial rules
 12. **Fault and fallback behaviour are designed before implementation.**
 
 The next useful design step is to fill the sensor matrix for **TPS first**, then apply the resulting model to EGT, quick shifter, pickup and finally knock.
+
+---
+
+# Roadmap point 8 - final sensor architecture package
+
+This section implements roadmap point 8 as documentation-only work. The
+sensor macro-area decision queue is resolved in
+[sensor_decision_queue.md](sensor_decision_queue.md), so the final architecture
+can now be expressed as diagrams, ownership matrices and an implementation
+backlog. Production firmware work should not start by inventing values that are
+listed as open decisions here.
+
+## Review of roadmap points 1 through 7
+
+The review below checks the first seven roadmap points for contradictions,
+missing ownership, ambiguous communication, unhandled failures and untestable
+boundaries.
+
+### Point 1 - Inventory the inputs
+
+* Contradiction found: the original roadmap uses battery voltage as an example
+  slow analogue sensor, while the current sensor specification covers water
+  temperature instead. Battery voltage remains a future analogue input, not a
+  required sensor macro-area v1 deliverable.
+* Ownership gap closed: every current input is assigned to one service owner in
+  the matrices below.
+* Ambiguous communication closed: "map switches and other digital inputs" is
+  split into physical map-switch state, UI-requested map and effective active
+  map.
+* Failure and testability gap closed: every current input has a failure,
+  fallback and test row below.
+
+### Point 2 - Define the data contract
+
+* Contradiction found: `KnockEventRecord` is a sibling of `SensorReading<T>`,
+  not a normal latest-value reading. This is acceptable only because it carries
+  the same timing, validity, health, quality and fault vocabulary.
+* Wording risk found: the older knock event wording includes "Knock decision".
+  The final boundary is that sensor-side knock code may publish a
+  sensor-threshold or feature flag, but ECU-level knock strategy owns final
+  knock interpretation, ignition authority and protection decisions.
+* Ownership gap closed: `SensorDataStore` owns snapshot generation and sequence
+  counters; producers own their own event paths until handoff.
+* Testability gap closed: the contract is testable through deterministic time,
+  sequence counters, simulated sources and replayed event streams.
+
+### Point 3 - Separate acquisition from interpretation
+
+* Contradiction found: thermal sections describe protection responses, which
+  can be misread as sensor objects commanding actuators. The final rule is that
+  sensor services publish readings, health and protection requests; safety and
+  engine-control services own final inhibit, limit and actuator effects.
+* Ownership gap closed: acquisition adapters own raw peripheral facts; domain
+  objects own interpretation; services own execution; `SensorDataStore` owns
+  publication.
+* Ambiguous communication closed: no consumer pulls fresh sensor values from
+  ADC, SPI, GPIO, capture or TPIC8101 drivers.
+* Failure gap closed: failed acquisition and failed interpretation produce
+  explicit health and fault states instead of silent default values.
+
+### Point 4 - Group sensors by execution model
+
+* Contradiction found: EGT is not an analogue ADC input in the selected design;
+  it is a MAX31856 SPI converter path. It may share a slow thermal task with
+  water temperature, but it is not owned by the generic analogue ADC path.
+* Ownership gap closed: tasks are grouped by activation source and timing
+  class, not by sensor object count.
+* Ambiguous communication closed: ISR/callback, task/phase and lower-priority
+  consumer paths are separated in the FreeRTOS matrix.
+* Untestable boundary closed: each execution group has a fake-source,
+  deterministic-time or queue-overload test seam.
+
+### Point 5 - Define high-level OOP boundaries
+
+* Contradiction found: a universal `ISensor::read()` would contradict pickup
+  events, quick-shifter events and crank-windowed knock records. The final
+  model uses capability ports and typed domain objects instead.
+* Ownership gap closed: `ConfigurationService` owns persisted and staged
+  configuration; sensor services apply accepted generations at safe boundaries.
+* Ambiguous communication closed: `QuickShifterInput` publishes requests and
+  state; it never disables CDI output directly.
+* Untestable boundary closed: domain objects depend on timestamped source data
+  and policies, not ESP-IDF concrete driver types.
+
+### Point 6 - Define ownership and communication
+
+* Contradiction found: map switching is permitted while running, but the safe
+  activation boundary and Web UI arbitration are outside the sensor macro-area.
+  The final ownership matrix keeps physical switch qualification separate from
+  effective map selection.
+* Missing ownership closed: raw transfer slots, domain state, snapshots,
+  configuration, fault events, diagnostics and shutdown requests each have one
+  writer.
+* Ambiguous communication closed: producer-consumer paths below define whether
+  data is a latest snapshot, preserved event, crank-synchronous record,
+  request/response transaction or best-effort telemetry stream.
+* Failure gap closed: every bounded path has an overflow or backpressure rule.
+
+### Point 7 - Design failure behavior and testability
+
+* Contradiction found: sensor failures do not all imply engine shutdown. Pickup
+  is mandatory for ignition scheduling; TPS has a 70 percent fallback for
+  limited operation; EGT, water temperature, knock, quick shifter and map switch
+  have different degraded behaviors.
+* Missing ownership closed: sensors publish invalid, stale, degraded, failed
+  or protection-request state; safety and engine control own final engine
+  behavior.
+* Ambiguous communication closed: stale, failed, disabled and degraded states
+  remain visible in snapshots and fault events.
+* Untestable boundary closed: timeout, debounce, stale, recovery and latching
+  behavior must be testable with deterministic time and injected faults.
+
+## Final class and responsibility diagram
+
+```mermaid
+classDiagram
+        direction LR
+
+        class EcuApplication {
+          +wire_runtime()
+        }
+
+        class SensorSubsystem {
+          +start_services()
+          +publish_health()
+        }
+
+        class SensorDataStore {
+          +publish_reading()
+          +publish_event()
+          +read_engine_snapshot()
+          +read_health_snapshot()
+        }
+        
+        class PickupAcquisitionService {
+          +consume_capture_events()
+        }
+        class EngineStateEstimator {
+          +derive_speed_state()
+        }
+        class AnalogSensorService {
+          +run_adc_cycle()
+        }
+        class ThermalSensorService {
+          +run_thermal_cycle()
+        }
+        class DigitalInputService {
+          +consume_edges()
+          +scan_stable_state()
+        }
+        class KnockAcquisitionService {
+          +schedule_window()
+          +read_result()
+        }
+        class KnockSignalProcessingService {
+          +extract_features()
+        }
+        class SensorHealthService {
+          +aggregate_faults()
+        }
+        class ConfigurationService {
+          +publish_config_generation()
+        }
+        class EngineControlService {
+          +consume_engine_snapshot()
+        }
+        class SafetyService {
+          +arbitrate_limits()
+        }
+        class TelemetryService {
+          +stream_snapshots()
+        }
+        class DiagnosticsService {
+          +read_fault_history()
+        }
+
+        class IAnalogSampleSource {
+          <<port>>
+        }
+        class ISpiMeasurementSource {
+          <<port>>
+        }
+        class IDigitalInputSource {
+          <<port>>
+        }
+        class IEdgeCaptureSource {
+          <<port>>
+        }
+        class IKnockWindowDevice {
+          <<port>>
+        }
+        class ITimeSource {
+          <<port>>
+        }
+
+        class TpsSensor
+        class EgtSensor
+        class WaterTemperatureSensor
+        class PickupSensor
+        class QuickShifterInput
+        class MapSwitchInput
+        class KnockSensor
+        class KnockFeatureExtractor
+        class ProcessingPolicies
+
+        EcuApplication *-- SensorSubsystem
+        SensorSubsystem *-- SensorDataStore
+        SensorSubsystem *-- PickupAcquisitionService
+        SensorSubsystem *-- AnalogSensorService
+        SensorSubsystem *-- ThermalSensorService
+        SensorSubsystem *-- DigitalInputService
+        SensorSubsystem *-- KnockAcquisitionService
+        SensorSubsystem *-- KnockSignalProcessingService
+        SensorSubsystem *-- SensorHealthService
+
+        PickupAcquisitionService *-- PickupSensor
+        PickupAcquisitionService *-- EngineStateEstimator
+        AnalogSensorService *-- TpsSensor
+        ThermalSensorService *-- EgtSensor
+        ThermalSensorService *-- WaterTemperatureSensor
+        DigitalInputService *-- QuickShifterInput
+        DigitalInputService *-- MapSwitchInput
+        KnockAcquisitionService *-- KnockSensor
+        KnockSignalProcessingService *-- KnockFeatureExtractor
+
+        PickupAcquisitionService ..> IEdgeCaptureSource
+        AnalogSensorService ..> IAnalogSampleSource
+        ThermalSensorService ..> IAnalogSampleSource
+        ThermalSensorService ..> ISpiMeasurementSource
+        DigitalInputService ..> IDigitalInputSource
+        KnockAcquisitionService ..> IKnockWindowDevice
+        SensorSubsystem ..> ITimeSource
+
+        TpsSensor ..> ProcessingPolicies
+        EgtSensor ..> ProcessingPolicies
+        WaterTemperatureSensor ..> ProcessingPolicies
+        QuickShifterInput ..> ProcessingPolicies
+        MapSwitchInput ..> ProcessingPolicies
+        PickupSensor ..> ProcessingPolicies
+        KnockSensor ..> ProcessingPolicies
+        KnockFeatureExtractor ..> ProcessingPolicies
+
+        PickupAcquisitionService ..> SensorDataStore : publishes
+        AnalogSensorService ..> SensorDataStore : publishes
+        ThermalSensorService ..> SensorDataStore : publishes
+        DigitalInputService ..> SensorDataStore : publishes
+        KnockAcquisitionService ..> SensorDataStore : publishes records
+        KnockSignalProcessingService ..> SensorDataStore : publishes features
+        SensorHealthService ..> SensorDataStore : publishes health
+
+        ConfigurationService ..> SensorSubsystem : staged config
+        EngineControlService ..> SensorDataStore : reads
+        SafetyService ..> SensorDataStore : reads
+        TelemetryService ..> SensorDataStore : reads
+        DiagnosticsService ..> SensorDataStore : reads
+```
+
+| Component | Responsibility | Explicit non-responsibility |
+| --- | --- | --- |
+| Acquisition ports | Hide ESP-IDF ADC, GPIO, SPI, timer capture, TPIC8101 and time-source details behind testable capabilities | Sensor calibration, fallback strategy, telemetry serialization |
+| Domain sensor objects | Convert timestamped raw facts into typed readings, events, health and faults | Own FreeRTOS tasks, direct actuator commands, storage, Web UI |
+| Processing policies | Provide calibration, filtering, validation, debounce, timeout and recovery rules | Own hardware or final engine decisions |
+| Acquisition services | Own execution context, call domain objects and publish outputs | Interpret telemetry, write persistent config, bypass `SensorDataStore` |
+| `EngineStateEstimator` | Derive RPM, pulse period, acceleration and synchronization confidence from validated pickup captures | Read pickup hardware directly or schedule ignition output |
+| `KnockFeatureExtractor` | Produce background, quality and normalized knock feature state | Decide final engine knock state or request ignition authority |
+| `SensorDataStore` | Own immutable snapshots, event queues, generations and sequence counters | Pull fresh hardware values or apply calibration |
+| `SensorHealthService` | Aggregate health and fault transitions into subsystem state | Mutate individual sensor internals |
+| `ConfigurationService` | Validate, persist and publish configuration generations | Change sensor state outside owner service boundaries |
+| Engine control and safety | Consume snapshots/events and decide final operating limits, inhibit and actuator requests | Read sensor hardware or mutate sensor state |
+| Telemetry and diagnostics | Observe snapshots, events and diagnostic sessions | Backpressure engine-critical producers or request hidden fresh reads |
+
+## FreeRTOS task and execution-context matrix
+
+Exact FreeRTOS priorities, stack sizes, queue depths, timeouts and final core
+pinning remain open integration decisions. The matrix fixes ownership and
+communication boundaries without inventing those values.
+
+| Execution context | Owner | Trigger | Timing class | Writes | Consumes | Backpressure and failure rule | Open integration values |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Hardware ISR or driver callback | Acquisition adapter | Peripheral interrupt, capture, GPIO edge, ADC/DMA ready, TPIC ready | Hard real-time, minimal work | Preallocated raw event, buffer handoff or task notification | Hardware status and timestamp source | If transfer path is full, count overflow and let task publish fault; no allocation, logging, filtering or control | ISR affinity and peripheral-specific transfer depth |
+| Pickup and engine-speed task or engine task phase | `PickupAcquisitionService`, `EngineStateEstimator` | Pickup capture event | Highest sensor priority | Valid capture events, RPM, synchronization state | ISR capture path, time source, pickup config | Overflow or impossible backlog makes crank reference untrusted until recovery | Priority, core, queue depth, missing-edge thresholds |
+| Analogue sensor task | `AnalogSensorService` | Periodic ADC cycle or ADC-ready notification | Medium periodic | TPS reading and future medium-rate analogue readings | ADC sample source, TPS config | Overwrite latest readings; stale timeout drives invalid/fallback state | TPS sample rate, filter delay, timeout |
+| Thermal sensor task or phase | `ThermalSensorService` | Periodic SPI converter read and NTC sample | Slow periodic | EGT and water-temperature readings, trends, thermal state | MAX31856 source, NTC analogue source, thermal config | Converter timeout or missing sample publishes stale/failed state; may share analogue task if nonblocking | Poll periods, thresholds, recovery durations |
+| Digital input task or event handler | `DigitalInputService` | GPIO edge notification plus stable-state scan | Time-sensitive for quick shifter, low-rate for map switch | Stable state, quick-shifter request events, map-change requests | Digital source, debounce config, time source | Full request queue rejects new request and publishes overflow diagnostic; map changes may coalesce | Debounce, stuck duration, re-arm timeout |
+| Knock window acquisition context | `KnockAcquisitionService` | Crank-synchronous window schedule | Deterministic crank-windowed | `KnockEventRecord` and TPIC health | Engine synchronization, TPIC device, knock config | Missing, mistimed, saturated or communication-failed record publishes degraded/failed knock state | TPIC timing, priority, queue depth |
+| Knock signal-processing task | `KnockSignalProcessingService` | Knock event records | Lower than pickup acquisition | Feature record, background, quality and normalized index | Knock event queue, operating context snapshot | Under backlog, drop feature-processing records, count drops and publish degraded knock data | Workload split, stack size, optional enablement |
+| Sensor health phase or task | `SensorHealthService` | Periodic tick and fault transitions | Low to medium | `SensorHealthSnapshot`, aggregate faults, degraded-operation requests | Health from all sensor services | Coalesce repeated identical faults; snapshot remains authoritative | Aggregation period and alert thresholds |
+| Publication boundary | `SensorDataStore` | Producer publish calls | Bounded critical section, not a long task | Engine input snapshot, health snapshot, event queues | Producer-owned readings and events | Latest-value overwrite is allowed; sequence counters expose missed updates | Locking primitive and generation-copy implementation |
+| Configuration, telemetry, diagnostics, Web UI and storage tasks | Their owning services | User request, network, storage, logging or diagnostic schedule | Non-engine-critical | Config generations, diagnostic records, telemetry streams | Snapshots/events only | Must drop, defer or reject work instead of blocking engine-critical paths | UI policy, persistence policy, log retention |
+
+## Producer-consumer communication matrix
+
+| Producer | Payload | Mechanism | Consumers | Overflow or stale behavior | Required tests |
+| --- | --- | --- | --- | --- | --- |
+| Pickup ISR/callback | Raw falling-edge timestamp and capture status | ISR-safe queue item or direct-to-task notification | `PickupAcquisitionService` | Overflow is a serious timing fault; crank reference becomes untrusted until plausible recovery | Queue-full injection, duplicate edge, missing edge, timer wraparound |
+| Digital edge callback | Raw edge level, edge type and timestamp | ISR-safe queue item or notification | `DigitalInputService` | Collapse to latest edge/state if necessary, count overflow, publish diagnostic | Bounce storm, stuck input, startup-active state |
+| ADC/DMA ready callback | Timestamped sample or buffer ownership token | Notification plus preallocated buffer handoff | `AnalogSensorService` | Mark sample gap or overrun; service evaluates stale/degraded state | Buffer overrun, stale timeout, noisy TPS sweep |
+| Thermal service poll | MAX31856 result or NTC temperature sample | Service-owned request/response through port | `ThermalSensorService` | Timeout or diagnostic status publishes stale/failed thermal state | SPI timeout, open thermocouple, NTC open/short |
+| Pickup service | Validated pickup capture | In-task call or bounded event queue | `EngineStateEstimator`, diagnostics | Out-of-order or impossible backlog causes sync-loss fault | RPM ramp, rapid acceleration, false-edge storm |
+| Sensor services | Latest `SensorReading<T>` | `SensorDataStore` latest-value publish | Engine control, safety, telemetry, diagnostics | Overwrite latest value; sequence counter exposes missed updates | Missed sequence detection, stale snapshot rejection |
+| Sensor services | Fault transition | Bounded event queue plus current health snapshot | `SensorHealthService`, safety, telemetry, diagnostics | Coalesce repeated identical transitions with count and first/last timestamp | Fault storm, queue-full, recovery transition |
+| Knock acquisition | `KnockEventRecord` per enabled revolution | Bounded crank-synchronous record queue | Knock signal processing, diagnostics, telemetry | Drop lower-priority feature-processing work under backlog; preserve overflow count | Missing result, saturated result, processing backlog |
+| `SensorDataStore` | Coherent engine input snapshot | Lock-free or short critical-section copy | Engine control and safety | Consumer rejects torn or stale copy by checking generation and per-input validity | Cross-core concurrent read/write, generation mismatch |
+| `SensorDataStore` | Snapshot copy and drained events | Best-effort read/drain | Telemetry, diagnostics, logging | Drop, decimate or batch under load; never block producers | Telemetry backpressure and event drain overload |
+| Configuration service | Validated config generation | Staged request/response and generation event | Owning sensor services | Rejected config leaves active generation unchanged | Invalid TPS calibration, runtime config during publication |
+| Safety service | Final inhibit or limit request | Event plus snapshot to runtime and engine control | Runtime, engine control, telemetry | Safety decision does not mutate sensor internals | Sensor fault to inhibit/limit arbitration |
+
+## State ownership matrix
+
+| State | Single writer | Readers | Mutation boundary | Test obligation |
+| --- | --- | --- | --- | --- |
+| Raw pickup transfer slot or ISR queue item | Pickup ISR/acquisition adapter | `PickupAcquisitionService` | ISR writes preallocated raw fact only | ISR path cannot allocate, log or run domain logic |
+| Pickup pulse history and edge plausibility | `PickupAcquisitionService` | `EngineStateEstimator`, diagnostics | Task context only | Duplicate, impossible interval and overflow tests |
+| Engine speed and synchronization state | `EngineStateEstimator` | Engine control, safety, telemetry | Published snapshot/event only | RPM ramp, sync-loss and recovery tests |
+| TPS calibration active in RAM | `ConfigurationService`, then applied by `AnalogSensorService` | TPS domain logic, diagnostics | Staged generation at safe service boundary | Valid, invalid and changed generation tests |
+| TPS filtered value, fallback value and health | `AnalogSensorService` through `TpsSensor` | Engine control, safety, telemetry | Latest-value snapshot | 70 percent fallback, stale and recovery tests |
+| EGT converter status, value, trend and health | `ThermalSensorService` through `EgtSensor` | Safety, telemetry, diagnostics | Latest-value snapshot and fault events | Open, converter fault, frozen value and recovery tests |
+| Water-temperature value, trend, maximum and health | `ThermalSensorService` through `WaterTemperatureSensor` | Safety, engine-control limiters, telemetry | Latest-value snapshot and protection request | Open/short, rapid heating, sensor loss and hysteresis tests |
+| Quick-shifter debounce, request and re-arm state | `DigitalInputService` through `QuickShifterInput` | Quick-shift eligibility, engine control, telemetry | Validated event plus stable-state snapshot | Bounce, long hold, startup-active and re-arm tests |
+| Map-switch physical stable state | `DigitalInputService` through `MapSwitchInput` | Map selector, configuration, telemetry | Physical-state snapshot plus map-change request | Bounce, invalid map and runtime-change tests |
+| UI-requested map override | Configuration or map-selection service | Map selector, telemetry | Request/response plus snapshot | Deferred until UI arbitration policy is defined |
+| Effective active map | Map-selection or calibration service | Engine control, telemetry, diagnostics | Safe activation boundary | Deferred until activation boundary is defined |
+| TPIC8101 configuration and acquisition state | `KnockAcquisitionService` | Knock signal processing, diagnostics | Crank-windowed event records | Communication fault, missing result, mistimed window |
+| Knock background, quality and normalized features | `KnockSignalProcessingService` | ECU knock strategy, diagnostics, telemetry | Feature record and snapshot | Backlog, saturation, stuck value and background rebuild |
+| Aggregate sensor health | `SensorHealthService` | Safety, telemetry, diagnostics | Health snapshot and fault events | Fault coalescing and subsystem degraded-state tests |
+| Published snapshots and sequence counters | `SensorDataStore` | Engine control, safety, telemetry, logging | Immutable copy or generation-checked read | Torn-read rejection and missed-update detection |
+| Persisted configuration | Storage/configuration service | Runtime and services through config snapshots | Boot load and validated transactions | Persistence failure and rejected config tests |
+| Final inhibit, shutdown and degraded-mode state | Safety and engine-control services | Runtime, telemetry, diagnostics | Engine-control/safety boundary | Sensor fault cannot directly command actuator output |
+
+## Dependency diagram
+
+```mermaid
+flowchart TD
+  Drivers["ESP-IDF concrete drivers<br/>ADC, GPIO, SPI, timer capture, TPIC8101"]
+  Ports["Hardware acquisition ports<br/>IAnalogSampleSource, ISpiMeasurementSource,<br/>IDigitalInputSource, IEdgeCaptureSource,<br/>IKnockWindowDevice, ITimeSource"]
+  Domain["Domain sensors and policies<br/>TPS, EGT, water temp, pickup,<br/>quick shifter, map switch, knock"]
+  Services["Acquisition services and estimators<br/>execution ownership and publication"]
+  Store["SensorDataStore<br/>immutable snapshots and bounded events"]
+  Consumers["Engine control, safety,<br/>telemetry, diagnostics, logging"]
+  Config["Configuration and storage<br/>validated generation updates"]
+  Runtime["Runtime startup/shutdown<br/>service lifecycle"]
+
+  Drivers --> Ports
+  Ports --> Services
+  Services --> Domain
+  Domain --> Services
+  Services --> Store
+  Store --> Consumers
+  Config -.->|staged generations| Services
+  Runtime -.->|starts and stops| Services
+  Consumers -.->|requests only through owners| Config
+```
+
+Dependency rules:
+
+* Dependencies point from concrete hardware toward ports, domain logic,
+  services, publication and consumers.
+* Domain sensor objects do not depend on ESP-IDF concrete driver types.
+* Engine control, safety, telemetry and diagnostics do not read acquisition
+  drivers.
+* Telemetry, diagnostics, Web UI, MQTT, OTA and storage are never dependencies
+  of engine-critical sensor publication paths.
+* Configuration crosses into sensor services only as validated staged
+  generations applied by the owning service.
+
+## Sensor-by-sensor failure and fallback matrix
+
+| Sensor or input | Main failure modes | Published health/fault behavior | Fallback or safe posture | Recovery and latching | Tests |
+| --- | --- | --- | --- | --- | --- |
+| Pickup and engine-speed state | Missing expected edges, duplicate edges, impossible intervals, capture overflow, hardware diagnostic fault | `Stale`, `Failed` or unsynchronized; crank reference marked untrusted | Engine control does not schedule ignition from untrusted crank reference; safety may request inhibit | Normal loss of motion is not permanently latched; recovery requires plausible falling-edge sequence; hardware diagnostics may latch | RPM ramps to 25,000 RPM, false-edge storm, missing edges, timer wraparound, overflow |
+| TPS | Electrical range fault, calibrated range fault, stale sample, stuck signal, excessive noise, implausible rate, invalid calibration | Invalid or stale TPS reading with health and fault bits; fallback value is explicit | Publish fixed 70 percent throttle fallback for limited operation; engine-control policy owns extra limits | Transient sample faults may auto-recover after stable plausible samples; invalid calibration latches until config changes | Full sweep, rapid closure, disconnect, short to ground/supply, noise, invalid calibration, stale timeout |
+| EGT | Open thermocouple, MAX31856 fault, cold-junction fault, SPI timeout, frozen reading, implausible jump | Failed/stale EGT, converter fault detail and disabled EGT-dependent protection state | Disable EGT-dependent actions, request conservative limited operation, no immediate hard shutdown from sensor failure alone | Sensor faults reported; overtemperature latching depends on safety policy; recovery after stable valid measurements | Cold startup, controlled heating, threshold crossing, open circuit, converter loss, frozen value, recovery duration |
+| Water temperature | NTC open/short, acquisition failure, stale sample, implausible temperature, impossible rate, frozen value | Failed/stale water-temperature reading and thermal-state invalid | Disable water-temperature adaptation; conservative limits only if configured mandatory, confirmed prior critical temperature or corroborating evidence exists | Ordinary sensor failure does not prove overheating; critical thermal faults may latch if configured; recovery needs hysteresis and duration | Cold startup, gradual heating, rapid heating, open/short, frozen value, sensor loss after critical state |
+| Quick shifter | Startup-active input, bounce, implausibly short pulse, stuck active, excessive duration, stale stable-state scan | Invalid, degraded or failed input state; request event not published while invalid | Ignore quick-shifter request; no engine shutdown; input never directly cuts CDI | Startup-active/stuck remains active until normal inactive state observed; re-arm requires valid state change plus timeout | Normal shift, bounce, short pulse, long hold, startup-active, repeated requests, re-arm blocking |
+| Map switch | Bounce, invalid electrical state, rapid repeated changes, unavailable selected map | Invalid/degraded physical switch state and map-change fault | Request hardcoded safe default map; effective active map is owned by map-selection service | Electrical faults may auto-recover; unavailable map/config faults remain until config changes | Both positions, bounce, disconnection, invalid map, startup positions, runtime changes |
+| Knock | TPIC8101 communication/config fault, missing result, stuck result, saturation, mistimed window, invalid background | Invalid, stale, degraded or failed knock event/features; health/fault visible to ECU strategy | ECU-level knock strategy disables adaptive advance and learned positive correction; sensor side does not request final authority | TPIC/config faults may require reinitialization; transient missing records may recover after valid records and background rebuild | Injected result records, saturation, stuck value, missing records, window timing, TPIC communication fault, backlog |
+
+## Explicit unresolved decisions
+
+The diagrams and backlog do not resolve the decisions below. They assign the
+owner or future phase that must close each decision before production code is
+allowed to depend on it.
+
+| Open decision | Owner or future phase | Blocks | What must not be assumed |
+| --- | --- | --- | --- |
+| Final TPS electrical diagnostic margins, sample rate, filter constants and stale timeout | Sensor calibration and hardware validation | Production TPS driver constants | Do not hardcode margins or delay values from the roadmap text |
+| Whether engine control consumes TPS position only or also throttle rate | Engine-control design | Final `EngineInputSnapshot` fields used by maps | Do not make throttle-rate mandatory for all consumers |
+| Additional TPS degraded-mode RPM, load or ignition limits beyond the 70 percent fallback | Safety and engine-control policy | Final fallback behavior | Do not put these limits inside `TpsSensor` |
+| Pickup missing-edge thresholds, recovery edge count and signal-conditioner diagnostics | Engine timing and hardware validation | Pickup production driver and ignition inhibit timing | Do not treat one missing pulse as a universal failure rule |
+| Supporting evidence for stopped engine versus pickup or conditioner failure | Runtime, starter-state and diagnostics design | Final fault classification | Do not claim software can always distinguish normal stop from sensor failure |
+| Final EGT warning, derating, shutdown thresholds and overtemperature latching | Dyno validation and safety policy | Thermal protection authority | Do not tune engine protection from provisional values alone |
+| Final water-temperature NTC model, analogue front end, installation, thresholds, hysteresis and limp limits | Hardware selection and thermal validation | Water-temperature production path | Do not implement fixed transfer or protection values before hardware is selected |
+| Mandatory-by-configuration policy for optional sensors | Safety profile design | Startup gating and degraded-mode rules | Do not make optional sensors unconditional startup blockers |
+| Quick-shifter debounce, stuck duration, re-arm timeout and acknowledgement policy | Vehicle calibration and rider-input validation | Quick-shifter production behavior | Do not let a held input generate repeated requests by timer alone |
+| Runtime map-switch safe activation boundary | Engine-control and map-management design | Effective map switch implementation | Do not apply physical switch changes directly to active map data |
+| Web UI map override persistence, cancellation, timeout and communication-loss behavior | Web UI and configuration policy | UI override implementation | Do not hide UI authority inside `MapSwitchInput` |
+| Final knock frequency, gain, crank-angle window, background model, thresholds and authority level | Knock calibration and ECU strategy validation | Knock production authority | Do not let sensor-side code request final ignition retard or protection |
+| Cross-sensor protection arbitration and final reduced RPM/load/ignition limits | Safety and engine-control design | Final degraded operating modes | Do not let individual sensors independently modify final actuator outputs |
+| Which faults require automatic recovery, explicit acknowledgement, restart or service action | Safety and diagnostics policy | Fault manager and UI behavior | Do not use one latching rule for every sensor |
+| FreeRTOS task priorities, stack sizes, queue depths, core pinning and exact timeout values | RTOS integration and measurement | Scheduler configuration | Do not infer numeric priorities from the matrix ordering |
+| Telemetry, diagnostics and log retention overflow thresholds | Diagnostics and telemetry design | Noncritical observability behavior | Do not allow observability to block engine-critical producers |
+| Existing wording cleanup for knock event "decision" fields | Documentation cleanup before implementation | Generated field names and tests | Do not interpret sensor-side knock fields as final ECU knock authority |
+
+## Ordered implementation backlog
+
+This backlog is ordered so each milestone produces a testable boundary. A
+milestone that depends on an open decision may implement interfaces and tests,
+but production constants or authority must wait until the named decision is
+closed.
+
+| ID | Milestone | Depends on | Work products | Acceptance criteria | Tests |
+| --- | --- | --- | --- | --- | --- |
+| B0 | Freeze point 8 documentation for implementation | Review of this section and linked sensor docs | Approved class boundaries, ownership matrices, failure matrix and backlog | No hidden unresolved decisions; all local links resolve | Markdown link check and review checklist |
+| B1 | Common domain contracts and deterministic test harness | B0 | `TimestampUs`, sequence counter, `SensorHealthState`, `SensorQuality`, fault vocabulary, `SensorReading<T>`, `SensorEvent<T>`, `KnockEventRecord`, fake time source | All published values can carry timestamp, validity, health, quality, sequence and faults; domain tests run without ESP-IDF | Unit tests for sequence changes, stale timestamps, fault flags and deterministic time |
+| B2 | Hardware port interfaces and fake sources | B1 | ADC sample port, SPI measurement port, digital input port, edge capture port, TPIC window port, replay source | Domain and service tests can inject samples, edges, converter results, TPIC records and time without hardware | Fake-source tests for normal, timeout, overflow and replayed streams |
+| B3 | `SensorDataStore` and bounded event paths | B1, B2 | Engine input snapshot, health snapshot, latest-value publication, event queues, overflow counters, generation-copy read | Engine control and safety can read coherent snapshots; telemetry overload cannot block producers | Snapshot generation, torn-read retry, missed-update sequence, queue-full and coalescing tests |
+| B4 | TPS vertical slice | B1-B3, TPS calibration values as configurable inputs | `TpsSensor`, TPS policies, `AnalogSensorService` phase, 70 percent fallback publication | Valid TPS publishes latest throttle reading; invalid/stale TPS publishes invalid status and explicit fallback; no engine consumer reads ADC directly | Full sweep, rapid closure, noise, disconnect, short to ground/supply, invalid calibration, stale timeout, recovery |
+| B5 | Thermal domain slice for EGT and water temperature | B1-B3, selected thermal interfaces; production constants may remain config-only | `EgtSensor`, `WaterTemperatureSensor`, `ThermalSensorService`, thermal states, protection requests | Thermal readings publish value, trend, maximum, health and faults; sensor loss disables dependent adaptation without claiming unconfirmed overheating | Cold startup, controlled heating, MAX31856 fault, NTC open/short, frozen reading, rapid heating, recovery hysteresis |
+| B6 | Digital input slice | B1-B3, quick-shifter debounce/re-arm values as configurable inputs | `QuickShifterInput`, `MapSwitchInput`, `DigitalInputService`, request queues | Quick-shifter requests are preserved only after validation and re-arm; map switch publishes physical state separate from effective active map | Bounce, short pulse, long hold, startup-active, repeated request rejection, map-switch bounce, invalid map |
+| B7 | Pickup and engine-speed slice | B1-B3, pickup timing thresholds as configurable inputs | `PickupSensor`, `PickupAcquisitionService`, `EngineStateEstimator`, sync-loss publication | Valid captures produce RPM/sync state; untrusted crank reference prevents ignition scheduling from using pickup data | RPM ramps to 25,000 RPM, rapid acceleration/deceleration, missing edge, duplicate edge, timer wraparound, capture overflow |
+| B8 | Sensor health aggregation | B3-B7 | `SensorHealthService`, fault transition coalescing, degraded subsystem state | Safety, telemetry and diagnostics can observe current health and fault history without mutating sensor internals | Fault storm, repeated fault coalescing, recovery transition, stale snapshot, health snapshot consistency |
+| B9 | Safety and engine-control sensor consumption boundary | B3-B8 | Snapshot/event consumers, inhibit/limit request interfaces, no direct driver access | Engine control consumes only snapshots/events; sensors never command final actuator output | Static dependency check, pickup invalid inhibits scheduling path, TPS fallback consumed as invalid/fallback state, thermal fault routes through safety |
+| B10 | Knock acquisition record path | B1-B3, B7, TPIC timing interface | `KnockSensor`, `KnockAcquisitionService`, TPIC record validation, crank-window event publication | One valid record per enabled revolution when configured; missing/stuck/saturated/mistimed records publish health and faults | Injected TPIC result, missing result, saturation, stuck count, invalid window timing, communication fault |
+| B11 | Knock feature-processing boundary | B10 | `KnockFeatureExtractor`, background model interface, normalized feature record | Sensor-side knock processing publishes features and health only; ECU strategy owns final interpretation and authority | Background build, backlog drop counter, degraded feature state, static check that no ignition authority is published |
+| B12 | Configuration transactions and persistence boundary | B4-B7, selected runtime policy | Staged config generations, safe-boundary application, rejection path, persisted calibration load | Invalid config cannot partially update active sensor state; accepted config applies only through owning service | Invalid TPS calibration, runtime generation change during publication, rejected map config, storage failure |
+| B13 | Telemetry, diagnostics and replay observability | B3-B12 | Snapshot streaming, event drain, fault history, replay capture/readback | Observability reads snapshots/events only and drops or decimates under load | Telemetry backpressure, diagnostic command rejection, replay of recorded sensor session |
+| B14 | ESP-IDF driver adapters and HITL integration | Stable domain/service tests plus closed hardware decisions for each sensor | Concrete ADC, GPIO, SPI, timer capture and TPIC adapters behind ports | Hardware adapters satisfy port contracts without leaking ESP-IDF types into domain objects | HITL TPS sweep, pickup simulator, EGT converter fault, NTC open/short, digital input bounce, TPIC communication fault |
+| B15 | Scheduler, overload and cross-core validation | B3-B14 plus measured workload | Final task priorities, stack sizes, queue depths, core pinning and watchdog policy | Engine-critical sensor paths remain bounded under telemetry, diagnostics and fault load | Cross-core snapshot read/write, queue overload, telemetry saturation, ISR work-budget measurement, watchdog recovery |
+
+Milestone dependencies:
+
+* B1 through B3 are architecture foundations and should precede all real sensor
+  behavior.
+* B4 through B7 can be implemented as vertical slices, but B7 must complete
+  before any ignition scheduling path can trust engine speed.
+* B10 and B11 depend on B7 because knock is crank-windowed.
+* B14 must not start for a sensor until that sensor's hardware-selection and
+  calibration blockers are closed or represented as configurable values.
+* B15 is the point where exact FreeRTOS priorities, stacks, queue depths and
+  core affinity become measured implementation choices.
