@@ -560,7 +560,6 @@ Possible water-temperature protection levels are:
 
 ### Critical protection
 
-* Apply controlled intermittent ignition cuts
 * Request engine shutdown if temperature remains critical
 * Latch the thermal fault if required
 
@@ -636,26 +635,11 @@ The input may remain physically active throughout the shift.
 
 The ignition-cut duration shall depend on RPM and TPS.
 
-## 9.2 Electrical clarification required
-
-The current requirements specify both:
+## 9.2 Electrical specifications
 
 * Normally-open contact
-* Active-high operation
+* Active-low operation
 * Pull-up bias
-
-These requirements require clarification.
-
-A normally-open contact combined with a pull-up commonly produces:
-
-* High when the switch is open
-* Low when the switch closes
-
-This is normally interpreted as active-low.
-
-For logical active-high behaviour, a pull-down or an inverting input-conditioning stage would normally be expected.
-
-The final electrical truth table must be defined before the hardware interface and diagnostic logic are frozen.
 
 ## 9.3 Sensor design matrix
 
@@ -725,7 +709,7 @@ The physical quick-shifter input shall not directly disable the CDI output.
 
 **Input type:** Latched digital switch.
 
-**Current function:** Select between the primary map and a hardcoded second map.
+**Current function:** Select between the primary map and second map.
 
 **Runtime switching:** Map changes are permitted while the engine is running.
 
@@ -982,11 +966,10 @@ The following decisions remain open:
 6. Final EGT protection thresholds after dynamometer validation
 7. Water-temperature sensor and interface selection
 8. Water-temperature warning, derating and shutdown thresholds
-9. Quick-shifter electrical polarity and bias circuit
-10. Quick-shifter re-arm behaviour
-11. Safe boundary for runtime map switching
-12. Web UI and physical map-switch arbitration
-13. Which sensor faults are recoverable automatically
-14. Which faults require restart or explicit acknowledgement
-15. Which sensors are mandatory for engine operation
-16. Final reduced-RPM limits for each degraded operating mode
+9. Quick-shifter re-arm behaviour
+10. Safe boundary for runtime map switching
+11. Web UI and physical map-switch arbitration
+12. Which sensor faults are recoverable automatically
+13. Which faults require restart or explicit acknowledgement
+14. Which sensors are mandatory for engine operation
+15. Final reduced-RPM limits for each degraded operating mode
