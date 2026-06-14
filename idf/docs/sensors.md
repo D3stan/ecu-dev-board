@@ -2,7 +2,9 @@
 
 ## 1. Scope
 
-This document defines the high-level classification and design requirements for the input subsystem of a custom ESP32-S3 ECU for single-cylinder two-stroke engines.
+This document defines the high-level classification and sensor-domain
+requirements for the input subsystem of a custom ESP32-S3 ECU for
+single-cylinder two-stroke engines.
 
 The inputs covered are:
 
@@ -14,38 +16,42 @@ The inputs covered are:
 * Quick-shifter input
 * Map-selection switch
 
-The document describes responsibilities, data requirements, fault behaviour, publication models and expected FreeRTOS ownership. It intentionally avoids implementation details.
+This document is the per-sensor requirements source. Execution ownership,
+class boundaries, FreeRTOS task grouping, communication, fallback authority,
+testability and implementation backlog are defined in [sensor_oop.md](sensor_oop.md).
 
 ---
 
-# 2. General architectural principles
+# 2. Requirements conventions
 
-The input subsystem shall follow these principles:
+Each sensor section defines:
 
-1. Hardware acquisition shall be separated from sensor interpretation.
-2. Sensor objects shall not directly control ignition or actuators.
-3. Every published measurement shall include validity and timing information.
-4. Sensors shall be grouped by acquisition model rather than assigned one task each.
-5. Mutable sensor state shall have a single owner.
-6. Engine control shall consume published measurements and events rather than hardware drivers.
-7. Interrupts shall perform only minimal acquisition and notification work.
-8. Fault and fallback behaviour shall be defined for every input.
-9. Domain-level sensor processing shall remain independent of ESP-IDF where possible to support simulation, replay and HITL testing.
-10. Calibration, filtering, validation and publication shall remain separate conceptual responsibilities.
+* Physical input and purpose
+* Electrical or converter interface
+* Acquisition model
+* Published engineering value or event
+* Calibration and filtering requirements
+* Plausibility, startup, stale and fault behavior
+* Consumers
+* Test strategy
+
+This document does not define FreeRTOS task ownership, class boundaries,
+communication mechanisms, final safety authority or implementation backlog.
+Those belong to [sensor_oop.md](sensor_oop.md).
 
 ---
 
 # 3. Input classification summary
 
-| Input             | Input family                          | Acquisition model                              | Primary publication                       | Engine synchronization                    | Likely service owner            |
-| ----------------- | ------------------------------------- | ---------------------------------------------- | ----------------------------------------- | ----------------------------------------- | ------------------------------- |
-| Pickup            | Timing reference                      | Hardware edge capture                          | Every valid edge and derived engine state | Defines synchronization                   | Pickup acquisition service      |
-| TPS               | Periodic analogue measurement         | Periodic ADC acquisition                       | Latest validated throttle value           | Normally independent                      | Analogue sensor service         |
-| Knock             | Crank-windowed combustion measurement | TPIC8101 integration window and result readout | Knock metric per enabled revolution       | Strongly synchronized                     | Knock service                   |
-| EGT               | Slow thermal measurement              | Periodic digital converter reading             | Latest temperature and thermal state      | Independent                               | Thermal/analogue sensor service |
-| Water temperature | Slow thermal measurement              | Periodic analogue NTC acquisition              | Latest temperature and thermal state      | Independent                               | Thermal/analogue sensor service |
-| Quick shifter     | Asynchronous rider request            | Digital edge and state acquisition             | Validated shift request and current state | Not crank-synchronous, but time-sensitive | Digital input service           |
-| Map switch        | User strategy-selection input         | Digital state change or periodic scan          | Current stable map selection              | Independent                               | Digital input service           |
+| Input             | Input family                          | Acquisition model                              | Primary publication                       | Engine synchronization                    | Domain owner                    | Acquisition port                |
+| ----------------- | ------------------------------------- | ---------------------------------------------- | ----------------------------------------- | ----------------------------------------- | ------------------------------- | ------------------------------- |
+| Pickup            | Timing reference                      | Hardware edge capture                          | Every valid edge and derived engine state | Defines synchronization                   | Pickup acquisition service      | Edge capture                    |
+| TPS               | Periodic analogue measurement         | Periodic ADC acquisition                       | Latest validated throttle value           | Normally independent                      | Analogue sensor service         | Analogue sample                 |
+| Knock             | Crank-windowed combustion measurement | TPIC8101 integration window and result readout | Knock measurement per enabled revolution  | Strongly synchronized                     | Knock acquisition service       | Knock window device            |
+| EGT               | Slow thermal measurement              | Periodic digital converter reading             | Latest temperature and thermal state      | Independent                               | Thermal sensor service          | SPI measurement source         |
+| Water temperature | Slow thermal measurement              | Periodic analogue NTC acquisition              | Latest temperature and thermal state      | Independent                               | Thermal sensor service          | Analogue sample                 |
+| Quick shifter     | Asynchronous rider request            | Digital edge and state acquisition             | Validated shift request and current state | Not crank-synchronous, but time-sensitive | Digital input service           | Digital input                   |
+| Map switch        | User strategy-selection input         | Digital state change or periodic scan          | Stable physical map request               | Independent                               | Digital input service           | Digital input                   |
 
 ---
 
@@ -168,15 +174,11 @@ Calibration shall be represented independently from ADC acquisition so that the 
 * Telemetry consumers
 * The underlying ADC abstraction
 
-## 5.4 Unresolved TPS decisions
+## 5.4 Deferred TPS decisions
 
-The following remain open:
-
-* Whether the sensor may electrically reach the exact ADC supply rails
-* Electrical margins used to diagnose open and short circuits
-* Final TPS filter delay
-* Whether control will consume position, throttle rate or both
-* Whether the 70% fallback will later be combined with RPM or load restrictions
+Final TPS electrical margins, sample rate, filter delay, throttle-rate use and
+additional degraded-mode limits are tracked in
+[sensor_oop.md](sensor_oop.md#11-explicit-open-decisions).
 
 ---
 
@@ -210,37 +212,64 @@ For a single-cylinder two-stroke engine, one combustion opportunity occurs every
 | **Window control**             | The ECU controls the TPIC8101 integration window using crank-angle timing                                                                                           |
 | **Sampling requirement**       | No high-rate external MCU sampling is required during normal operation                                                                                              |
 | **Result acquisition**         | One integrated result is read per enabled measurement window                                                                                                        |
-| **Timestamp requirement**      | Every result shall be associated with revolution number, RPM, TPS/load, ignition angle and knock-window position                                                    |
+| **Timestamp requirement**      | Every result shall be associated with `revolution_id`, pickup-edge time, window-open time, window-close time, read time, RPM, TPS/load and ignition angle           |
 | **Raw representation**         | Preferred: TPIC8101 digital integrator count stored in a wider ECU field                                                                                            |
 | **Engineering unit**           | Dimensionless knock counts or normalized knock index                                                                                                                |
-| **Calibration**                | Sensor variant, mounting location, mounting torque, input gain, programmable gain, filter centre frequency, window angles, background model and decision thresholds |
+| **Calibration**                | Sensor variant, mounting location, mounting torque, input gain, programmable gain, filter centre frequency, window angles, background model and sensor thresholds  |
 | **Filtering**                  | TPIC8101 frequency filtering and integration followed by firmware signal-quality checks, background estimation and normalization                                   |
 | **Plausibility**               | Missing result, stuck result, saturation, implausible background, invalid window timing and TPIC configuration or communication errors                              |
 | **Stale timeout**              | Defined primarily in missed combustion events rather than only in milliseconds                                                                                      |
 | **Startup behaviour**          | Knock correction disabled until crank synchronization, TPIC configuration and background estimation are valid                                                       |
 | **Fault behaviour**            | Publish invalid, stale or degraded knock feature state; ECU-level knock strategy disables adaptive advance and learned positive corrections                         |
 | **Consumers**                  | Ignition correction, engine protection, calibration tools, diagnostics and telemetry                                                                                |
-| **Publication model**          | One knock-event record per enabled revolution                                                                                                                       |
+| **Publication model**          | One `KnockWindowMeasurement` per enabled revolution                                                                                                                 |
 | **Required task context**      | Deterministic crank-timing context for window control and result acquisition; lower-priority service for normalization and adaptation                               |
 | **Raw diagnostic acquisition** | Optional separate diagnostic path; not provided by the standard TPIC8101 result                                                                                     |
 | **Test strategy**              | Injected bursts, frequency sweeps, clipping tests, window timing tests, mechanical-noise tests and dynamometer validation                                           |
 
-## 6.3 Knock event record
+## 6.3 Knock window measurement
 
-Each published knock result should conceptually include:
+Knock does not publish a latest-value `SensorReading<T>`. It publishes a
+crank-synchronous `KnockWindowMeasurement` sibling contract.
 
-* Raw integrator count
-* Background estimate
-* Normalized knock index
-* Active threshold
-* Knock decision
-* Confidence or validity
-* Revolution identifier
+The real-time crank timing path owns the `revolution_id`, pickup-edge
+timestamp and predicted revolution period. The knock window scheduler borrows
+that context when it schedules the TPIC8101 integration window. The low-level
+TPIC8101 driver only toggles the integration window and reads the held result;
+it does not know about revolutions, TDC, combustion or cylinders.
+
+Each published `KnockWindowMeasurement` shall conceptually include:
+
+* `RevolutionId revolution_id`
+* `TimestampUs pickup_edge_at`
+* `TimestampUs window_opened_at`
+* `TimestampUs window_closed_at`
+* `TimestampUs read_at`
+* Raw TPIC8101 integrator count
+* Background estimate when available
+* Normalized knock feature when available
+* Non-authoritative sensor threshold result or candidate knock flag when used
+* Validity
+* Health state
+* Quality
+* Fault bits
 * RPM
 * TPS or load
 * Ignition angle
-* Knock-window start and end
 * Active TPIC configuration
+
+The SPI read time does not determine which revolution the measurement belongs
+to. The revolution association is assigned when the measurement is scheduled.
+
+Fault handling shall include:
+
+* No valid crank synchronization: do not schedule a knock window and publish or
+  count knock unavailable.
+* Predicted integration window outside the valid TPIC8101 duration: skip that
+  revolution and record a window-out-of-range fault.
+* Missed INT/HOLD timing: mark that revolution measurement invalid.
+* Late or failed SPI read: mark that revolution measurement failed and never
+  silently reuse an old TPIC result.
 
 ## 6.4 Frequency-range assumptions
 
@@ -412,27 +441,24 @@ Provisional two-stroke thresholds are:
 
 All thresholds, delays and hysteresis values shall remain configurable.
 
-## 7.7 Protection responses
+## 7.7 Sensor-published protection requests
 
-### Warning response
+The EGT sensor-domain path shall publish temperature, trend, maximum observed
+temperature, health and a thermal request level. It shall not command a final
+power-jet target, RPM limit, load limit, ignition cut or shutdown.
 
-* Display or transmit an EGT warning
-* Store a diagnostic event
-* Record RPM, TPS, ignition angle and power-jet command
-* Avoid immediate control intervention
+The thermal request levels are:
 
-### Derating response
+| Request level | Sensor-side meaning |
+| --- | --- |
+| Normal | EGT is valid and below warning conditions |
+| Warning | EGT is above the configured warning condition |
+| Derating requested | EGT is above the configured derating condition |
+| Critical protection requested | EGT is above the configured critical condition |
+| Sensor invalid | EGT measurement is unavailable, stale or failed |
 
-* Request a richer power-jet target
-* Reduce the RPM limit
-* Restrict high-load operation where possible
-
-### Shutdown response
-
-* Request a controlled ignition cut
-* Latch the overtemperature fault
-* Require temperature reduction before resuming normal operation
-* Require restart or explicit fault acknowledgement if configured
+Safety and engine-control policies own final rider notification, enrichment,
+load limits, RPM limits, latching, acknowledgement and shutdown behavior.
 
 ## 7.8 EGT interpretation
 
@@ -442,11 +468,9 @@ EGT shall not be used by itself to advance, retard or otherwise select ignition 
 
 Ignition timing shall be established from power, detonation margin and validated calibration data. EGT is used to monitor the exhaust-temperature result of that calibration and to detect departures from a previously validated setup.
 
-Preferred initial responses are:
-
-1. Mixture enrichment
-2. Load or RPM reduction
-3. Controlled shutdown if the temperature remains critical
+Preferred downstream policy order is mixture enrichment, load or RPM reduction,
+and controlled shutdown if the temperature remains critical. That policy is not
+owned by the EGT sensor object.
 
 ## 7.9 Cold-start behaviour
 
@@ -474,9 +498,7 @@ When EGT becomes unavailable during operation, the ECU shall:
 * Avoid an immediate hard ignition cut based only on sensor failure
 * Disable EGT-dependent protection actions
 * Latch and report an EGT fault
-* Request a conservative rich power-jet target
-* Reduce maximum permitted RPM
-* Disable performance modes
+* Publish a conservative-operation request for safety and engine control
 * Continue in a limited operating mode
 
 Normal EGT-dependent operation shall resume only after the measurement remains valid for a configured recovery period.
@@ -541,28 +563,26 @@ The subsystem should classify the measured temperature into states such as:
 
 The exact boundaries shall be configured after selecting the engine, cooling system and sensor.
 
-## 8.4 Protection behaviour
+## 8.4 Sensor-published protection requests
 
-Possible water-temperature protection levels are:
+The water-temperature sensor-domain path shall publish temperature, trend,
+maximum observed temperature, thermal state, health and a thermal request
+level. It shall not command final ignition limits, map selection, RPM limits,
+load limits, cooling actuators or shutdown.
 
-### Warning
+The thermal request levels are:
 
-* Notify the rider or calibration interface
-* Log temperature, RPM, TPS and operating duration
-* Continue normal operation initially
+| Request level | Sensor-side meaning |
+| --- | --- |
+| Normal | Temperature is valid and below warning conditions |
+| Warning | Temperature is above the configured warning condition |
+| Derating requested | Temperature is above the configured derating condition |
+| Critical protection requested | Temperature is above the configured critical condition |
+| Sensor invalid | Temperature measurement is unavailable, stale or failed |
 
-### Derating
-
-* Reduce the RPM limit
-* Restrict maximum permitted ignition advance
-* Select a conservative engine map
-* Reduce permitted high-load operation
-* Request additional cooling action if an electronically controlled cooling system is later introduced
-
-### Critical protection
-
-* Request engine shutdown if temperature remains critical
-* Latch the thermal fault if required
+Safety and engine-control policies own rider notification, logging, final
+ignition limits, RPM limits, map selection, high-load restriction, latching,
+acknowledgement and shutdown behavior.
 
 ## 8.5 Ignition-control use
 
@@ -588,9 +608,7 @@ The ECU should instead:
 
 * Report the sensor fault
 * Disable water-temperature-based adaptive corrections
-* Select a conservative ignition limit
-* Apply a reduced RPM limit
-* Disable high-performance modes
+* Publish a conservative-operation request for safety and engine control
 * Continue in a limited-operating mode when permitted
 
 A hard shutdown should require either:
@@ -600,21 +618,12 @@ A hard shutdown should require either:
 * Another safety condition
 * A configuration that requires the sensor for engine operation
 
-## 8.7 Unresolved water-temperature decisions
+## 8.7 Deferred water-temperature decisions
 
-The following must be selected later:
-
-* Exact NTC sensor model
-* Pull-up, reference and analogue front-end values
-* Installation location
-* Valid temperature range
-* Warning threshold
-* Derating threshold
-* Shutdown threshold
-* Recovery hysteresis
-* Mandatory-by-configuration policy for production profiles
-* Limp-mode RPM limit
-* Warm-up behaviour and minimum-temperature logic
+The exact NTC model, pull-up/reference values, analogue front end,
+installation, thresholds, hysteresis, operating-profile policy, limp limits and
+warm-up behavior are tracked in
+[sensor_oop.md](sensor_oop.md#11-explicit-open-decisions).
 
 ---
 
@@ -718,18 +727,21 @@ requests by timer alone.
 
 **Input type:** Latched digital switch.
 
-**Current function:** Select between the primary map and second map.
+**Current function:** Publish the debounced physical request for the primary or
+second map.
 
-**Runtime switching:** Map changes are permitted while the engine is running.
+**Runtime switching:** Runtime map changes are permitted only through the
+map-selection service at its safe activation boundary.
 
-**Web UI authority:** The Web UI may also request or override the selected map.
+**Web UI authority:** Web UI override and effective-map arbitration are outside
+the physical map-switch input.
 
 ## 10.2 Sensor design matrix
 
 | Property                  | Classification                                                                                 |
 | ------------------------- | ---------------------------------------------------------------------------------------------- |
 | **Name**                  | Map-selection switch                                                                           |
-| **Purpose**               | Select the secondary engine-control map                                                        |
+| **Purpose**               | Publish the stable physical request for the secondary engine-control map                        |
 | **Electrical type**       | Single digital latched switch                                                                  |
 | **Acquisition model**     | State-change detection or periodic stable-state scan                                           |
 | **Sampling requirement**  | Low-rate but reliable detection of deliberate changes                                          |
@@ -738,250 +750,42 @@ requests by timer alone.
 | **Engineering state**     | Primary-map request or secondary-map request                                                   |
 | **Calibration**           | Input polarity and debounce behaviour                                                          |
 | **Filtering**             | Debounce and stable-state qualification                                                        |
-| **Plausibility**          | Invalid electrical state, rapid repeated changes and unavailable selected map                  |
+| **Plausibility**          | Invalid electrical state and rapid repeated changes                                             |
 | **Startup behaviour**     | Read the stable switch state before selecting the initial map                                  |
-| **Fault behaviour**       | Select the hardcoded safe default map                                                          |
-| **Consumers**             | Configuration service, engine-control map selector, telemetry and diagnostics                  |
-| **Publication model**     | Latest stable selection plus map-change event                                                  |
+| **Fault behaviour**       | Publish invalid physical-switch state and request the hardcoded safe default through map selection |
+| **Consumers**             | Map-selection service, telemetry and diagnostics                                               |
+| **Publication model**     | Latest stable physical request plus physical-switch change event                                |
 | **Required task context** | Digital-input service                                                                          |
-| **Test strategy**         | Both switch states, bounce, disconnection, startup positions, running changes and UI overrides |
+| **Test strategy**         | Both switch states, bounce, disconnection, startup positions and running changes                |
 
-## 10.3 Map activation
+## 10.3 Map-selection ownership boundary
 
-The digital switch selects the second map rather than directly modifying map data.
+The digital switch does not directly select the effective active map and does
+not modify map data. It only publishes the stable physical request.
 
-A map change should conceptually involve:
+The following are owned outside the sensor macro-area:
 
-1. Detecting a stable switch or UI request
-2. Validating that the requested map exists and is valid
-3. Publishing a map-change request
-4. Activating the map at a defined safe engine-control boundary
-5. Publishing the resulting active-map state
-
-The exact safe activation boundary remains to be defined.
-
-## 10.4 Web UI precedence
-
-The Web UI shall have authority to override the physical map switch.
-
-The following arbitration details remain unresolved:
-
-* Whether the UI override persists after an ECU restart
-* Whether moving the physical switch cancels the UI override
-* Whether the UI override has a timeout
-* Whether the UI displays both physical-switch state and effective map
-* Whether loss of communication preserves or cancels the override
-
-The system shall distinguish between:
-
-* Physical switch state
-* UI-requested map
+* UI-requested map override
 * Effective active map
-* Reason for the current selection
+* Selected-map validation
+* Runtime activation boundary
+* Override persistence, timeout and cancellation policy
+* Reason for current effective selection
 
 ---
 
-# 11. Publication models
+# 11. Architecture document boundary
 
-The input subsystem requires three distinct publication patterns.
+This document stops at sensor-domain requirements.
 
-## 11.1 Latest-value snapshots
+The maintained architecture contract is [sensor_oop.md](sensor_oop.md), which
+defines:
 
-Appropriate for:
-
-* TPS
-* EGT
-* Water temperature
-* Derived RPM
-* Map-switch state
-* Quick-shifter stable state
-
-Each published value should include:
-
-* Value
-* Timestamp
-* Validity
-* Health state
-* Sequence or generation
-* Relevant fault information
-
-## 11.2 Preserved events
-
-Appropriate for:
-
-* Pickup captures
-* Quick-shifter requests
-* Map-change requests
-* Sensor fault transitions
-
-Event delivery shall be limited to the services that require the event.
-
-## 11.3 Crank-synchronous measurement records
-
-Appropriate for:
-
-* Knock results
-
-Each knock record shall be explicitly associated with the relevant revolution and operating conditions.
-
----
-
-# 12. Proposed service grouping
-
-| Service                      | Inputs owned                       | Main responsibility                                            |
-| ---------------------------- | ---------------------------------- | -------------------------------------------------------------- |
-| **PickupAcquisitionService** | Pickup                             | Capture and validate crank-reference events                    |
-| **EngineStateEstimator**     | Validated pickup timing            | Derive RPM, acceleration and synchronization state             |
-| **AnalogSensorService**      | TPS and future analogue inputs     | Periodic acquisition and sensor-domain processing              |
-| **ThermalSensorService**     | EGT and water temperature          | Thermal measurements, trends and health states                 |
-| **KnockAcquisitionService**  | KS4-P and TPIC8101                 | Crank-windowed measurement and result acquisition              |
-| **KnockSignalProcessingService** | Knock-event records                | Background modelling, signal-quality checks and normalized feature extraction |
-| **DigitalInputService**      | Quick shifter and map switch       | Edge/state qualification, debounce and event publication       |
-| **SensorDataStore**          | Published measurements             | Provide coherent immutable snapshots to consumers              |
-| **SensorHealthService**      | Health information from all inputs | Aggregate faults, stale states and degraded-operation requests |
-
-These services do not necessarily require one FreeRTOS task each. Task allocation shall be based on priority, activation source, timing requirements and workload.
-
----
-
-# 13. Conceptual OOP boundaries
-
-## 13.1 Hardware-acquisition interfaces
-
-Possible capability boundaries include:
-
-* Analogue acquisition
-* Digital input
-* Edge capture
-* SPI measurement source
-* Monotonic time source
-
-These interfaces describe hardware capabilities, not specific sensor meaning.
-
-## 13.2 Domain sensor objects
-
-Expected domain-level objects include:
-
-* Pickup sensor
-* TPS sensor
-* Knock sensor
-* EGT sensor
-* Water-temperature sensor
-* Quick-shifter input
-* Map-switch input
-
-These objects are responsible for:
-
-* Sensor-specific interpretation
-* Calibration
-* Filtering
-* Plausibility
-* Health state
-* Domain-level publication
-
-## 13.3 Estimators and strategies
-
-Separate components should represent:
-
-* Engine-speed estimation
-* Crank synchronization
-* Throttle-rate estimation
-* Knock background modelling
-* Knock feature extraction
-* ECU-level knock classification
-* Thermal-state classification
-* Quick-shift eligibility
-* Sensor-fault fallback decisions
-
-## 13.4 Engine-control boundary
-
-Sensor-domain components shall publish measurements, events and sensor-side
-protection requests where appropriate. Knock is the exception: sensor-side
-knock processing publishes records, normalized features and health, while
-ECU-level strategy owns knock interpretation and control requests.
-
-They shall not directly:
-
-* Trigger the CDI output
-* Edit the ignition map
-* Command the final power-jet duty cycle
-* Command the final exhaust-valve position
-* Perform persistent storage
-* Communicate directly with the Web UI
-
----
-
-# 14. Common sensor health model
-
-A shared high-level health model may use states such as:
-
-* Uninitialized
-* Stabilizing
-* Valid
-* Degraded
-* Stale
-* Failed
-* Disabled
-
-Each sensor shall define:
-
-* Conditions for becoming valid
-* Conditions for becoming stale
-* Conditions for failure
-* Recovery requirements
-* Whether faults are latched
-* Fallback publication
-* Effect on engine operation
-
-A common health vocabulary does not require every sensor to use identical fault-detection logic.
-
----
-
-# 15. Cross-sensor protection concepts
-
-The ECU may later combine multiple sensor states rather than acting on one measurement alone.
-
-Examples include:
-
-* High EGT plus high knock index
-* High water temperature plus rapidly rising EGT
-* High EGT at sustained high TPS
-* Knock detection with invalid TPS
-* Thermal protection while the pickup indicates high RPM
-* Quick-shifter request during a thermal or ignition fault
-
-Knock and water temperature may restrict the maximum permitted ignition advance. EGT may contribute to thermal protection through monitoring, diagnostics, enrichment requests, load or RPM limits and shutdown requests, but not by selecting ignition advance or retard.
-
-The final ignition strategy should evaluate the most conservative applicable limit rather than allowing each sensor to independently modify the ignition output.
-
-Conceptually:
-
-* Base ignition strategy produces a requested advance
-* Knock protection produces a maximum permitted advance
-* Water-temperature protection produces another maximum permitted advance
-* Safety logic produces final enable or inhibit conditions
-* Ignition control selects a bounded final command
-
-The exact combination policy shall be defined during the engine-control design phase.
-
----
-
-# 16. Remaining system-level decisions
-
-The following decisions remain open:
-
-1. Final TPS electrical diagnostic margins
-2. Final TPS sample rate and filter delay
-3. Exact pickup signal-conditioning diagnostics
-4. Exact supporting diagnostics for distinguishing stopped engine from pickup failure
-5. Final knock frequency, gain and crank-angle window
-6. Final EGT protection thresholds after dynamometer validation
-7. Final water-temperature NTC model, analogue front-end and installation
-8. Water-temperature warning, derating and shutdown thresholds
-9. Final quick-shifter debounce, timeout and diagnostic numeric values
-10. Safe boundary for runtime map switching
-11. Web UI and physical map-switch arbitration
-12. Which sensor faults are recoverable automatically
-13. Which faults require restart or explicit acknowledgement
-14. Production-profile mandatory sensor policy and degraded-mode limits
-15. Final reduced-RPM limits for each degraded operating mode
+* Publication models
+* Class and responsibility boundaries
+* Hardware acquisition ports
+* FreeRTOS execution contexts
+* Ownership and communication matrices
+* Failure and fallback behavior
+* Test seams, acceptance criteria and implementation backlog
+* Open decisions that remain outside the sensor requirements
