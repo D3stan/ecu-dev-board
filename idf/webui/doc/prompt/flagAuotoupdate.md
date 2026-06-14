@@ -1,8 +1,0 @@
-OK adesso ascoltami attentamnete, perchè ti introdurro una nuova fature che volgio introdurre sull'app. come vedi adesso nel file socket.js ho scritto questo
-setInterval(()=>{ 
-    if(ws.readyState===WebSocket.OPEN) {
-    ws.send(CommandManager.updateRTC());
-} },60_000);
-
-che non fa altro che inviare ogni minuto un messaggio di update all'esp. ora quello che volgio fare è ristrutturare questo invio e renderelo parametrico. nell'esp ho aggiunto un parametro il paramettro 36 (creati una costante in costan.js parAutoClockUpdate = 36), che non è altor che un parametro bool che mi dice se la centralina deve essere aggiornata o meno dal telefono. qundi quello che deve succedere di fatto è questo. serve che qualcuno che può essere l'oggetto app si iscriva come lister allo store all'indirizzo dei parametri ovvero config.params (otieni il path usano il file paths.js) e devi registrarsi sul parametro parAutoClockUpdate = 36 e ogni volta che si aggionra, deve modificare l'invio se è tru deve abilitare il timer interval che ogni minuto aggiorna rtc interno all'esp mentre se è false no fa nulla. quindi di default appena un utente carica la pagina il parametro parAutoClockUpdate sarà false (importanete NON devi salvare questo parametro nel local storage lo devi SEMPRE leggere dallo store perchè deve essere rigorosamente il parametro imposatto dalla centralina).
-quinidi ricapitolando l'app si iscrive allo stor per monitorare l'invio di questo parametro. se ci sono dubbi chiedimi pure diversamnete procedi all'implemnetazione di questa funzionalità. ovviamnete rimuovi la vecchi aimplemntazione da socket.js se ci sono dubbi o necesiti di chiarimenti chiedimi pure
