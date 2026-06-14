@@ -1,0 +1,1 @@
+Knock detection should be dynamically controlled by the ECU code (using INT0 pin in the IC) https://chatgpt.com/g/g-p-68f9ea6fb2988191851ddd48e164aadf-ecu-dev-board/c/6a2ed298-0b34-83eb-a99c-7d55bbb70174

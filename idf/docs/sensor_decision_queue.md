@@ -217,8 +217,7 @@ The map-switch contract is:
   event.
 * The map selector validates that the requested map exists.
 * Effective active map is owned outside the digital input object.
-* If the physical switch is invalid or the selected map is unavailable, publish
-  a fault and request the hardcoded safe default map.
+* If the physical switch is invalid, MapSwitchInput publishes an invalid physical-state fault. If the requested map is unavailable, the map-selection service publishes a map-selection fault and selects the hardcoded safe default.
 * Web UI override arbitration remains outside the sensor macro area.
 
 This keeps sensor ownership separate from configuration and engine-map
