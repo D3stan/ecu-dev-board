@@ -35,7 +35,7 @@ Task grouping shall be based on:
 | Thermal sensor processing | EGT and water temperature | Periodic converter or ADC read | Slow periodic | Latest temperature, trend, thermal state and health | `ThermalSensorService` | May initially share the analog service task if rates and blocking behavior fit |
 | Digital input processing | Quick shifter and map switch | Edge notification plus stable-state scan | Time-sensitive for quick shifter, low-rate for map switch | Validated quick-shift events and stable map-switch state | `DigitalInputService` | Lightweight digital task or event handler; keep cut execution outside the input object |
 | Knock window acquisition | TPIC8101 window control and result readout | Crank-synchronous window schedule | Deterministic crank-windowed | One knock-event record per enabled revolution | `KnockAcquisitionService` | Separate from analog processing; final task priority after measured workload |
-| Knock analysis | Background model, normalization, thresholding, persistence evaluation | Knock-event records | Lower than pickup acquisition | Knock metric, decision state and protection request | `KnockAnalysisService` | May run as separate lower-priority task when enabled |
+| Knock signal processing | Background model, signal quality and normalized feature extraction | Knock-event records | Lower than pickup acquisition | Knock feature record and signal health | `KnockSignalProcessingService` | May run as separate lower-priority task when enabled; ECU strategy owns knock interpretation |
 | Sensor health aggregation | Stale detection, fault aggregation, degraded-operation requests | Periodic health phase and fault transitions | Low/medium periodic | `SensorHealthSnapshot` and fault events | `SensorHealthService` | Can initially run as a periodic phase of the sensor service |
 | Publication store | Coherent latest-value snapshots and event handoff | Service publication calls | Non-blocking boundary | `EngineInputSnapshot`, health snapshot and event queues | `SensorDataStore` | Single writer per published field; consumers receive copies or immutable views |
 
@@ -49,7 +49,7 @@ Task grouping shall be based on:
 | Water temperature | Thermal sensor processing | Latest temperature, trend and thermal state | Publishes protection state; sensor failure should not by itself imply overheating |
 | Quick shifter | Digital input processing | Preserve every validated request and publish current stable state | Edge/state acquisition with debounce, duration validation and eligibility outside the input object |
 | Map switch | Digital input processing | Latest stable selection plus map-change event | Physical switch state is separate from UI override and effective active map |
-| Knock | Knock acquisition and knock analysis | One crank-synchronous knock-event record per enabled revolution | Normal path reads TPIC8101 integrated result, not a raw waveform block |
+| Knock | Knock acquisition and signal processing | One crank-synchronous knock-event record per enabled revolution | Normal path reads TPIC8101 integrated result, not a raw waveform block |
 
 ## Initial service set
 
@@ -62,8 +62,8 @@ The sensor subsystem shall start with these service boundaries:
 | `AnalogSensorService` | TPS state and future fast/medium analog state | Latest analog readings in `SensorDataStore` | Sensor health and telemetry |
 | `ThermalSensorService` | EGT and water-temperature state | Latest thermal readings and thermal protection state | Safety, telemetry and diagnostics |
 | `DigitalInputService` | Quick-shifter state and map-switch physical state | Digital state snapshot and validated events | Quick-shift strategy, map selector and telemetry |
-| `KnockAcquisitionService` | TPIC8101 window scheduling and result acquisition | Knock-event records | Knock analysis and telemetry |
-| `KnockAnalysisService` | Background model, knock classification and decision persistence | Knock metric and protection request | Ignition-limit strategy, safety and telemetry |
+| `KnockAcquisitionService` | TPIC8101 window scheduling and result acquisition | Knock-event records | Knock signal processing and telemetry |
+| `KnockSignalProcessingService` | Background model, signal quality and normalized feature extraction | Knock feature record and signal health | ECU knock strategy, diagnostics and telemetry |
 | `SensorHealthService` | Aggregated stale/fault/degraded state | `SensorHealthSnapshot` and fault events | Safety, telemetry and diagnostics |
 | `SensorDataStore` | Published latest values and snapshot generation | Immutable snapshots and event queues | Engine control, safety, telemetry and logging |
 
@@ -85,8 +85,8 @@ Every mutable sensor state has exactly one owner:
 | EGT and water-temperature thermal state | `ThermalSensorService` | Safety, engine-control limiters, telemetry |
 | Quick-shifter debounce and re-arm state | `DigitalInputService` through `QuickShifterInput` | Quick-shift eligibility and telemetry |
 | Map-switch physical state | `DigitalInputService` through `MapSwitchInput` | Map selector and telemetry |
-| Knock acquisition window and latest raw result | `KnockAcquisitionService` | `KnockAnalysisService`, diagnostics |
-| Knock background and decision state | `KnockAnalysisService` | Ignition-limit strategy, safety, telemetry |
+| Knock acquisition window and latest raw result | `KnockAcquisitionService` | `KnockSignalProcessingService`, diagnostics |
+| Knock background, signal quality and normalized feature state | `KnockSignalProcessingService` | ECU knock strategy, diagnostics, telemetry |
 | Published snapshots | `SensorDataStore` | Engine control, safety, telemetry, logging |
 
 Consumers shall not mutate sensor internals. They shall consume events, copies,
@@ -110,7 +110,7 @@ values and TPIC8101 knock records do not share the same behavior.
 | Hardware acquisition ports | Describe hardware capabilities without ECU meaning | `IAnalogSampleSource`, `ISpiMeasurementSource`, `IDigitalInputSource`, `IEdgeCaptureSource`, `IKnockWindowDevice`, `ITimeSource` |
 | Sensor-domain objects | Convert raw hardware data into domain readings, events and health | `TpsSensor`, `EgtSensor`, `WaterTemperatureSensor`, `PickupSensor`, `QuickShifterInput`, `MapSwitchInput`, `KnockSensor` |
 | Processing policies | Reusable calibration, filtering, validation and recovery behavior | `TpsCalibration`, `ThermalTransferCurve`, `LowPassFilter`, `RangeValidator`, `RateOfChangeValidator`, `TimeoutValidator`, `DebouncePolicy` |
-| Estimators and strategies | Derived values and decisions that are not physical sensors | `EngineStateEstimator`, `ThrottleRateEstimator`, `ThermalStateClassifier`, `KnockAnalyzer`, `QuickShiftEligibilityPolicy`, `SensorFallbackPolicy` |
+| Estimators and strategies | Derived values and decisions that are not physical sensors | `EngineStateEstimator`, `ThrottleRateEstimator`, `ThermalStateClassifier`, `KnockFeatureExtractor`, `QuickShiftEligibilityPolicy`, `SensorFallbackPolicy` |
 | Acquisition services | Own execution context and coordinate one or more sensor-domain objects | `AnalogSensorService`, `ThermalSensorService`, `DigitalInputService`, `PickupAcquisitionService`, `KnockAcquisitionService` |
 | Publication boundary | Provide stable data contracts to engine, safety and telemetry consumers | `SensorDataStore`, `EngineInputSnapshot`, `SensorHealthSnapshot`, event queues |
 
@@ -155,7 +155,7 @@ Typed engineering values remain domain-specific:
 | `EngineSpeedState` | RPM, pulse period, acceleration and synchronization confidence |
 | `QuickShiftRequestEvent` | Quick-shift eligibility and ignition-cut strategy |
 | `MapSelectionState` | Physical switch, UI override and effective map selection |
-| `KnockEventRecord` | Knock analysis, diagnostics and ignition-limit strategy |
+| `KnockEventRecord` | Knock signal processing, diagnostics and ECU knock strategy |
 
 ## Domain objects
 
@@ -163,13 +163,13 @@ Typed engineering values remain domain-specific:
 | --- | --- | --- | --- |
 | `TpsSensor` | Timestamped analog sample | TPS calibration, low-latency filter, range/rate/stuck validators, timeout validator | `SensorReading<ThrottlePosition>` and optional throttle-rate estimate |
 | `EgtSensor` | Timestamped thermal converter or analog sample | EGT transfer curve, slow filter, range/rate/frozen validators, timeout validator | `SensorReading<TemperatureCelsius>` and EGT thermal state |
-| `WaterTemperatureSensor` | Timestamped analog or digital temperature sample | Sensor transfer curve, thermal thresholds, hysteresis, range/rate/frozen validators | `SensorReading<TemperatureCelsius>` and water thermal state |
+| `WaterTemperatureSensor` | Timestamped analog NTC temperature sample | NTC transfer curve, thermal thresholds, hysteresis, range/rate/frozen validators | `SensorReading<TemperatureCelsius>` and water thermal state |
 | `PickupSensor` | Timestamped edge capture | Polarity, minimum interval, pulse plausibility and timeout rules | Validated pickup capture event |
 | `EngineStateEstimator` | Validated pickup capture events | RPM range and acceleration plausibility rules | `EngineSpeedState` |
 | `QuickShifterInput` | Timestamped digital level/edge | Polarity, debounce, duration and stuck-input validators | Stable state and `QuickShiftRequestEvent` |
 | `MapSwitchInput` | Timestamped digital level | Polarity and debounce policy | Physical map-selection state and change event |
 | `KnockSensor` | TPIC8101 window result | TPIC configuration, missing/stuck/saturation validators | `KnockEventRecord` |
-| `KnockAnalyzer` | Knock event records and operating context | Background model, normalization, threshold and persistence rules | Knock metric, knock decision and protection request |
+| `KnockFeatureExtractor` | Knock event records and operating context | Background model, signal-quality checks and normalization rules | Knock feature record and signal health |
 
 Domain objects shall not trigger CDI output, command actuators, write persistent
 storage, communicate with the Web UI or own FreeRTOS tasks.
@@ -185,7 +185,7 @@ Services own scheduling and coordinate domain objects:
 | `ThermalSensorService` | Periodic thermal cycle | `EgtSensor`, `WaterTemperatureSensor` |
 | `DigitalInputService` | Edge notifications plus debounce scan | `QuickShifterInput`, `MapSwitchInput` |
 | `KnockAcquisitionService` | Crank-windowed TPIC8101 control | `KnockSensor` |
-| `KnockAnalysisService` | Lower-priority knock-event processing | `KnockAnalyzer` |
+| `KnockSignalProcessingService` | Lower-priority knock-event processing | `KnockFeatureExtractor` |
 | `SensorHealthService` | Periodic stale/fault aggregation | Health states from all sensor services |
 
 ## Publication boundary
@@ -224,6 +224,7 @@ Dependencies shall not point upward. For example:
 * `TpsSensor` shall not know about ignition maps, Web UI, telemetry JSON or NVS.
 * `PickupSensor` shall not schedule spark output.
 * `QuickShifterInput` shall not directly disable CDI output.
-* `KnockAnalyzer` may publish a protection request, but final ignition limiting
-  belongs to engine-control or safety strategy.
+* Sensor-side knock processing publishes feature records and signal health only;
+  ECU strategy owns knock interpretation, protection requests and final ignition
+  limiting.
 * Hardware acquisition adapters shall not apply sensor-domain calibration.

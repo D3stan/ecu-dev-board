@@ -43,7 +43,7 @@ The input subsystem shall follow these principles:
 | TPS               | Periodic analogue measurement         | Periodic ADC acquisition                       | Latest validated throttle value           | Normally independent                      | Analogue sensor service         |
 | Knock             | Crank-windowed combustion measurement | TPIC8101 integration window and result readout | Knock metric per enabled revolution       | Strongly synchronized                     | Knock service                   |
 | EGT               | Slow thermal measurement              | Periodic digital converter reading             | Latest temperature and thermal state      | Independent                               | Thermal/analogue sensor service |
-| Water temperature | Slow thermal measurement              | Periodic analogue or digital acquisition       | Latest temperature and thermal state      | Independent                               | Thermal/analogue sensor service |
+| Water temperature | Slow thermal measurement              | Periodic analogue NTC acquisition              | Latest temperature and thermal state      | Independent                               | Thermal/analogue sensor service |
 | Quick shifter     | Asynchronous rider request            | Digital edge and state acquisition             | Validated shift request and current state | Not crank-synchronous, but time-sensitive | Digital input service           |
 | Map switch        | User strategy-selection input         | Digital state change or periodic scan          | Current stable map selection              | Independent                               | Digital input service           |
 
@@ -214,11 +214,11 @@ For a single-cylinder two-stroke engine, one combustion opportunity occurs every
 | **Raw representation**         | Preferred: TPIC8101 digital integrator count stored in a wider ECU field                                                                                            |
 | **Engineering unit**           | Dimensionless knock counts or normalized knock index                                                                                                                |
 | **Calibration**                | Sensor variant, mounting location, mounting torque, input gain, programmable gain, filter centre frequency, window angles, background model and decision thresholds |
-| **Filtering**                  | TPIC8101 frequency filtering and integration followed by firmware normalization, thresholding and persistence evaluation                                            |
+| **Filtering**                  | TPIC8101 frequency filtering and integration followed by firmware signal-quality checks, background estimation and normalization                                   |
 | **Plausibility**               | Missing result, stuck result, saturation, implausible background, invalid window timing and TPIC configuration or communication errors                              |
 | **Stale timeout**              | Defined primarily in missed combustion events rather than only in milliseconds                                                                                      |
 | **Startup behaviour**          | Knock correction disabled until crank synchronization, TPIC configuration and background estimation are valid                                                       |
-| **Fault behaviour**            | Disable adaptive advance, remove learned positive corrections and use a validated conservative ignition/load strategy                                               |
+| **Fault behaviour**            | Publish invalid, stale or degraded knock feature state; ECU-level knock strategy disables adaptive advance and learned positive corrections                         |
 | **Consumers**                  | Ignition correction, engine protection, calibration tools, diagnostics and telemetry                                                                                |
 | **Publication model**          | One knock-event record per enabled revolution                                                                                                                       |
 | **Required task context**      | Deterministic crank-timing context for window control and result acquisition; lower-priority service for normalization and adaptation                               |
@@ -288,15 +288,15 @@ Knock functionality shall be introduced progressively:
 
 1. Diagnostic logging only
 2. Frequency, gain, mounting and window calibration
-3. Knock classification without ignition authority
+3. ECU-level knock classification without ignition authority
 4. Limited retard-only authority
 5. Bounded closed-loop correction after validation
 
 ## 6.8 Ignition-control use
 
-High knock values may indicate abnormal combustion, excessive thermal stress or unsuitable fuel quality.
+High knock-feature values may indicate abnormal combustion, excessive thermal stress or unsuitable fuel quality.
 
-The knock subsystem may therefore request:
+The ECU-level knock strategy may therefore request:
 
 * A more conservative maximum ignition advance
 * A bounded temporary retard
@@ -304,7 +304,9 @@ The knock subsystem may therefore request:
 * Reduced permitted load or RPM
 * A conservative fallback map
 
-The knock subsystem shall not directly write the final ignition output.
+The sensor-side knock subsystem shall publish acquisition records, normalized
+features and health only. It shall not publish final knock interpretation,
+request ignition authority or write the final ignition output.
 
 Excessive retard shall not be assumed to be safe because it may increase exhaust temperature, particularly on a two-stroke engine.
 
@@ -499,7 +501,9 @@ Normal EGT-dependent operation shall resume only after the measurement remains v
 
 **Publication model:** Latest validated water temperature, rate of change, maximum value and thermal state.
 
-The final sensor and electrical interface have not yet been selected.
+The initial electrical interface is an analogue NTC path. The exact sensor
+model, pull-up or reference values and installation location have not yet been
+selected.
 
 ## 8.2 Sensor design matrix
 
@@ -507,11 +511,11 @@ The final sensor and electrical interface have not yet been selected.
 | ------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
 | **Name**                  | Engine water-temperature or coolant-temperature subsystem                                                                  |
 | **Purpose**               | Monitor cooling-system temperature and protect the engine from sustained overheating                                       |
-| **Electrical type**       | To be selected; likely an analogue NTC sensor or a digital temperature interface                                           |
+| **Electrical type**       | Analogue NTC temperature sensor path; exact NTC model and installation remain to be selected                              |
 | **Acquisition model**     | Periodic low-rate acquisition                                                                                              |
 | **Sampling requirement**  | Low to moderate rate because coolant temperature changes slowly                                                            |
 | **Timestamp requirement** | Sufficient for stale detection, trend analysis and rate-of-rise calculation                                                |
-| **Raw representation**    | ADC value, resistance-derived value or digital temperature result                                                          |
+| **Raw representation**    | ADC value and resistance-derived value from the NTC acquisition path                                                       |
 | **Engineering unit**      | Degrees Celsius                                                                                                            |
 | **Calibration**           | Sensor transfer curve, pull-up or interface parameters, installation location and valid range                              |
 | **Filtering**             | Stable low-noise temperature estimate with a separate rapid overtemperature path if necessary                              |
@@ -600,15 +604,15 @@ A hard shutdown should require either:
 
 The following must be selected later:
 
-* Exact sensor model
-* NTC analogue versus digital interface
+* Exact NTC sensor model
+* Pull-up, reference and analogue front-end values
 * Installation location
 * Valid temperature range
 * Warning threshold
 * Derating threshold
 * Shutdown threshold
 * Recovery hysteresis
-* Whether the sensor is mandatory or optional
+* Mandatory-by-configuration policy for production profiles
 * Limp-mode RPM limit
 * Warm-up behaviour and minimum-temperature logic
 
@@ -624,7 +628,9 @@ The following must be selected later:
 
 **Contact type:** Normally open.
 
-**Logical activation:** Intended to be active-high.
+**Domain activation:** The domain-level request is active when
+`QuickShifterInput` normalizes the active-low electrical input to `active ==
+true`.
 
 **Purpose:** Request a temporary ignition cut during an eligible gear shift.
 
@@ -637,6 +643,7 @@ The ignition-cut duration shall depend on RPM and TPS.
 * Normally-open contact
 * Active-low operation
 * Pull-up bias
+* Domain-level active state after polarity normalization
 
 ## 9.3 Sensor design matrix
 
@@ -695,6 +702,11 @@ The subsystem shall distinguish between:
 * Ignition-cut execution
 
 The physical quick-shifter input shall not directly disable the CDI output.
+
+Re-arm shall occur only after another valid input state change followed by the
+configured re-arm timeout. Invalid, bouncing, stale or faulted input state shall
+not advance the re-arm timeout, and a held input shall not generate repeated
+requests by timer alone.
 
 ---
 
@@ -823,7 +835,7 @@ Each knock record shall be explicitly associated with the relevant revolution an
 | **AnalogSensorService**      | TPS and future analogue inputs     | Periodic acquisition and sensor-domain processing              |
 | **ThermalSensorService**     | EGT and water temperature          | Thermal measurements, trends and health states                 |
 | **KnockAcquisitionService**  | KS4-P and TPIC8101                 | Crank-windowed measurement and result acquisition              |
-| **KnockAnalysisService**     | Knock-event records                | Background modelling, normalization and knock decisions        |
+| **KnockSignalProcessingService** | Knock-event records                | Background modelling, signal-quality checks and normalized feature extraction |
 | **DigitalInputService**      | Quick shifter and map switch       | Edge/state qualification, debounce and event publication       |
 | **SensorDataStore**          | Published measurements             | Provide coherent immutable snapshots to consumers              |
 | **SensorHealthService**      | Health information from all inputs | Aggregate faults, stale states and degraded-operation requests |
@@ -875,14 +887,18 @@ Separate components should represent:
 * Crank synchronization
 * Throttle-rate estimation
 * Knock background modelling
-* Knock classification
+* Knock feature extraction
+* ECU-level knock classification
 * Thermal-state classification
 * Quick-shift eligibility
 * Sensor-fault fallback decisions
 
 ## 13.4 Engine-control boundary
 
-Sensor-domain components shall publish measurements, events and protection requests.
+Sensor-domain components shall publish measurements, events and sensor-side
+protection requests where appropriate. Knock is the exception: sensor-side
+knock processing publishes records, normalized features and health, while
+ECU-level strategy owns knock interpretation and control requests.
 
 They shall not directly:
 
@@ -957,15 +973,15 @@ The following decisions remain open:
 1. Final TPS electrical diagnostic margins
 2. Final TPS sample rate and filter delay
 3. Exact pickup signal-conditioning diagnostics
-4. Method for distinguishing stopped engine from pickup failure
+4. Exact supporting diagnostics for distinguishing stopped engine from pickup failure
 5. Final knock frequency, gain and crank-angle window
 6. Final EGT protection thresholds after dynamometer validation
-7. Water-temperature sensor and interface selection
+7. Final water-temperature NTC model, analogue front-end and installation
 8. Water-temperature warning, derating and shutdown thresholds
-9. Quick-shifter re-arm behaviour
+9. Final quick-shifter debounce, timeout and diagnostic numeric values
 10. Safe boundary for runtime map switching
 11. Web UI and physical map-switch arbitration
 12. Which sensor faults are recoverable automatically
 13. Which faults require restart or explicit acknowledgement
-14. Which sensors are mandatory for engine operation
+14. Production-profile mandatory sensor policy and degraded-mode limits
 15. Final reduced-RPM limits for each degraded operating mode

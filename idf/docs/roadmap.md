@@ -7,7 +7,8 @@
 5. **Define the high-level OOP boundaries**: hardware interfaces, sensor objects, processing policies, acquisition services and published snapshots. Implemented in [sensor_oop.md](sensor_oop.md#phase-5---high-level-oop-boundaries).
 6. **Define ownership and communication** between interrupts, tasks, engine control, safety and telemetry. Implemented in [sensor_ownership_faults.md](sensor_ownership_faults.md#phase-6---ownership-and-communication).
 7. **Design failure behaviour and testability** before implementing drivers. Implemented in [sensor_ownership_faults.md](sensor_ownership_faults.md#phase-7---failure-behavior-and-testability).
-8. Only after these decisions, create the final class diagram, task matrix and implementation backlog.
+8. **Resolve the remaining sensor macro-area decisions** tracked in [sensor_decision_queue.md](sensor_decision_queue.md).
+9. Only after these decisions, create the final class diagram, task matrix and implementation backlog.
 
 ---
 
@@ -20,7 +21,7 @@ The inputs listed in your ECU specification are not all the same kind of sensor:
 * Knock sensor
 * EGT
 * Quick shifter
-* Map switches and other digital inputs 
+* Map switches and other digital inputs
 
 They require fundamentally different acquisition models.
 
@@ -716,7 +717,7 @@ EcuApplication
 │   │
 │   ├── KnockAcquisitionService
 │   │   ├── KnockSensor
-│   │   └── KnockAnalyzer
+│   │   └── KnockFeatureExtractor
 │   │
 │   └── SensorDataStore
 │       ├── EngineInputSnapshot

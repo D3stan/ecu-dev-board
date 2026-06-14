@@ -17,17 +17,15 @@ The following requirements are not silently invented in this document:
 * Whether engine control consumes TPS position only or also throttle rate.
 * Whether TPS fallback later adds RPM or load restrictions beyond the 70%
   fallback value already specified.
-* The method for distinguishing normal engine stop from pickup or signal
-  conditioner failure.
+* Exact supporting signals and diagnostics for distinguishing normal engine
+  stop from pickup or signal conditioner failure.
 * Final knock frequency, gain, crank-angle window, thresholds and authority.
 * Final EGT warning, derating and shutdown thresholds after dynamometer
   validation.
-* Water-temperature sensor type, interface, thresholds, hysteresis, mandatory
-  status, limp RPM limit and warm-up behavior.
-* Quick-shifter re-arm behavior.
+* Final water-temperature NTC model, installation location, thresholds,
+  hysteresis, limp RPM limit and warm-up behavior.
 * Runtime map-switch safe activation boundary and Web UI override arbitration.
 * Which faults require automatic recovery, explicit acknowledgement or restart.
-* Which sensors are mandatory for engine operation.
 * Final degraded-mode RPM, load and ignition limits.
 * FreeRTOS task priorities, stack sizes, queue depths and exact timeout values.
 
@@ -43,7 +41,8 @@ later calibration or engine-control design.
 
 1. Every mutable state has one writer.
 2. ISRs and callbacks only capture raw facts and notify the owning service.
-3. Domain services publish measurements, events and protection requests.
+3. Domain services publish measurements, events and protection requests where
+   appropriate; sensor-side knock processing publishes feature state only.
 4. Engine control, safety, telemetry and diagnostics consume published data.
 5. Configuration changes are transactions owned by configuration services.
 6. Cross-core communication uses immutable snapshots or bounded event queues.
@@ -59,13 +58,13 @@ later calibration or engine-control design.
 | TPS calibration loaded in RAM | `ConfigurationService` | `AnalogSensorService`, diagnostics | Request/response plus config generation event | Applying a new calibration must happen at a safe service boundary |
 | TPS filtered value, plausibility state and health | `AnalogSensorService` through `TpsSensor` | Engine control, safety, telemetry, diagnostics | Snapshot-based publication | Engine control never calls the ADC driver |
 | EGT converter state, thermal trend and health | `ThermalSensorService` through `EgtSensor` | Safety, telemetry, diagnostics | Snapshot-based publication and fault events | Threshold values remain calibration decisions |
-| Water-temperature value, thermal trend and health | `ThermalSensorService` through `WaterTemperatureSensor` | Safety, engine-control limiters, telemetry, diagnostics | Snapshot-based publication and protection request events | Sensor loss is not by itself proof of overheating |
-| Quick-shifter debounce, request and re-arm state | `DigitalInputService` through `QuickShifterInput` | Quick-shift eligibility, engine control, telemetry | Event-based requests plus snapshot state | Physical input never disables CDI directly |
+| Water-temperature value, thermal trend and health | `ThermalSensorService` through analog-NTC-backed `WaterTemperatureSensor` | Safety, engine-control limiters, telemetry, diagnostics | Snapshot-based publication and protection request events | Sensor loss is not by itself proof of overheating |
+| Quick-shifter debounce, request and re-arm state | `DigitalInputService` through `QuickShifterInput` | Quick-shift eligibility, engine control, telemetry | Event-based requests plus snapshot state | Active-low electrical input is normalized to domain active; physical input never disables CDI directly |
 | Map-switch physical stable state | `DigitalInputService` through `MapSwitchInput` | Map selector, configuration, telemetry | Snapshot plus map-change event | UI override arbitration remains open |
 | UI-requested map override | `ConfigurationService` or map-selection service | Map selector, telemetry, diagnostics | Request/response plus snapshot | Persistence and cancellation policy remain open |
 | Effective active map selection | Map-selection or calibration service | Engine control, telemetry, diagnostics | Snapshot plus activation event | Activation boundary remains open |
-| TPIC8101 window schedule and acquisition state | `KnockAcquisitionService` | `KnockAnalysisService`, diagnostics | Crank-synchronous event records | Separate from generic analog processing |
-| Knock background, normalized metric and decision state | `KnockAnalysisService` | Ignition-limit strategy, safety, telemetry | Event records plus snapshot | Final authority and thresholds remain open |
+| TPIC8101 window schedule and acquisition state | `KnockAcquisitionService` | `KnockSignalProcessingService`, diagnostics | Crank-synchronous event records | Separate from generic analog processing |
+| Knock background, signal quality and normalized feature state | `KnockSignalProcessingService` | ECU knock strategy, diagnostics, telemetry | Event records plus snapshot | Sensor-side processing does not classify final knock state or request ignition authority |
 | Aggregate sensor health and degraded-operation requests | `SensorHealthService` | Safety, telemetry, diagnostics | Snapshot plus fault-transition events | Aggregates health; does not mutate sensor internals |
 | Published latest-value snapshots | `SensorDataStore` | Engine control, safety, telemetry, diagnostics, logging | Snapshot-based immutable read | Store owns snapshot generation and sequence counters |
 | Sensor fault-transition event buffers | Producing service, then event queue owner | Safety, telemetry, diagnostics | Event-based bounded queue | Overflow creates an overflow diagnostic event or counter |
@@ -98,7 +97,7 @@ later calibration or engine-control design.
 | Pickup service | Engine estimator | In-task call or bounded event queue | Event-based | Estimator must process in timestamp order; impossible backlog becomes sync-loss fault |
 | Sensor services | `SensorDataStore` | Publish latest immutable reading with sequence counter | Snapshot-based | Latest-value overwrite is allowed; sequence exposes missed updates |
 | Sensor services | `SensorHealthService` | Fault-transition event plus latest health snapshot | Event-based and snapshot-based | Repeated identical faults may be coalesced with count and first/last timestamp |
-| Knock acquisition | Knock analysis | Bounded queue of knock event records | Crank-synchronous event stream | On overflow, drop oldest unprocessed analysis record, preserve overflow count, disable adaptive correction until stable |
+| Knock acquisition | Knock signal processing | Bounded queue of knock event records | Crank-synchronous event stream | On overflow, drop oldest unprocessed feature-processing record, preserve overflow count and publish degraded knock data |
 | `SensorDataStore` | Engine control | Lock-free or short critical-section immutable snapshot read | Snapshot-based | Engine control uses a coherent copy and checks per-input timestamps and validity |
 | `SensorDataStore` | Telemetry/logging | Snapshot copy and event drain | Snapshot-based and streamed | Telemetry drops or decimates under load; never blocks sensor publication |
 | Configuration service | Sensor services | Staged config object plus generation number, applied at safe service boundary | Request/response plus event | Rejected config returns an error without changing active generation |
@@ -132,7 +131,7 @@ these rules:
 | EGT and water temperature | Latest value plus maximum/trend state | Latest-value overwrite allowed; fault events are coalesced | Stale disables dependent adaptation and enters limited strategy |
 | Quick-shifter request | Preserve validated request events | If request queue full, ignore new request and publish overflow diagnostic | Stale stable-state scan faults input if state cannot be trusted |
 | Map-switch request | Latest stable state plus change event | Repeated changes may be coalesced; invalid rapid changes create fault | If switch state unavailable, select safe default map |
-| Knock records | Bounded per-revolution record queue | Drop analysis records under overload, count drops, disable adaptive correction | Missed combustion-event records mark knock stale in event-count units |
+| Knock records | Bounded per-revolution record queue | Drop sensor-side feature-processing records under overload, count drops and publish degraded knock data | Missed combustion-event records mark knock stale in event-count units |
 | Fault transitions | Bounded event queue plus current health snapshot | Coalesce repeated transitions and increment count | Current health snapshot remains authoritative |
 | Telemetry stream | Best-effort stream from snapshots/events | Drop, decimate or batch telemetry; never block producers | Telemetry marks data age and missed sequence counts |
 | Diagnostic/session logs | Bounded recording buffer | Drop oldest or stop recording according to logging policy; publish diagnostic | Logging staleness never changes control decisions |
@@ -193,7 +192,8 @@ The following are prohibited:
   changes.
 * Configuration service mutating sensor internals outside the owning service.
 * Safety directly editing sensor state to force a desired reading.
-* Knock analysis directly writing final ignition output.
+* Sensor-side knock processing publishing final knock interpretation,
+  protection requests or ignition authority.
 * Quick-shifter input directly disabling CDI output.
 
 ---
@@ -291,11 +291,13 @@ or configuration that makes the sensor mandatory.
 | Startup validity | Initial stable state is measured at startup; active-at-startup generates a diagnostic and is ignored |
 | Timeout and stale | If stable-state monitoring cannot confirm input state, publish stale/invalid input state |
 | Failure | Stuck input, repeated bouncing, implausibly short pulses, excessive activation duration or requests outside permitted operating conditions move to `Failed` or `Degraded` |
-| Recovery | Input returns to valid normal state and completes re-arm rule before requests are accepted |
+| Recovery | Input reaches a valid state change, then completes the configured re-arm timeout while the input remains valid before requests are accepted |
 | Latching | Startup-active and stuck-input faults remain active until normal inactive state is observed; final acknowledgement policy remains open |
 
 Fallback: ignore quick-shifter requests while the input is invalid, faulted or
-not re-armed. The input never directly commands ignition cut.
+not re-armed. Re-arm progress occurs only after another valid state change and
+only while the input remains valid. The input never directly commands ignition
+cut.
 
 ### Map switch
 
@@ -320,9 +322,11 @@ cancellation and timeout policy remains open.
 | Recovery | Recovery requires valid TPIC communication/configuration, valid window timing and rebuilt background model |
 | Latching | TPIC configuration or communication faults may latch until reinitialization; transient missing results may recover after valid records |
 
-Fallback: disable adaptive advance, remove learned positive corrections and use
-a validated conservative ignition/load strategy. Knock analysis may publish a
-protection request but must not write final ignition output.
+Fallback: sensor-side knock processing publishes invalid, stale or degraded
+knock feature state. ECU-level knock strategy disables adaptive advance, removes
+learned positive corrections and chooses any conservative ignition/load
+strategy. Sensor-side knock processing must not publish final protection
+requests or write final ignition output.
 
 ## Engine-control and safety fallback ownership
 
@@ -331,10 +335,10 @@ protection request but must not write final ignition output.
 | Pickup invalid, stale or unsynchronized | Do not schedule ignition from untrusted crank reference | May request inhibit and fault publication | Missing-pulse threshold and stop/failure distinction |
 | TPS invalid or stale | Use 70% throttle fallback for load-dependent consumers | May request limited mode if configured | Additional RPM/load limits |
 | EGT failed or stale | Avoid EGT-dependent correction paths | Conservative limited strategy and thermal diagnostics | Final thresholds and latching policy |
-| Water temperature failed or stale | Disable water-temperature adaptation | Conservative limits; shutdown only with confirmed/corroborated critical condition or mandatory config | Sensor mandatory status and limp RPM |
-| Quick shifter failed or not re-armed | Ignore shift request | Publish input fault; no engine shutdown by default | Re-arm and acknowledgement policy |
+| Water temperature failed or stale | Disable water-temperature adaptation | Conservative limits; shutdown only with confirmed/corroborated critical condition or mandatory config | Limp RPM and threshold values |
+| Quick shifter failed or not re-armed | Ignore shift request | Publish input fault; no engine shutdown by default | Acknowledgement policy |
 | Map switch failed or invalid | Use effective safe default map | Validate active map availability | UI override arbitration |
-| Knock failed or stale | Disable adaptive knock correction and learned positive advance | Conservative ignition/load strategy | Knock authority level and thresholds |
+| Knock failed or stale | ECU knock strategy disables adaptive correction and learned positive advance | Conservative ignition/load strategy | Knock authority level and thresholds |
 | SensorDataStore overflow or stale snapshot | Reject stale inputs per validity flags | Publish degraded sensor subsystem health | Exact counters and alert thresholds |
 
 ## Test seams
@@ -372,7 +376,8 @@ protection request but must not write final ignition output.
 * Digital input edge to validated quick-shifter event without direct CDI call.
 * Map-switch physical event to map-change request and safe default fallback.
 * Thermal fault to safety protection request without direct actuator command.
-* Knock event record to protection request without direct ignition output.
+* Knock event record to normalized feature publication without sensor-side
+  protection request or direct ignition output.
 * Configuration transaction staging, rejection and safe-boundary application.
 
 ### HITL tests
@@ -399,7 +404,8 @@ protection request but must not write final ignition output.
 
 * Pickup event burst or false-edge storm causes overflow diagnostic and
   sync-loss behavior rather than blocking.
-* Knock analysis backlog disables adaptive correction and counts dropped records.
+* Knock signal-processing backlog publishes degraded knock data and counts
+  dropped records.
 * Telemetry stream overload drops/decimates telemetry without blocking sensors.
 * Snapshot publication remains bounded under maximum expected sensor rates.
 * Stale transitions occur after deterministic time advances or missed event
@@ -431,7 +437,8 @@ protection request but must not write final ignition output.
     overheating.
 12. Quick-shifter faults cause requests to be ignored until recovery or re-arm.
 13. Map-switch faults select a hardcoded safe default map.
-14. Knock faults disable adaptive correction and learned positive advance.
+14. Knock faults are published so ECU strategy can disable adaptive correction
+    and learned positive advance.
 15. Deterministic-time tests can trigger startup, stale, timeout, recovery and
     latching transitions without real waiting.
 16. Replay tests can feed timestamped sensor data without ESP-IDF dependencies.
