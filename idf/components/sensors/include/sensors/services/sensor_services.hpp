@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <string_view>
 
 #include "sensors/domain/sensor_data_store.hpp"
@@ -65,6 +66,8 @@ public:
                              EngineStateEstimator &estimator);
 
     bool run_once(std::string_view pickup_input);
+    std::size_t drain_available(std::string_view pickup_input, std::size_t max_events);
+    SensorReading<EngineSpeedState> check_stale(TimestampUs now);
 
 private:
     IEdgeCaptureSource &source_;

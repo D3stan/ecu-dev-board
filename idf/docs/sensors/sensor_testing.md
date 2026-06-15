@@ -165,6 +165,7 @@ Currently confirmed real inputs are:
 | TPS | GPIO7 / ADC1_CH6 | `tps` |
 | Quick-shifter digital output | GPIO9 | `quick` |
 | Map switch | GPIO14 | `map` |
+| Conditioned pickup square wave | GPIO21 / MCPWM capture | `pickup` |
 
 Preferred terminal flow:
 
@@ -182,10 +183,13 @@ ECU sensor harness
     Real GPIO9 input
   Map-switch source
     Real GPIO14 input
+  Pickup source
+    Real GPIO21 MCPWM falling-edge capture
 ```
 
-Leave water temperature, EGT, pickup and knock on their fake defaults until
-their real wiring is confirmed. Save, exit, build and flash:
+Leave water temperature, EGT and knock on their fake defaults until their real
+wiring is confirmed. Leave pickup fake unless GPIO21 is wired to a clean 0-3.3
+V push-pull conditioned pickup signal. Save, exit, build and flash:
 
 ```powershell
 idf.py -C idf build
@@ -199,13 +203,14 @@ extension.
 
 Useful mixed configurations:
 
-| Test goal | TPS | Quick | Map | Water/EGT/Pickup/Knock |
-| --- | --- | --- | --- | --- |
-| TPS physical sweep only | Real ADC | Fake | Fake | Fake |
-| Confirmed simple inputs | Real ADC | Real GPIO | Real GPIO | Fake |
+| Test goal | TPS | Quick | Map | Pickup | Water/EGT/Knock |
+| --- | --- | --- | --- | --- | --- |
+| TPS physical sweep only | Real ADC | Fake | Fake | Fake | Fake |
+| Confirmed simple inputs | Real ADC | Real GPIO | Real GPIO | Fake | Fake |
+| Pickup simulator/HITL | Real or fake | Fake | Fake | Real GPIO21 capture | Fake |
 
 Do not enable `Expose unconfirmed real sensor source options` for normal
-bring-up. If you expose and select real water, EGT, pickup or knock today, the
+bring-up. If you expose and select real water, EGT or knock today, the
 build intentionally stops with a message telling you which board binding is
 still missing.
 
@@ -229,6 +234,13 @@ In mixed mode with TPS/quick/map real:
 * `rpm`, `egt_c`, `water_c` and `knock_raw` should continue moving from fake
   stimulus while pickup, MAX31856, NTC and TPIC/knock hardware wiring remain
   intentionally disabled.
+
+With real pickup selected, expected startup lines include:
+
+```text
+# sensor_harness_sources,tps=real,water=fake,egt=fake,quick=real,map=real,pickup=real,knock=fake
+# real_inputs,tps_gpio7_adc1_ch6,quick_gpio9,map_gpio14,pickup_gpio21_mcpwm_falling
+```
 
 ## 7. Sensor-By-Sensor Hardware Checks
 
@@ -256,9 +268,19 @@ Map switch:
 * Confirm a map-switch event appears only when the stable requested state
   changes.
 
+Pickup:
+
+* Wire the signal conditioner output to GPIO21 and ECU ground.
+* Feed a 0-3.3 V push-pull square wave. The harness captures falling edges
+  only.
+* At 416.667 Hz, confirm `rpm_valid` becomes `1` and `rpm` is near 25,000.
+* Drop one pulse and confirm RPM becomes untrusted or stale before recovering
+  after fresh valid edges.
+* Inject a duplicate falling edge less than 1000 us after the prior valid edge
+  and confirm a `# event,fault,...` line is printed.
+
 Later hardware stages:
 
-* Pickup: add an ISR-safe capture path before high-RPM testing.
 * EGT: enable MAX31856 SPI only after CS/SCK/MISO/MOSI and thermocouple wiring
   are confirmed.
 * Water temperature: enable the NTC ADC binding only after the divider and ADC

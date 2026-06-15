@@ -2,6 +2,50 @@
 
 namespace ecu::sensors {
 
+namespace {
+
+SensorFault first_fault(const FaultBitset &faults) {
+    const SensorFault ordered_faults[] = {
+        SensorFault::Overflow,
+        SensorFault::DeviceFault,
+        SensorFault::Duplicate,
+        SensorFault::Plausibility,
+        SensorFault::Stale,
+    };
+
+    for (SensorFault fault : ordered_faults) {
+        if (faults.has(fault)) {
+            return fault;
+        }
+    }
+    return SensorFault::DeviceFault;
+}
+
+SensorReading<EngineSpeedState> untrusted_engine_speed_reading(const PickupCaptureEvent &event) {
+    SensorReading<EngineSpeedState> reading{};
+    reading.acquired_at = event.capture.captured_at;
+    reading.value.reference_at = event.capture.captured_at;
+    reading.value.synchronized = false;
+    reading.value.crank_reference_trusted = false;
+    reading.valid_for_control = false;
+    reading.health = event.health;
+    reading.quality = event.quality;
+    reading.faults = event.faults;
+    return reading;
+}
+
+FaultTransition fault_transition(SensorFault fault, SensorHealthState health, TimestampUs at) {
+    FaultTransition transition{};
+    transition.fault = fault;
+    transition.health = health;
+    transition.first_at = at;
+    transition.last_at = at;
+    transition.count = 1;
+    return transition;
+}
+
+} // namespace
+
 AnalogSensorService::AnalogSensorService(IAnalogSampleSource &source, SensorDataStore &store, TpsSensor &tps)
     : source_(source), store_(store), tps_(tps) {}
 
@@ -75,8 +119,29 @@ bool PickupAcquisitionService::run_once(std::string_view pickup_input) {
     auto event = pickup_.process(*capture);
     if (event.valid) {
         store_.publish_engine_speed(estimator_.process(event.capture));
+    } else {
+        store_.publish_engine_speed(untrusted_engine_speed_reading(event));
+        store_.publish_fault(fault_transition(first_fault(event.faults), event.health, event.capture.captured_at));
     }
     return true;
+}
+
+std::size_t PickupAcquisitionService::drain_available(std::string_view pickup_input, std::size_t max_events) {
+    std::size_t drained = 0;
+    while (drained < max_events && run_once(pickup_input)) {
+        ++drained;
+    }
+    return drained;
+}
+
+SensorReading<EngineSpeedState> PickupAcquisitionService::check_stale(TimestampUs now) {
+    const SensorHealthState previous_health = store_.snapshot().engine_speed.health;
+    auto reading = estimator_.check_stale(now);
+    if (reading.health == SensorHealthState::Stale && previous_health != SensorHealthState::Stale) {
+        store_.publish_engine_speed(reading);
+        store_.publish_fault(fault_transition(SensorFault::Stale, reading.health, now));
+    }
+    return reading;
 }
 
 KnockAcquisitionService::KnockAcquisitionService(IKnockWindowDevice &device, SensorDataStore &store, KnockSensor &knock)

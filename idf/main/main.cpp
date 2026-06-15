@@ -11,6 +11,7 @@
 #include "sensor_drivers/adc_sample_source.hpp"
 #include "sensor_drivers/esp_time_source.hpp"
 #include "sensor_drivers/gpio_input_source.hpp"
+#include "sensor_drivers/mcpwm_edge_capture_source.hpp"
 #include "sensor_harness/sensor_harness.hpp"
 #include "sensors/domain/fake_sources.hpp"
 #include "sensors/domain/sensor_data_store.hpp"
@@ -25,10 +26,6 @@
 #error "Real MAX31856 EGT source is not wired yet. Confirm SPI bus pins and CS before enabling it."
 #endif
 
-#if defined(CONFIG_SENSOR_HARNESS_PICKUP_SOURCE_REAL_CAPTURE)
-#error "Real pickup capture source is not wired yet. Confirm the GPIO and ISR-safe capture path before enabling it."
-#endif
-
 #if defined(CONFIG_SENSOR_HARNESS_KNOCK_SOURCE_REAL_TPIC8101)
 #error "Real TPIC8101 knock source is not wired yet. Confirm SPI, HOLD/window pin, and signal conditioning before enabling it."
 #endif
@@ -41,17 +38,23 @@ using ecu::sensor_drivers::EspAdcSampleSource;
 using ecu::sensor_drivers::EspGpioInputSource;
 using ecu::sensor_drivers::EspTimeSource;
 using ecu::sensor_drivers::GpioInputBinding;
+using ecu::sensor_drivers::McpwmEdgeCaptureConfig;
+using ecu::sensor_drivers::McpwmEdgeCaptureSource;
 using ecu::sensor_harness::HarnessInputRoutes;
 using ecu::sensor_harness::HarnessInputSource;
 
 constexpr int kSerialBaud = 115200;
 constexpr std::uint32_t kPrintIntervalMs = 100;
+constexpr TimestampUs kPrintIntervalUs = kPrintIntervalMs * 1000ull;
 constexpr std::uint32_t kStoreQueueCapacity = 8;
 constexpr std::uint32_t kHarnessTaskStackBytes = 16384;
 constexpr UBaseType_t kHarnessTaskPriority = tskIDLE_PRIORITY + 1;
+constexpr std::uint32_t kPickupCaptureNotifyValue = 1u << 0;
+constexpr std::size_t kPickupDrainMaxEvents = 32;
 
 constexpr gpio_num_t kQuickShifterGpio = GPIO_NUM_9;
 constexpr gpio_num_t kMapSwitchGpio = GPIO_NUM_14;
+constexpr gpio_num_t kPickupGpio = GPIO_NUM_21;
 constexpr adc_channel_t kTpsAdcChannel = ADC_CHANNEL_6;
 
 #if defined(CONFIG_SENSOR_HARNESS_TPS_SOURCE_REAL_ADC)
@@ -70,6 +73,12 @@ constexpr bool kQuickUsesRealGpio = false;
 constexpr bool kMapUsesRealGpio = true;
 #else
 constexpr bool kMapUsesRealGpio = false;
+#endif
+
+#if defined(CONFIG_SENSOR_HARNESS_PICKUP_SOURCE_REAL_CAPTURE)
+constexpr bool kPickupUsesRealCapture = true;
+#else
+constexpr bool kPickupUsesRealCapture = false;
 #endif
 
 constexpr bool kAnyRealAdc = kTpsUsesRealAdc;
@@ -93,6 +102,9 @@ HarnessInputRoutes make_harness_routes() {
     }
     if constexpr (kMapUsesRealGpio) {
         routes.map = HarnessInputSource::Real;
+    }
+    if constexpr (kPickupUsesRealCapture) {
+        routes.pickup = HarnessInputSource::Real;
     }
 
     return routes;
@@ -167,6 +179,10 @@ void print_harness_config(const HarnessInputRoutes &routes) {
     }
     if constexpr (kMapUsesRealGpio) {
         std::printf(",map_gpio14");
+        printed_any = true;
+    }
+    if constexpr (kPickupUsesRealCapture) {
+        std::printf(",pickup_gpio21_mcpwm_falling");
         printed_any = true;
     }
     if (!printed_any) {
@@ -253,13 +269,24 @@ void run_mixed_harness(EspTimeSource &time_source) {
     EspGpioInputSource real_digital_source(gpio_bindings, kAnyRealGpio ? 2 : 0, time_source);
 
     FakeSpiMeasurementSource unavailable_real_spi_source;
-    FakeEdgeCaptureSource unavailable_real_pickup_source;
     FakeKnockWindowDevice unavailable_real_knock_device;
+
+    McpwmEdgeCaptureConfig pickup_capture_config{};
+    pickup_capture_config.input_name = ecu::sensor_harness::kPickupInput;
+    pickup_capture_config.gpio = kPickupGpio;
+    pickup_capture_config.group_id = 0;
+    pickup_capture_config.queue_depth = kPickupDrainMaxEvents;
+    pickup_capture_config.notify_task = xTaskGetCurrentTaskHandle();
+    pickup_capture_config.notify_value = kPickupCaptureNotifyValue;
+    McpwmEdgeCaptureSource real_pickup_source(time_source, pickup_capture_config);
+    if constexpr (kPickupUsesRealCapture) {
+        ESP_ERROR_CHECK(real_pickup_source.start());
+    }
 
     ecu::sensor_harness::MuxAnalogSampleSource analog_source(fake_analog_source, real_analog_source, routes);
     ecu::sensor_harness::MuxSpiMeasurementSource spi_source(fake_spi_source, unavailable_real_spi_source, routes);
     ecu::sensor_harness::MuxDigitalInputSource digital_source(fake_digital_source, real_digital_source, routes);
-    ecu::sensor_harness::MuxEdgeCaptureSource pickup_source(fake_pickup_source, unavailable_real_pickup_source, routes);
+    ecu::sensor_harness::MuxEdgeCaptureSource pickup_source(fake_pickup_source, real_pickup_source, routes);
     ecu::sensor_harness::MuxKnockWindowDevice knock_device(fake_knock_device, unavailable_real_knock_device, routes);
 
     TpsSensor tps(make_tps_config());
@@ -283,7 +310,22 @@ void run_mixed_harness(EspTimeSource &time_source) {
 
     print_harness_config(routes);
 
+    TimestampUs next_periodic_at = time_source.now();
     while (true) {
+        if constexpr (kPickupUsesRealCapture) {
+            std::uint32_t notification_value = 0;
+            (void)xTaskNotifyWait(0, kPickupCaptureNotifyValue, &notification_value, pdMS_TO_TICKS(kPrintIntervalMs));
+            (void)pickup_service.drain_available(ecu::sensor_harness::kPickupInput, kPickupDrainMaxEvents);
+        } else {
+            vTaskDelay(pdMS_TO_TICKS(kPrintIntervalMs));
+        }
+
+        const TimestampUs now = time_source.now();
+        if (now < next_periodic_at) {
+            continue;
+        }
+        next_periodic_at = now + kPrintIntervalUs;
+
         stimulus.push_next(fake_analog_source,
                            fake_spi_source,
                            fake_digital_source,
@@ -301,12 +343,14 @@ void run_mixed_harness(EspTimeSource &time_source) {
         analog_service.run_once(ecu::sensor_harness::kTpsChannel);
         thermal_service.run_once(ecu::sensor_harness::kEgtDevice, ecu::sensor_harness::kWaterChannel);
         digital_service.run_once(ecu::sensor_harness::kQuickInput, ecu::sensor_harness::kMapInput);
-        pickup_service.run_once(ecu::sensor_harness::kPickupInput);
+        (void)pickup_service.drain_available(ecu::sensor_harness::kPickupInput, kPickupDrainMaxEvents);
+        if constexpr (kPickupUsesRealCapture) {
+            (void)pickup_service.check_stale(now);
+        }
         knock_service.run_once(make_knock_context(store.snapshot()));
 
         update_latest_knock(store, latest_knock);
-        print_snapshot(store, time_source.now(), latest_knock);
-        vTaskDelay(pdMS_TO_TICKS(kPrintIntervalMs));
+        print_snapshot(store, now, latest_knock);
     }
 }
 

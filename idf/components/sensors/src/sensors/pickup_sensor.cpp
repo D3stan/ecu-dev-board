@@ -99,6 +99,9 @@ SensorReading<EngineSpeedState> EngineStateEstimator::check_stale(TimestampUs no
         reading.value.crank_reference_trusted = false;
         reading.faults.add(SensorFault::Stale);
         last_ = reading;
+        has_last_capture_ = false;
+        accepted_edges_ = 0;
+        last_rpm_ = 0.0f;
         return reading;
     }
     return last_;

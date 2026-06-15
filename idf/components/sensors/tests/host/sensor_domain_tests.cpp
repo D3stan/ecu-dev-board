@@ -5,6 +5,7 @@
 #include <string>
 
 #include "sensor_harness/sensor_harness.hpp"
+#include "sensor_drivers/capture_tick_converter.hpp"
 #include "sensors/domain/fake_sources.hpp"
 #include "sensors/domain/sensor_data_store.hpp"
 #include "sensors/domain/sensor_health_service.hpp"
@@ -43,6 +44,19 @@ void fail_near(const char *file, int line, const char *expected_expr, const char
 }
 
 using namespace ecu::sensors;
+
+void test_mcpwm_capture_tick_converter_uses_resolution_and_wrap() {
+    ecu::sensor_drivers::CaptureTickConverter converter(80000000, 1000);
+    EXPECT_EQ(3400ull, converter.to_timestamp_us(192000));
+
+    ecu::sensor_drivers::CaptureTickConverter wrap_converter(80000000, 0);
+    const auto before_wrap = wrap_converter.to_timestamp_us(0xFFFFFFF0u);
+    const auto after_wrap = wrap_converter.to_timestamp_us(0x00000130u);
+
+    EXPECT_EQ(53687091ull, before_wrap);
+    EXPECT_EQ(53687095ull, after_wrap);
+    EXPECT_EQ(4ull, after_wrap - before_wrap);
+}
 
 void test_data_store_sequences_and_queue_overflow() {
     SensorDataStore store(1, 1, 1, 1);
@@ -173,6 +187,102 @@ void test_pickup_estimator_sync_loss_and_recovery() {
     auto stale = estimator.check_stale(300000);
     EXPECT_FALSE(stale.valid_for_control);
     EXPECT_EQ(SensorHealthState::Stale, stale.health);
+}
+
+void test_pickup_service_publishes_invalid_capture_faults() {
+    FakeEdgeCaptureSource source;
+    SensorDataStore store(4, 4, 4, 4);
+    PickupSensor pickup(PickupConfig{});
+    EngineStateEstimator estimator(EngineStateConfig{});
+    PickupAcquisitionService service(source, store, pickup, estimator);
+
+    source.push("pickup", EdgeCapture{100000, EdgePolarity::Falling, CaptureStatus::Ok});
+    source.push("pickup", EdgeCapture{104000, EdgePolarity::Falling, CaptureStatus::Ok});
+    EXPECT_EQ(2u, service.drain_available("pickup", 8));
+    EXPECT_TRUE(store.snapshot().engine_speed.valid_for_control);
+
+    source.push("pickup", EdgeCapture{104010, EdgePolarity::Falling, CaptureStatus::Ok});
+    EXPECT_TRUE(service.run_once("pickup"));
+
+    auto duplicate_snapshot = store.snapshot();
+    EXPECT_FALSE(duplicate_snapshot.engine_speed.valid_for_control);
+    EXPECT_EQ(SensorHealthState::Degraded, duplicate_snapshot.engine_speed.health);
+    EXPECT_TRUE(duplicate_snapshot.engine_speed.faults.has(SensorFault::Duplicate));
+
+    auto duplicate_fault = store.pop_fault();
+    EXPECT_TRUE(duplicate_fault.has_value());
+    EXPECT_EQ(static_cast<unsigned>(SensorFault::Duplicate), static_cast<unsigned>(duplicate_fault->fault));
+    EXPECT_EQ(SensorHealthState::Degraded, duplicate_fault->health);
+    EXPECT_EQ(104010ull, duplicate_fault->first_at);
+
+    source.push("pickup", EdgeCapture{108000, EdgePolarity::Falling, CaptureStatus::Overflow});
+    EXPECT_TRUE(service.run_once("pickup"));
+
+    auto overflow_snapshot = store.snapshot();
+    EXPECT_FALSE(overflow_snapshot.engine_speed.valid_for_control);
+    EXPECT_EQ(SensorHealthState::Failed, overflow_snapshot.engine_speed.health);
+    EXPECT_TRUE(overflow_snapshot.engine_speed.faults.has(SensorFault::Overflow));
+
+    auto overflow_fault = store.pop_fault();
+    EXPECT_TRUE(overflow_fault.has_value());
+    EXPECT_EQ(static_cast<unsigned>(SensorFault::Overflow), static_cast<unsigned>(overflow_fault->fault));
+    EXPECT_EQ(SensorHealthState::Failed, overflow_fault->health);
+    EXPECT_EQ(108000ull, overflow_fault->first_at);
+}
+
+void test_pickup_service_stale_recovery_requires_new_startup_sequence() {
+    FakeEdgeCaptureSource source;
+    SensorDataStore store(4, 4, 4, 4);
+    PickupSensor pickup(PickupConfig{});
+    EngineStateConfig engine_config{};
+    engine_config.stale_timeout_us = 10000;
+    engine_config.startup_edges_required = 2;
+    EngineStateEstimator estimator(engine_config);
+    PickupAcquisitionService service(source, store, pickup, estimator);
+
+    source.push("pickup", EdgeCapture{100000, EdgePolarity::Falling, CaptureStatus::Ok});
+    source.push("pickup", EdgeCapture{104000, EdgePolarity::Falling, CaptureStatus::Ok});
+    EXPECT_EQ(2u, service.drain_available("pickup", 8));
+    EXPECT_TRUE(store.snapshot().engine_speed.valid_for_control);
+
+    auto stale = service.check_stale(200000);
+    EXPECT_EQ(SensorHealthState::Stale, stale.health);
+    EXPECT_FALSE(store.snapshot().engine_speed.valid_for_control);
+
+    source.push("pickup", EdgeCapture{204000, EdgePolarity::Falling, CaptureStatus::Ok});
+    EXPECT_TRUE(service.run_once("pickup"));
+    EXPECT_EQ(SensorHealthState::Stabilizing, store.snapshot().engine_speed.health);
+    EXPECT_FALSE(store.snapshot().engine_speed.valid_for_control);
+
+    source.push("pickup", EdgeCapture{208000, EdgePolarity::Falling, CaptureStatus::Ok});
+    EXPECT_TRUE(service.run_once("pickup"));
+    EXPECT_EQ(SensorHealthState::Valid, store.snapshot().engine_speed.health);
+    EXPECT_TRUE(store.snapshot().engine_speed.valid_for_control);
+}
+
+void test_pickup_service_accepts_high_rpm_and_rapid_ramp() {
+    FakeEdgeCaptureSource source;
+    SensorDataStore store(4, 4, 4, 4);
+    PickupSensor pickup(PickupConfig{});
+    EngineStateEstimator estimator(EngineStateConfig{});
+    PickupAcquisitionService service(source, store, pickup, estimator);
+
+    TimestampUs captured_at = 100000;
+    const TimestampUs periods[] = {6000, 5000, 4000, 3000, 2400, 3000, 4000, 5000, 6000};
+    source.push("pickup", EdgeCapture{captured_at, EdgePolarity::Falling, CaptureStatus::Ok});
+    for (TimestampUs period : periods) {
+        captured_at += period;
+        source.push("pickup", EdgeCapture{captured_at, EdgePolarity::Falling, CaptureStatus::Ok});
+    }
+
+    EXPECT_EQ(10u, service.drain_available("pickup", 16));
+    EXPECT_TRUE(store.snapshot().engine_speed.valid_for_control);
+    EXPECT_NEAR(10000.0, store.snapshot().engine_speed.value.rpm, 0.1);
+
+    source.push("pickup", EdgeCapture{captured_at + 2400, EdgePolarity::Falling, CaptureStatus::Ok});
+    EXPECT_TRUE(service.run_once("pickup"));
+    EXPECT_TRUE(store.snapshot().engine_speed.valid_for_control);
+    EXPECT_NEAR(25000.0, store.snapshot().engine_speed.value.rpm, 0.1);
 }
 
 void test_knock_measurement_validation_and_feature_backlog() {
@@ -394,11 +504,15 @@ void test_sensor_harness_fake_stimulus_mask_skips_real_routed_sensors() {
 } // namespace
 
 int main() {
+    test_mcpwm_capture_tick_converter_uses_resolution_and_wrap();
     test_data_store_sequences_and_queue_overflow();
     test_tps_valid_sweep_stale_and_fallback();
     test_thermal_sensors_publish_requests_without_final_authority();
     test_digital_inputs_debounce_rearm_and_map_state();
     test_pickup_estimator_sync_loss_and_recovery();
+    test_pickup_service_publishes_invalid_capture_faults();
+    test_pickup_service_stale_recovery_requires_new_startup_sequence();
+    test_pickup_service_accepts_high_rpm_and_rapid_ramp();
     test_knock_measurement_validation_and_feature_backlog();
     test_services_and_health_aggregation_are_sensor_only();
     test_sensor_harness_csv_and_events_are_numeric_and_plot_friendly();

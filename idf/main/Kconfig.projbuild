@@ -74,8 +74,7 @@ menu "ECU sensor harness"
             bool "Fake injected pickup edges"
 
         config SENSOR_HARNESS_PICKUP_SOURCE_REAL_CAPTURE
-            bool "Real edge capture input (unconfirmed)"
-            depends on SENSOR_HARNESS_ENABLE_UNCONFIRMED_REAL_INPUTS
+            bool "Real GPIO21 MCPWM falling-edge capture"
     endchoice
 
     choice SENSOR_HARNESS_KNOCK_SOURCE
