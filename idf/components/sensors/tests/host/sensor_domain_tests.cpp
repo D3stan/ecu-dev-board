@@ -302,6 +302,95 @@ void test_sensor_harness_fake_stimulus_feeds_all_service_sources() {
     EXPECT_TRUE(knock.read_result().has_value());
 }
 
+void test_sensor_harness_muxes_route_each_source_family_by_sensor_name() {
+    using ecu::sensor_harness::HarnessInputSource;
+
+    ecu::sensor_harness::HarnessInputRoutes routes{};
+    routes.tps = HarnessInputSource::Real;
+    routes.water = HarnessInputSource::Fake;
+    routes.egt = HarnessInputSource::Real;
+    routes.quick = HarnessInputSource::Real;
+    routes.map = HarnessInputSource::Fake;
+    routes.pickup = HarnessInputSource::Real;
+    routes.knock = HarnessInputSource::Real;
+
+    FakeAnalogSampleSource fake_analog;
+    FakeAnalogSampleSource real_analog;
+    fake_analog.push(ecu::sensor_harness::kWaterChannel, AnalogSample{111, 111, 1000, AnalogSampleStatus::Ok});
+    real_analog.push(ecu::sensor_harness::kTpsChannel, AnalogSample{222, 222, 2000, AnalogSampleStatus::Ok});
+    ecu::sensor_harness::MuxAnalogSampleSource analog_mux(fake_analog, real_analog, routes);
+    EXPECT_EQ(222, analog_mux.read(ecu::sensor_harness::kTpsChannel)->raw_code);
+    EXPECT_EQ(111, analog_mux.read(ecu::sensor_harness::kWaterChannel)->raw_code);
+    EXPECT_FALSE(analog_mux.read("unknown").has_value());
+
+    FakeSpiMeasurementSource fake_spi;
+    FakeSpiMeasurementSource real_spi;
+    fake_spi.push(ecu::sensor_harness::kEgtDevice, Max31856Sample{10.0f, 3000, SpiSampleStatus::Ok, 0});
+    real_spi.push(ecu::sensor_harness::kEgtDevice, Max31856Sample{20.0f, 4000, SpiSampleStatus::Ok, 0});
+    ecu::sensor_harness::MuxSpiMeasurementSource spi_mux(fake_spi, real_spi, routes);
+    EXPECT_NEAR(20.0, spi_mux.read(ecu::sensor_harness::kEgtDevice)->celsius, 0.01);
+    EXPECT_FALSE(spi_mux.read("unknown").has_value());
+
+    FakeDigitalInputSource fake_digital;
+    FakeDigitalInputSource real_digital;
+    fake_digital.push_state(ecu::sensor_harness::kMapInput, DigitalSample{false, 5000, DigitalSampleStatus::Ok});
+    fake_digital.push_edge(ecu::sensor_harness::kMapInput,
+                           DigitalEdge{false, EdgeKind::Falling, 6000, DigitalSampleStatus::Ok});
+    real_digital.push_state(ecu::sensor_harness::kQuickInput, DigitalSample{true, 7000, DigitalSampleStatus::Ok});
+    real_digital.push_edge(ecu::sensor_harness::kQuickInput,
+                           DigitalEdge{true, EdgeKind::Rising, 8000, DigitalSampleStatus::Ok});
+    ecu::sensor_harness::MuxDigitalInputSource digital_mux(fake_digital, real_digital, routes);
+    EXPECT_TRUE(digital_mux.read_state(ecu::sensor_harness::kQuickInput)->level_high);
+    EXPECT_FALSE(digital_mux.read_state(ecu::sensor_harness::kMapInput)->level_high);
+    EXPECT_EQ(8000ull, digital_mux.read_edge(ecu::sensor_harness::kQuickInput)->acquired_at);
+    EXPECT_EQ(6000ull, digital_mux.read_edge(ecu::sensor_harness::kMapInput)->acquired_at);
+    EXPECT_FALSE(digital_mux.read_edge("unknown").has_value());
+
+    FakeEdgeCaptureSource fake_pickup;
+    FakeEdgeCaptureSource real_pickup;
+    fake_pickup.push(ecu::sensor_harness::kPickupInput, EdgeCapture{9000, EdgePolarity::Falling, CaptureStatus::Ok});
+    real_pickup.push(ecu::sensor_harness::kPickupInput, EdgeCapture{10000, EdgePolarity::Falling, CaptureStatus::Ok});
+    ecu::sensor_harness::MuxEdgeCaptureSource pickup_mux(fake_pickup, real_pickup, routes);
+    EXPECT_EQ(10000ull, pickup_mux.read_capture(ecu::sensor_harness::kPickupInput)->captured_at);
+    EXPECT_FALSE(pickup_mux.read_capture("unknown").has_value());
+
+    FakeKnockWindowDevice fake_knock;
+    FakeKnockWindowDevice real_knock;
+    fake_knock.push_result(TpicWindowResult{10, 11000, KnockDeviceStatus::Ok});
+    real_knock.push_result(TpicWindowResult{20, 12000, KnockDeviceStatus::Ok});
+    ecu::sensor_harness::MuxKnockWindowDevice knock_mux(fake_knock, real_knock, routes);
+    EXPECT_TRUE(knock_mux.configure(42));
+    EXPECT_TRUE(knock_mux.open_window(12100));
+    EXPECT_TRUE(knock_mux.close_window(12200));
+    EXPECT_EQ(42u, real_knock.configured_generation);
+    EXPECT_EQ(0u, fake_knock.configured_generation);
+    EXPECT_EQ(20u, knock_mux.read_result()->integrator_count);
+}
+
+void test_sensor_harness_fake_stimulus_mask_skips_real_routed_sensors() {
+    ecu::sensor_harness::FakeSensorStimulus stimulus;
+    ecu::sensor_harness::FakeStimulusMask mask{};
+    mask.tps = false;
+    mask.quick = false;
+    mask.knock = false;
+
+    FakeAnalogSampleSource analog;
+    FakeSpiMeasurementSource spi;
+    FakeDigitalInputSource digital;
+    FakeEdgeCaptureSource pickup;
+    FakeKnockWindowDevice knock;
+
+    stimulus.push_next(analog, spi, digital, pickup, knock, mask);
+
+    EXPECT_FALSE(analog.read(ecu::sensor_harness::kTpsChannel).has_value());
+    EXPECT_TRUE(analog.read(ecu::sensor_harness::kWaterChannel).has_value());
+    EXPECT_TRUE(spi.read(ecu::sensor_harness::kEgtDevice).has_value());
+    EXPECT_FALSE(digital.read_edge(ecu::sensor_harness::kQuickInput).has_value());
+    EXPECT_TRUE(digital.read_edge(ecu::sensor_harness::kMapInput).has_value());
+    EXPECT_TRUE(pickup.read_capture(ecu::sensor_harness::kPickupInput).has_value());
+    EXPECT_FALSE(knock.read_result().has_value());
+}
+
 } // namespace
 
 int main() {
@@ -314,6 +403,8 @@ int main() {
     test_services_and_health_aggregation_are_sensor_only();
     test_sensor_harness_csv_and_events_are_numeric_and_plot_friendly();
     test_sensor_harness_fake_stimulus_feeds_all_service_sources();
+    test_sensor_harness_muxes_route_each_source_family_by_sensor_name();
+    test_sensor_harness_fake_stimulus_mask_skips_real_routed_sensors();
 
     if (failures != 0) {
         std::cerr << failures << " sensor domain test failure(s)\n";

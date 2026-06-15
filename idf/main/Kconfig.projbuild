@@ -1,27 +1,93 @@
 menu "ECU sensor harness"
 
-    choice SENSOR_HARNESS_MODE
-        prompt "Sensor harness mode"
-        default SENSOR_HARNESS_MODE_FAKE
+    config SENSOR_HARNESS_ENABLE_UNCONFIRMED_REAL_INPUTS
+        bool "Expose unconfirmed real sensor source options"
+        default n
         help
-            Select where the ESP32-S3 sensor harness reads its input data.
-            Fake mode injects deterministic samples. Real mode enables only
-            the currently confirmed GPIO/ADC inputs.
+            Enable this only while adding board wiring for sensors whose final
+            ADC channels, GPIOs, SPI devices, or timing paths are not confirmed
+            yet. Selecting one of those real sources intentionally stops the
+            build until the matching binding is implemented.
 
-        config SENSOR_HARNESS_MODE_FAKE
-            bool "Fake injected samples"
-            help
-                Run the real sensor services against deterministic fake
-                samples for repeatable bring-up and plotting.
+    choice SENSOR_HARNESS_TPS_SOURCE
+        prompt "TPS source"
+        default SENSOR_HARNESS_TPS_SOURCE_FAKE
 
-        config SENSOR_HARNESS_MODE_REAL
-            bool "Real confirmed GPIO/ADC inputs"
-            help
-                Read TPS from ADC1_CH6/GPIO7 and poll GPIO9/GPIO14 for
-                quick-shifter and map-switch testing. Pickup, EGT, water NTC
-                and knock hardware remain disabled until their board wiring is
-                confirmed.
+        config SENSOR_HARNESS_TPS_SOURCE_FAKE
+            bool "Fake injected TPS"
 
+        config SENSOR_HARNESS_TPS_SOURCE_REAL_ADC
+            bool "Real ADC1_CH6 / GPIO7"
+    endchoice
+
+    choice SENSOR_HARNESS_WATER_SOURCE
+        prompt "Water-temperature source"
+        default SENSOR_HARNESS_WATER_SOURCE_FAKE
+
+        config SENSOR_HARNESS_WATER_SOURCE_FAKE
+            bool "Fake injected water temperature"
+
+        config SENSOR_HARNESS_WATER_SOURCE_REAL_ADC
+            bool "Real ADC NTC input (unconfirmed)"
+            depends on SENSOR_HARNESS_ENABLE_UNCONFIRMED_REAL_INPUTS
+    endchoice
+
+    choice SENSOR_HARNESS_EGT_SOURCE
+        prompt "EGT source"
+        default SENSOR_HARNESS_EGT_SOURCE_FAKE
+
+        config SENSOR_HARNESS_EGT_SOURCE_FAKE
+            bool "Fake injected EGT"
+
+        config SENSOR_HARNESS_EGT_SOURCE_REAL_MAX31856
+            bool "Real MAX31856 SPI input (unconfirmed)"
+            depends on SENSOR_HARNESS_ENABLE_UNCONFIRMED_REAL_INPUTS
+    endchoice
+
+    choice SENSOR_HARNESS_QUICK_SOURCE
+        prompt "Quick-shifter source"
+        default SENSOR_HARNESS_QUICK_SOURCE_FAKE
+
+        config SENSOR_HARNESS_QUICK_SOURCE_FAKE
+            bool "Fake injected quick-shifter"
+
+        config SENSOR_HARNESS_QUICK_SOURCE_REAL_GPIO
+            bool "Real GPIO9 input"
+    endchoice
+
+    choice SENSOR_HARNESS_MAP_SOURCE
+        prompt "Map-switch source"
+        default SENSOR_HARNESS_MAP_SOURCE_FAKE
+
+        config SENSOR_HARNESS_MAP_SOURCE_FAKE
+            bool "Fake injected map switch"
+
+        config SENSOR_HARNESS_MAP_SOURCE_REAL_GPIO
+            bool "Real GPIO14 input"
+    endchoice
+
+    choice SENSOR_HARNESS_PICKUP_SOURCE
+        prompt "Pickup source"
+        default SENSOR_HARNESS_PICKUP_SOURCE_FAKE
+
+        config SENSOR_HARNESS_PICKUP_SOURCE_FAKE
+            bool "Fake injected pickup edges"
+
+        config SENSOR_HARNESS_PICKUP_SOURCE_REAL_CAPTURE
+            bool "Real edge capture input (unconfirmed)"
+            depends on SENSOR_HARNESS_ENABLE_UNCONFIRMED_REAL_INPUTS
+    endchoice
+
+    choice SENSOR_HARNESS_KNOCK_SOURCE
+        prompt "Knock source"
+        default SENSOR_HARNESS_KNOCK_SOURCE_FAKE
+
+        config SENSOR_HARNESS_KNOCK_SOURCE_FAKE
+            bool "Fake injected knock window result"
+
+        config SENSOR_HARNESS_KNOCK_SOURCE_REAL_TPIC8101
+            bool "Real TPIC8101 window device (unconfirmed)"
+            depends on SENSOR_HARNESS_ENABLE_UNCONFIRMED_REAL_INPUTS
     endchoice
 
 endmenu

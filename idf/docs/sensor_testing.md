@@ -7,10 +7,10 @@ This guide covers testing the sensor implementation under:
 * `idf/components/sensor_harness`
 * `idf/main/main.cpp`
 
-The ESP-IDF app now includes a small sensor harness. By default it runs in
-fake mode, which feeds deterministic samples into the real sensor services and
-prints plot-friendly CSV over serial. Real mode can be compiled separately for
-the currently confirmed ESP32-S3 inputs: TPS, quick-shifter and map switch.
+The ESP-IDF app now includes a small sensor harness. By default every sensor
+source is fake, which feeds deterministic samples into the real sensor services
+and prints plot-friendly CSV over serial. Each sensor can then be switched to a
+confirmed real input through ESP-IDF configuration.
 
 ## 1. Host Tests First
 
@@ -68,9 +68,9 @@ Expected result:
 * If `idf.py` is not found, open the ESP-IDF shell or run the matching
   `export.ps1` for your local ESP-IDF installation.
 
-## 3. Build Fake Harness Mode
+## 3. Build Default All-Fake Harness
 
-Fake mode is the default ESP-IDF configuration. It injects synthetic TPS,
+All-fake mode is the default ESP-IDF configuration. It injects synthetic TPS,
 water, EGT, pickup, quick-shifter, map-switch and knock samples, then prints
 the resulting sensor snapshot.
 
@@ -87,7 +87,7 @@ Expected result:
 * `sensors`, `sensor_drivers`, `sensor_harness` and `main.cpp` compile.
 * The final message says `Project build complete`.
 
-## 4. Flash And Monitor Fake Mode
+## 4. Flash And Monitor All-Fake Mode
 
 Connect the ESP32-S3 and find its serial port. On Windows, this is usually
 `COM3`, `COM4`, or another `COMx` device.
@@ -101,7 +101,9 @@ Replace `COMx` with the actual serial port.
 Expected startup lines:
 
 ```text
-# sensor_harness_mode,fake
+# sensor_harness_mode,mixed
+# sensor_harness_sources,tps=fake,water=fake,egt=fake,quick=fake,map=fake,pickup=fake,knock=fake
+# real_inputs,none
 # t_us,tps_permille,tps_valid,rpm,rpm_valid,egt_c,water_c,qs_active,map_secondary,knock_raw,knock_valid
 ```
 
@@ -118,8 +120,8 @@ The exact numbers will differ, but the shape should remain:
 * One CSV row about every 100 ms.
 * `tps_permille` changes over time.
 * `rpm_valid` becomes `1` after enough pickup captures.
-* `egt_c` and `water_c` change over time in fake mode.
-* `knock_raw` changes and `knock_valid` should be `1` in fake mode.
+* `egt_c` and `water_c` change over time when those sources are fake.
+* `knock_raw` changes and `knock_valid` should be `1` when knock is fake.
 * Event lines start with `# event,...` and can be filtered separately.
 
 Exit the monitor with `Ctrl+]`.
@@ -153,10 +155,10 @@ Event lines are useful for checking discrete inputs:
 # event,fault,<fault_id>,<health_id>,<first_at>,<last_at>,<count>
 ```
 
-## 6. Optional Real-Input Mode
+## 6. Optional Mixed Real/Fake Sources
 
-Real mode is compile-time selected through ESP-IDF configuration and currently
-enables only the confirmed simple inputs:
+Each sensor source is compile-time selected through ESP-IDF configuration.
+Currently confirmed real inputs are:
 
 | Signal | ESP32-S3 pin | Harness channel |
 | --- | --- | --- |
@@ -174,11 +176,16 @@ Then select:
 
 ```text
 ECU sensor harness
-  Sensor harness mode
-    Real confirmed GPIO/ADC inputs
+  TPS source
+    Real ADC1_CH6 / GPIO7
+  Quick-shifter source
+    Real GPIO9 input
+  Map-switch source
+    Real GPIO14 input
 ```
 
-Save, exit, build and flash:
+Leave water temperature, EGT, pickup and knock on their fake defaults until
+their real wiring is confirmed. Save, exit, build and flash:
 
 ```powershell
 idf.py -C idf build
@@ -186,31 +193,32 @@ idf.py -C idf -p COMx flash monitor
 ```
 
 In the VS Code ESP-IDF extension, open the SDK Configuration Editor, search
-for `Sensor harness mode`, select `Real confirmed GPIO/ADC inputs`, save,
-then build/flash/monitor from the extension.
+for each source name (`TPS source`, `Quick-shifter source`, `Map-switch
+source`), select the real option, save, then build/flash/monitor from the
+extension.
 
-For a one-off real-mode compile that does not change `idf/sdkconfig`, build a
-separate directory with the compatibility compiler override:
+Useful mixed configurations:
 
-```powershell
-idf.py -C idf -B build-real -DIDF_TARGET=esp32s3 "-DCMAKE_CXX_FLAGS=-DSENSOR_HARNESS_FAKE_MODE=0" build
-```
+| Test goal | TPS | Quick | Map | Water/EGT/Pickup/Knock |
+| --- | --- | --- | --- | --- |
+| TPS physical sweep only | Real ADC | Fake | Fake | Fake |
+| Confirmed simple inputs | Real ADC | Real GPIO | Real GPIO | Fake |
 
-Flash and monitor real mode:
-
-```powershell
-idf.py -C idf -B build-real -p COMx flash monitor
-```
+Do not enable `Expose unconfirmed real sensor source options` for normal
+bring-up. If you expose and select real water, EGT, pickup or knock today, the
+build intentionally stops with a message telling you which board binding is
+still missing.
 
 Expected startup lines:
 
 ```text
-# sensor_harness_mode,real
+# sensor_harness_mode,mixed
+# sensor_harness_sources,tps=real,water=fake,egt=fake,quick=real,map=real,pickup=fake,knock=fake
 # real_inputs,tps_gpio7_adc1_ch6,quick_gpio9,map_gpio14
 # t_us,tps_permille,tps_valid,rpm,rpm_valid,egt_c,water_c,qs_active,map_secondary,knock_raw,knock_valid
 ```
 
-In real mode:
+In mixed mode with TPS/quick/map real:
 
 * Move a potentiometer or known 0-3.3 V source on GPIO7 and watch
   `tps_permille`.
@@ -218,9 +226,9 @@ In real mode:
   `# event,quick_shift,...` lines.
 * Toggle the map switch on GPIO14 and watch `map_secondary` plus
   `# event,map_switch,...` lines.
-* `rpm`, `egt_c`, `water_c` and `knock_raw` are not expected to validate in
-  this first real-mode pass because pickup, MAX31856, NTC and TPIC/knock
-  hardware wiring are still intentionally disabled.
+* `rpm`, `egt_c`, `water_c` and `knock_raw` should continue moving from fake
+  stimulus while pickup, MAX31856, NTC and TPIC/knock hardware wiring remain
+  intentionally disabled.
 
 ## 7. Sensor-By-Sensor Hardware Checks
 
@@ -321,7 +329,6 @@ Recommended ESP-IDF checks, from an ESP-IDF shell:
 
 ```powershell
 idf.py -C idf build
-idf.py -C idf -B build-real -DIDF_TARGET=esp32s3 "-DCMAKE_CXX_FLAGS=-DSENSOR_HARNESS_FAKE_MODE=0" build
 ```
 
 Recommended full local check:

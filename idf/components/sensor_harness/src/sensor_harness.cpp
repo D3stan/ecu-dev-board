@@ -1,6 +1,7 @@
 #include "sensor_harness/sensor_harness.hpp"
 
 #include <iomanip>
+#include <optional>
 #include <sstream>
 
 namespace ecu::sensor_harness {
@@ -15,13 +16,163 @@ int map_secondary(const ecu::sensors::EngineInputSnapshot &snapshot) {
     return bool_to_int(snapshot.map_switch.value.request == ecu::sensors::PhysicalMapRequest::Secondary);
 }
 
+ecu::sensors::IAnalogSampleSource &select_source(HarnessInputSource route,
+                                                 ecu::sensors::IAnalogSampleSource &fake_source,
+                                                 ecu::sensors::IAnalogSampleSource &real_source) {
+    return route == HarnessInputSource::Real ? real_source : fake_source;
+}
+
+ecu::sensors::ISpiMeasurementSource &select_source(HarnessInputSource route,
+                                                   ecu::sensors::ISpiMeasurementSource &fake_source,
+                                                   ecu::sensors::ISpiMeasurementSource &real_source) {
+    return route == HarnessInputSource::Real ? real_source : fake_source;
+}
+
+ecu::sensors::IDigitalInputSource &select_source(HarnessInputSource route,
+                                                 ecu::sensors::IDigitalInputSource &fake_source,
+                                                 ecu::sensors::IDigitalInputSource &real_source) {
+    return route == HarnessInputSource::Real ? real_source : fake_source;
+}
+
+ecu::sensors::IEdgeCaptureSource &select_source(HarnessInputSource route,
+                                                ecu::sensors::IEdgeCaptureSource &fake_source,
+                                                ecu::sensors::IEdgeCaptureSource &real_source) {
+    return route == HarnessInputSource::Real ? real_source : fake_source;
+}
+
+ecu::sensors::IKnockWindowDevice &select_source(HarnessInputSource route,
+                                                ecu::sensors::IKnockWindowDevice &fake_device,
+                                                ecu::sensors::IKnockWindowDevice &real_device) {
+    return route == HarnessInputSource::Real ? real_device : fake_device;
+}
+
+std::optional<HarnessInputSource> analog_route(std::string_view channel, const HarnessInputRoutes &routes) {
+    if (channel == kTpsChannel) {
+        return routes.tps;
+    }
+    if (channel == kWaterChannel) {
+        return routes.water;
+    }
+    return std::nullopt;
+}
+
+std::optional<HarnessInputSource> digital_route(std::string_view input, const HarnessInputRoutes &routes) {
+    if (input == kQuickInput) {
+        return routes.quick;
+    }
+    if (input == kMapInput) {
+        return routes.map;
+    }
+    return std::nullopt;
+}
+
 } // namespace
+
+FakeStimulusMask fake_stimulus_mask_from_routes(const HarnessInputRoutes &routes) {
+    FakeStimulusMask mask{};
+    mask.tps = routes.tps == HarnessInputSource::Fake;
+    mask.water = routes.water == HarnessInputSource::Fake;
+    mask.egt = routes.egt == HarnessInputSource::Fake;
+    mask.quick = routes.quick == HarnessInputSource::Fake;
+    mask.map = routes.map == HarnessInputSource::Fake;
+    mask.pickup = routes.pickup == HarnessInputSource::Fake;
+    mask.knock = routes.knock == HarnessInputSource::Fake;
+    return mask;
+}
+
+MuxAnalogSampleSource::MuxAnalogSampleSource(ecu::sensors::IAnalogSampleSource &fake_source,
+                                             ecu::sensors::IAnalogSampleSource &real_source,
+                                             HarnessInputRoutes routes)
+    : fake_source_(fake_source), real_source_(real_source), routes_(routes) {}
+
+std::optional<ecu::sensors::AnalogSample> MuxAnalogSampleSource::read(std::string_view channel) {
+    auto route = analog_route(channel, routes_);
+    if (!route.has_value()) {
+        return std::nullopt;
+    }
+    return select_source(*route, fake_source_, real_source_).read(channel);
+}
+
+MuxSpiMeasurementSource::MuxSpiMeasurementSource(ecu::sensors::ISpiMeasurementSource &fake_source,
+                                                 ecu::sensors::ISpiMeasurementSource &real_source,
+                                                 HarnessInputRoutes routes)
+    : fake_source_(fake_source), real_source_(real_source), routes_(routes) {}
+
+std::optional<ecu::sensors::Max31856Sample> MuxSpiMeasurementSource::read(std::string_view device) {
+    if (device != kEgtDevice) {
+        return std::nullopt;
+    }
+    return select_source(routes_.egt, fake_source_, real_source_).read(device);
+}
+
+MuxDigitalInputSource::MuxDigitalInputSource(ecu::sensors::IDigitalInputSource &fake_source,
+                                             ecu::sensors::IDigitalInputSource &real_source,
+                                             HarnessInputRoutes routes)
+    : fake_source_(fake_source), real_source_(real_source), routes_(routes) {}
+
+std::optional<ecu::sensors::DigitalSample> MuxDigitalInputSource::read_state(std::string_view input) {
+    auto route = digital_route(input, routes_);
+    if (!route.has_value()) {
+        return std::nullopt;
+    }
+    return select_source(*route, fake_source_, real_source_).read_state(input);
+}
+
+std::optional<ecu::sensors::DigitalEdge> MuxDigitalInputSource::read_edge(std::string_view input) {
+    auto route = digital_route(input, routes_);
+    if (!route.has_value()) {
+        return std::nullopt;
+    }
+    return select_source(*route, fake_source_, real_source_).read_edge(input);
+}
+
+MuxEdgeCaptureSource::MuxEdgeCaptureSource(ecu::sensors::IEdgeCaptureSource &fake_source,
+                                           ecu::sensors::IEdgeCaptureSource &real_source,
+                                           HarnessInputRoutes routes)
+    : fake_source_(fake_source), real_source_(real_source), routes_(routes) {}
+
+std::optional<ecu::sensors::EdgeCapture> MuxEdgeCaptureSource::read_capture(std::string_view input) {
+    if (input != kPickupInput) {
+        return std::nullopt;
+    }
+    return select_source(routes_.pickup, fake_source_, real_source_).read_capture(input);
+}
+
+MuxKnockWindowDevice::MuxKnockWindowDevice(ecu::sensors::IKnockWindowDevice &fake_device,
+                                           ecu::sensors::IKnockWindowDevice &real_device,
+                                           HarnessInputRoutes routes)
+    : fake_device_(fake_device), real_device_(real_device), routes_(routes) {}
+
+bool MuxKnockWindowDevice::configure(std::uint32_t config_generation) {
+    return select_source(routes_.knock, fake_device_, real_device_).configure(config_generation);
+}
+
+bool MuxKnockWindowDevice::open_window(ecu::sensors::TimestampUs at) {
+    return select_source(routes_.knock, fake_device_, real_device_).open_window(at);
+}
+
+bool MuxKnockWindowDevice::close_window(ecu::sensors::TimestampUs at) {
+    return select_source(routes_.knock, fake_device_, real_device_).close_window(at);
+}
+
+std::optional<ecu::sensors::TpicWindowResult> MuxKnockWindowDevice::read_result() {
+    return select_source(routes_.knock, fake_device_, real_device_).read_result();
+}
 
 void FakeSensorStimulus::push_next(ecu::sensors::FakeAnalogSampleSource &analog,
                                    ecu::sensors::FakeSpiMeasurementSource &spi,
                                    ecu::sensors::FakeDigitalInputSource &digital,
                                    ecu::sensors::FakeEdgeCaptureSource &pickup,
                                    ecu::sensors::FakeKnockWindowDevice &knock) {
+    push_next(analog, spi, digital, pickup, knock, FakeStimulusMask{});
+}
+
+void FakeSensorStimulus::push_next(ecu::sensors::FakeAnalogSampleSource &analog,
+                                   ecu::sensors::FakeSpiMeasurementSource &spi,
+                                   ecu::sensors::FakeDigitalInputSource &digital,
+                                   ecu::sensors::FakeEdgeCaptureSource &pickup,
+                                   ecu::sensors::FakeKnockWindowDevice &knock,
+                                   const FakeStimulusMask &mask) {
     ++step_;
     now_us_ += 100000;
 
@@ -30,15 +181,25 @@ void FakeSensorStimulus::push_next(ecu::sensors::FakeAnalogSampleSource &analog,
     const float egt_celsius = 35.0f + static_cast<float>((step_ * 5) % 120);
     const std::uint32_t knock_count = 1000u + ((step_ * 37u) % 900u);
 
-    analog.push(kTpsChannel, ecu::sensors::AnalogSample{tps_raw, tps_raw, now_us_, ecu::sensors::AnalogSampleStatus::Ok});
-    analog.push(kWaterChannel, ecu::sensors::AnalogSample{water_raw, water_raw, now_us_, ecu::sensors::AnalogSampleStatus::Ok});
-    spi.push(kEgtDevice, ecu::sensors::Max31856Sample{egt_celsius, now_us_, ecu::sensors::SpiSampleStatus::Ok, 0});
-    pickup.push(kPickupInput, ecu::sensors::EdgeCapture{now_us_, ecu::sensors::EdgePolarity::Falling, ecu::sensors::CaptureStatus::Ok});
-    knock.push_result(ecu::sensors::TpicWindowResult{knock_count, now_us_ + 500, ecu::sensors::KnockDeviceStatus::Ok});
+    if (mask.tps) {
+        analog.push(kTpsChannel, ecu::sensors::AnalogSample{tps_raw, tps_raw, now_us_, ecu::sensors::AnalogSampleStatus::Ok});
+    }
+    if (mask.water) {
+        analog.push(kWaterChannel, ecu::sensors::AnalogSample{water_raw, water_raw, now_us_, ecu::sensors::AnalogSampleStatus::Ok});
+    }
+    if (mask.egt) {
+        spi.push(kEgtDevice, ecu::sensors::Max31856Sample{egt_celsius, now_us_, ecu::sensors::SpiSampleStatus::Ok, 0});
+    }
+    if (mask.pickup) {
+        pickup.push(kPickupInput, ecu::sensors::EdgeCapture{now_us_, ecu::sensors::EdgePolarity::Falling, ecu::sensors::CaptureStatus::Ok});
+    }
+    if (mask.knock) {
+        knock.push_result(ecu::sensors::TpicWindowResult{knock_count, now_us_ + 500, ecu::sensors::KnockDeviceStatus::Ok});
+    }
 
-    if (step_ == 1 || step_ % 20 == 7) {
+    if (mask.quick && (step_ == 1 || step_ % 20 == 7)) {
         digital.push_edge(kQuickInput, ecu::sensors::DigitalEdge{true, ecu::sensors::EdgeKind::Rising, now_us_, ecu::sensors::DigitalSampleStatus::Ok});
-    } else if (step_ % 20 == 5) {
+    } else if (mask.quick && step_ % 20 == 5) {
         digital.push_edge(kQuickInput, ecu::sensors::DigitalEdge{false, ecu::sensors::EdgeKind::Falling, now_us_, ecu::sensors::DigitalSampleStatus::Ok});
     }
 
@@ -47,12 +208,14 @@ void FakeSensorStimulus::push_next(ecu::sensors::FakeAnalogSampleSource &analog,
         if (step_ % 30 == 0) {
             map_level_high_ = !map_level_high_;
         }
-        digital.push_edge(kMapInput,
-                          ecu::sensors::DigitalEdge{map_level_high_,
-                                                    previous && !map_level_high_ ? ecu::sensors::EdgeKind::Falling
-                                                                                : ecu::sensors::EdgeKind::Rising,
-                                                    now_us_,
-                                                    ecu::sensors::DigitalSampleStatus::Ok});
+        if (mask.map) {
+            digital.push_edge(kMapInput,
+                              ecu::sensors::DigitalEdge{map_level_high_,
+                                                        previous && !map_level_high_ ? ecu::sensors::EdgeKind::Falling
+                                                                                    : ecu::sensors::EdgeKind::Rising,
+                                                        now_us_,
+                                                        ecu::sensors::DigitalSampleStatus::Ok});
+        }
     }
 }
 
