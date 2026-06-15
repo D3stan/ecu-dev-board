@@ -100,9 +100,12 @@ SensorReading<TemperatureReading> EgtSensor::check_stale(TimestampUs now) {
 
 WaterTemperatureSensor::WaterTemperatureSensor(WaterTemperatureConfig config) : config_(config) {}
 
-float WaterTemperatureSensor::adc_to_celsius(int raw_code) const {
-    const float fraction = static_cast<float>(std::clamp(raw_code, 0, 4095)) / 4095.0f;
-    return 140.0f - (fraction * 160.0f);
+bool WaterTemperatureSensor::config_valid() const {
+    return PullupNtcTransfer(config_.ntc).config_valid() &&
+           config_.minimum_valid_mv > config_.short_to_ground_mv &&
+           config_.maximum_valid_mv < config_.open_circuit_mv &&
+           config_.minimum_valid_mv < config_.maximum_valid_mv &&
+           config_.open_circuit_mv <= config_.ntc.vref_mv;
 }
 
 TemperatureReading WaterTemperatureSensor::classify(float celsius, TimestampUs acquired_at) {
@@ -133,18 +136,32 @@ SensorReading<TemperatureReading> WaterTemperatureSensor::invalid(TimestampUs ac
 }
 
 SensorReading<TemperatureReading> WaterTemperatureSensor::process(const AnalogSample &sample) {
+    if (!config_valid()) {
+        return invalid(sample.acquired_at, SensorFault::InvalidConfiguration, SensorHealthState::Failed);
+    }
+
     if (sample.status != AnalogSampleStatus::Ok) {
         return invalid(sample.acquired_at, SensorFault::Communication, SensorHealthState::Failed);
     }
-    if (sample.raw_code <= config_.short_to_ground_adc || sample.raw_code < config_.minimum_valid_adc) {
+
+    if (!sample.millivolts_valid) {
+        return invalid(sample.acquired_at, SensorFault::Communication, SensorHealthState::Failed);
+    }
+
+    if (sample.millivolts <= config_.short_to_ground_mv || sample.millivolts < config_.minimum_valid_mv) {
         return invalid(sample.acquired_at, SensorFault::ShortToGround, SensorHealthState::Failed);
     }
-    if (sample.raw_code >= config_.open_circuit_adc || sample.raw_code > config_.maximum_valid_adc) {
+    if (sample.millivolts >= config_.open_circuit_mv || sample.millivolts > config_.maximum_valid_mv) {
         return invalid(sample.acquired_at, SensorFault::OpenCircuit, SensorHealthState::Failed);
     }
 
+    auto celsius = PullupNtcTransfer(config_.ntc).celsius_from_millivolts(sample.millivolts);
+    if (!celsius.has_value()) {
+        return invalid(sample.acquired_at, SensorFault::RangeHigh, SensorHealthState::Failed);
+    }
+
     SensorReading<TemperatureReading> reading{};
-    reading.value = classify(adc_to_celsius(sample.raw_code), sample.acquired_at);
+    reading.value = classify(*celsius, sample.acquired_at);
     reading.acquired_at = sample.acquired_at;
     reading.valid_for_control = true;
     reading.health = SensorHealthState::Valid;

@@ -7,9 +7,9 @@ namespace ecu::sensors {
 TpsSensor::TpsSensor(TpsConfig config) : config_(config) {}
 
 bool TpsSensor::config_valid() const {
-    return config_.open_adc > config_.closed_adc &&
-           config_.minimum_valid_adc <= config_.closed_adc &&
-           config_.maximum_valid_adc >= config_.open_adc &&
+    return config_.open_mv > config_.closed_mv &&
+           config_.minimum_valid_mv <= config_.closed_mv &&
+           config_.maximum_valid_mv >= config_.open_mv &&
            config_.filter_alpha_permille >= 0 &&
            config_.filter_alpha_permille <= 1000;
 }
@@ -39,15 +39,19 @@ SensorReading<ThrottlePositionPermille> TpsSensor::process(const AnalogSample &s
         return invalid_reading(sample.acquired_at, SensorFault::Communication, SensorHealthState::Failed);
     }
 
-    if (sample.raw_code < config_.minimum_valid_adc) {
+    if (!sample.millivolts_valid) {
+        return invalid_reading(sample.acquired_at, SensorFault::Communication, SensorHealthState::Failed);
+    }
+
+    if (sample.millivolts < config_.minimum_valid_mv) {
         return invalid_reading(sample.acquired_at, SensorFault::ShortToGround, SensorHealthState::Failed);
     }
 
-    if (sample.raw_code > config_.maximum_valid_adc) {
+    if (sample.millivolts > config_.maximum_valid_mv) {
         return invalid_reading(sample.acquired_at, SensorFault::ShortToSupply, SensorHealthState::Failed);
     }
 
-    int permille = ((sample.raw_code - config_.closed_adc) * 1000) / (config_.open_adc - config_.closed_adc);
+    int permille = ((sample.millivolts - config_.closed_mv) * 1000) / (config_.open_mv - config_.closed_mv);
     permille = std::clamp(permille, 0, 1000);
 
     if (!has_filtered_) {

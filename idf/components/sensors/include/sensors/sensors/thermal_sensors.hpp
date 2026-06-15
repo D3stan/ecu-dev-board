@@ -1,6 +1,7 @@
 #pragma once
 
 #include "sensors/domain/types.hpp"
+#include "sensors/sensors/analog_transfer.hpp"
 
 namespace ecu::sensors {
 
@@ -14,10 +15,11 @@ struct EgtConfig {
 };
 
 struct WaterTemperatureConfig {
-    int minimum_valid_adc{1};
-    int maximum_valid_adc{4094};
-    int short_to_ground_adc{0};
-    int open_circuit_adc{4095};
+    PullupNtcConfig ntc{};
+    int minimum_valid_mv{1};
+    int maximum_valid_mv{3299};
+    int short_to_ground_mv{0};
+    int open_circuit_mv{3300};
     float cold_celsius{40.0f};
     float high_celsius{95.0f};
     float critical_celsius{110.0f};
@@ -49,7 +51,7 @@ public:
 private:
     SensorReading<TemperatureReading> invalid(TimestampUs acquired_at, SensorFault fault, SensorHealthState health);
     TemperatureReading classify(float celsius, TimestampUs acquired_at);
-    float adc_to_celsius(int raw_code) const;
+    bool config_valid() const;
 
     WaterTemperatureConfig config_{};
     SensorReading<TemperatureReading> last_{};

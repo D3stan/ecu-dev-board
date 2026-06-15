@@ -26,6 +26,21 @@ std::optional<ecu::sensors::AnalogSample> EspAdcSampleSource::read(std::string_v
                                                : ecu::sensors::AnalogSampleStatus::HardwareFault;
             sample.raw_code = raw;
             sample.millivolts = 0;
+            sample.millivolts_valid = false;
+
+            if (status == ESP_OK && bindings_[i].calibration_handle != nullptr) {
+                int millivolts = 0;
+                const auto calibration_status =
+                    adc_cali_raw_to_voltage(bindings_[i].calibration_handle, raw, &millivolts);
+                if (calibration_status == ESP_OK) {
+                    sample.millivolts = millivolts;
+                    sample.millivolts_valid = true;
+                } else if (bindings_[i].calibration_required) {
+                    sample.status = ecu::sensors::AnalogSampleStatus::CalibrationFault;
+                }
+            } else if (status == ESP_OK && bindings_[i].calibration_required) {
+                sample.status = ecu::sensors::AnalogSampleStatus::CalibrationFault;
+            }
             return sample;
         }
     }

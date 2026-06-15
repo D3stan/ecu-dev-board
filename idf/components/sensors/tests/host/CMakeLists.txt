@@ -15,6 +15,7 @@ add_library(sensor_domain
     ../../src/domain/sensor_health_service.cpp
     ../../src/domain/fake_sources.cpp
     ../../src/domain/types.cpp
+    ../../src/sensors/analog_transfer.cpp
     ../../src/sensors/tps_sensor.cpp
     ../../src/sensors/thermal_sensors.cpp
     ../../src/sensors/digital_inputs.cpp

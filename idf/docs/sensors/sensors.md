@@ -148,9 +148,9 @@ This distinction may later require additional context such as starter state, rec
 | **Acquisition model**          | Periodic ADC acquisition                                                                                      |
 | **Sampling requirement**       | Regular sampling fast enough to detect rapid throttle movement without coupling acquisition to the pickup ISR |
 | **Timestamp requirement**      | Timestamp at physical acquisition for stale-data and throttle-rate evaluation                                 |
-| **Raw representation**         | ADC code and optionally calibrated input voltage                                                              |
+| **Raw representation**         | ADC code plus calibrated input voltage for real hardware                                                       |
 | **Engineering unit**           | Normalized throttle opening, preferably 0–100% or 0–1000 permille                                             |
-| **Calibration**                | Closed-throttle and full-throttle endpoints                                                                   |
+| **Calibration**                | Closed-throttle and full-throttle voltage endpoints                                                            |
 | **Current calibration method** | Calibration values are initially treated as known and may be entered manually                                 |
 | **Future calibration method**  | Automatic calibration shall be added later without changing the external sensor contract                      |
 | **Configuration interface**    | Manual calibration shall be configurable through the Web UI                                                   |
@@ -537,7 +537,7 @@ selected.
 | **Acquisition model**     | Periodic low-rate acquisition                                                                                              |
 | **Sampling requirement**  | Low to moderate rate because coolant temperature changes slowly                                                            |
 | **Timestamp requirement** | Sufficient for stale detection, trend analysis and rate-of-rise calculation                                                |
-| **Raw representation**    | ADC value and resistance-derived value from the NTC acquisition path                                                       |
+| **Raw representation**    | ADC value, calibrated millivolts and resistance-derived value from the NTC acquisition path                                |
 | **Engineering unit**      | Degrees Celsius                                                                                                            |
 | **Calibration**           | Sensor transfer curve, pull-up or interface parameters, installation location and valid range                              |
 | **Filtering**             | Stable low-noise temperature estimate with a separate rapid overtemperature path if necessary                              |

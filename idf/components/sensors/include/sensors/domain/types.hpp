@@ -92,11 +92,13 @@ enum class AnalogSampleStatus {
     Ok,
     Timeout,
     HardwareFault,
+    CalibrationFault,
 };
 
 struct AnalogSample {
     int raw_code{0};
     int millivolts{0};
+    bool millivolts_valid{false};
     TimestampUs acquired_at{0};
     AnalogSampleStatus status{AnalogSampleStatus::Ok};
 };

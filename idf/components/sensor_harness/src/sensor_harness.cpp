@@ -182,10 +182,12 @@ void FakeSensorStimulus::push_next(ecu::sensors::FakeAnalogSampleSource &analog,
     const std::uint32_t knock_count = 1000u + ((step_ * 37u) % 900u);
 
     if (mask.tps) {
-        analog.push(kTpsChannel, ecu::sensors::AnalogSample{tps_raw, tps_raw, now_us_, ecu::sensors::AnalogSampleStatus::Ok});
+        analog.push(kTpsChannel,
+                    ecu::sensors::AnalogSample{tps_raw, tps_raw, true, now_us_, ecu::sensors::AnalogSampleStatus::Ok});
     }
     if (mask.water) {
-        analog.push(kWaterChannel, ecu::sensors::AnalogSample{water_raw, water_raw, now_us_, ecu::sensors::AnalogSampleStatus::Ok});
+        analog.push(kWaterChannel,
+                    ecu::sensors::AnalogSample{water_raw, water_raw, true, now_us_, ecu::sensors::AnalogSampleStatus::Ok});
     }
     if (mask.egt) {
         spi.push(kEgtDevice, ecu::sensors::Max31856Sample{egt_celsius, now_us_, ecu::sensors::SpiSampleStatus::Ok, 0});

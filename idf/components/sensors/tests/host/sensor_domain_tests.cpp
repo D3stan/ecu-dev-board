@@ -45,6 +45,14 @@ void fail_near(const char *file, int line, const char *expected_expr, const char
 
 using namespace ecu::sensors;
 
+AnalogSample analog_sample(int raw_code,
+                           int millivolts,
+                           bool millivolts_valid,
+                           TimestampUs acquired_at,
+                           AnalogSampleStatus status = AnalogSampleStatus::Ok) {
+    return AnalogSample{raw_code, millivolts, millivolts_valid, acquired_at, status};
+}
+
 void test_mcpwm_capture_tick_converter_uses_resolution_and_wrap() {
     ecu::sensor_drivers::CaptureTickConverter converter(80000000, 1000);
     EXPECT_EQ(3400ull, converter.to_timestamp_us(192000));
@@ -86,31 +94,43 @@ void test_data_store_sequences_and_queue_overflow() {
 
 void test_tps_valid_sweep_stale_and_fallback() {
     TpsConfig config{};
-    config.closed_adc = 100;
-    config.open_adc = 3100;
-    config.minimum_valid_adc = 50;
-    config.maximum_valid_adc = 3200;
+    config.closed_mv = 500;
+    config.open_mv = 2500;
+    config.minimum_valid_mv = 400;
+    config.maximum_valid_mv = 2600;
     config.stale_timeout_us = 100000;
     config.recovery_samples = 2;
     config.filter_alpha_permille = 1000;
 
     TpsSensor tps(config);
-    auto first = tps.process({1600, 1500, 1000, AnalogSampleStatus::Ok});
+    auto first = tps.process(analog_sample(4095, 1500, true, 1000));
     EXPECT_TRUE(first.valid_for_control);
     EXPECT_EQ(500, first.value.permille);
 
-    tps.process({3100, 3100, 2000, AnalogSampleStatus::Ok});
+    tps.process(analog_sample(0, 2500, true, 2000));
     auto stale = tps.check_stale(150000);
     EXPECT_FALSE(stale.valid_for_control);
     EXPECT_EQ(SensorHealthState::Stale, stale.health);
     EXPECT_EQ(700, stale.value.permille);
     EXPECT_TRUE(stale.faults.has(SensorFault::Stale));
 
+    auto missing_calibration = tps.process(analog_sample(1600, 0, false, 160000));
+    EXPECT_FALSE(missing_calibration.valid_for_control);
+    EXPECT_TRUE(missing_calibration.faults.has(SensorFault::Communication));
+
+    auto below_range = tps.process(analog_sample(1200, 399, true, 170000));
+    EXPECT_FALSE(below_range.valid_for_control);
+    EXPECT_TRUE(below_range.faults.has(SensorFault::ShortToGround));
+
+    auto above_range = tps.process(analog_sample(1200, 2601, true, 180000));
+    EXPECT_FALSE(above_range.valid_for_control);
+    EXPECT_TRUE(above_range.faults.has(SensorFault::ShortToSupply));
+
     TpsConfig invalid_config{};
-    invalid_config.closed_adc = 2000;
-    invalid_config.open_adc = 1000;
+    invalid_config.closed_mv = 2000;
+    invalid_config.open_mv = 1000;
     auto bad_cal = TpsSensor(invalid_config);
-    auto bad = bad_cal.process({1500, 1500, 1, AnalogSampleStatus::Ok});
+    auto bad = bad_cal.process(analog_sample(1500, 1500, true, 1));
     EXPECT_EQ(SensorHealthState::Failed, bad.health);
     EXPECT_TRUE(bad.faults.has(SensorFault::InvalidConfiguration));
 }
@@ -130,13 +150,27 @@ void test_thermal_sensors_publish_requests_without_final_authority() {
     EXPECT_EQ(ThermalRequestLevel::SensorInvalid, failed.value.request);
     EXPECT_TRUE(failed.faults.has(SensorFault::Communication));
 
-    WaterTemperatureSensor water(WaterTemperatureConfig{});
-    auto normal = water.process(AnalogSample{1800, 1800, 1000, AnalogSampleStatus::Ok});
+    WaterTemperatureConfig water_config{};
+    water_config.ntc.vref_mv = 3300;
+    water_config.ntc.fixed_resistance_ohms = 10000.0f;
+    water_config.ntc.nominal_resistance_ohms = 10000.0f;
+    water_config.ntc.nominal_temperature_celsius = 25.0f;
+    water_config.ntc.beta_kelvin = 3950.0f;
+    water_config.minimum_valid_mv = 50;
+    water_config.maximum_valid_mv = 3250;
+    water_config.short_to_ground_mv = 25;
+    water_config.open_circuit_mv = 3275;
+
+    WaterTemperatureSensor water(water_config);
+    auto normal = water.process(analog_sample(4095, 1650, true, 1000));
     EXPECT_TRUE(normal.valid_for_control);
-    EXPECT_TRUE(normal.value.celsius > -40.0f);
-    auto shorted = water.process(AnalogSample{0, 0, 2000, AnalogSampleStatus::Ok});
+    EXPECT_NEAR(25.0, normal.value.celsius, 0.2);
+    auto shorted = water.process(analog_sample(0, 0, true, 2000));
     EXPECT_FALSE(shorted.valid_for_control);
     EXPECT_TRUE(shorted.faults.has(SensorFault::ShortToGround));
+    auto open = water.process(analog_sample(4095, 3300, true, 3000));
+    EXPECT_FALSE(open.valid_for_control);
+    EXPECT_TRUE(open.faults.has(SensorFault::OpenCircuit));
 }
 
 void test_digital_inputs_debounce_rearm_and_map_state() {
@@ -321,11 +355,11 @@ void test_services_and_health_aggregation_are_sensor_only() {
     FakeTimeSource time;
     time.set(1000);
     FakeAnalogSampleSource analog;
-    analog.push("tps", AnalogSample{1000, 1000, 1000, AnalogSampleStatus::Ok});
+    analog.push("tps", analog_sample(0, 1000, true, 1000));
 
     TpsConfig service_tps_config{};
-    service_tps_config.closed_adc = 0;
-    service_tps_config.open_adc = 2000;
+    service_tps_config.closed_mv = 0;
+    service_tps_config.open_mv = 2000;
     TpsSensor tps(service_tps_config);
     AnalogSensorService analog_service(analog, store, tps);
     EXPECT_TRUE(analog_service.run_once("tps"));
@@ -426,8 +460,8 @@ void test_sensor_harness_muxes_route_each_source_family_by_sensor_name() {
 
     FakeAnalogSampleSource fake_analog;
     FakeAnalogSampleSource real_analog;
-    fake_analog.push(ecu::sensor_harness::kWaterChannel, AnalogSample{111, 111, 1000, AnalogSampleStatus::Ok});
-    real_analog.push(ecu::sensor_harness::kTpsChannel, AnalogSample{222, 222, 2000, AnalogSampleStatus::Ok});
+    fake_analog.push(ecu::sensor_harness::kWaterChannel, analog_sample(111, 111, true, 1000));
+    real_analog.push(ecu::sensor_harness::kTpsChannel, analog_sample(222, 222, true, 2000));
     ecu::sensor_harness::MuxAnalogSampleSource analog_mux(fake_analog, real_analog, routes);
     EXPECT_EQ(222, analog_mux.read(ecu::sensor_harness::kTpsChannel)->raw_code);
     EXPECT_EQ(111, analog_mux.read(ecu::sensor_harness::kWaterChannel)->raw_code);

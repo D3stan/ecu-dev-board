@@ -5,10 +5,10 @@
 namespace ecu::sensors {
 
 struct TpsConfig {
-    int closed_adc{0};
-    int open_adc{4095};
-    int minimum_valid_adc{0};
-    int maximum_valid_adc{4095};
+    int closed_mv{0};
+    int open_mv{3300};
+    int minimum_valid_mv{0};
+    int maximum_valid_mv{3300};
     TimestampUs stale_timeout_us{100000};
     std::uint8_t recovery_samples{2};
     int filter_alpha_permille{1000};

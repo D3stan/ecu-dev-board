@@ -4,6 +4,8 @@
 
 #include "driver/gpio.h"
 #include "driver/uart.h"
+#include "esp_adc/adc_cali.h"
+#include "esp_adc/adc_cali_scheme.h"
 #include "esp_adc/adc_oneshot.h"
 #include "esp_err.h"
 #include "freertos/FreeRTOS.h"
@@ -56,6 +58,8 @@ constexpr gpio_num_t kQuickShifterGpio = GPIO_NUM_9;
 constexpr gpio_num_t kMapSwitchGpio = GPIO_NUM_14;
 constexpr gpio_num_t kPickupGpio = GPIO_NUM_21;
 constexpr adc_channel_t kTpsAdcChannel = ADC_CHANNEL_6;
+constexpr adc_atten_t kTpsAdcAttenuation = ADC_ATTEN_DB_12;
+constexpr adc_bitwidth_t kTpsAdcBitwidth = ADC_BITWIDTH_DEFAULT;
 
 #if defined(CONFIG_SENSOR_HARNESS_TPS_SOURCE_REAL_ADC)
 constexpr bool kTpsUsesRealAdc = true;
@@ -116,10 +120,10 @@ const char *source_name(HarnessInputSource source) {
 
 TpsConfig make_tps_config() {
     TpsConfig config{};
-    config.closed_adc = 0;
-    config.open_adc = 4095;
-    config.minimum_valid_adc = 0;
-    config.maximum_valid_adc = 4095;
+    config.closed_mv = 0;
+    config.open_mv = 3300;
+    config.minimum_valid_mv = 0;
+    config.maximum_valid_mv = 3300;
     config.filter_alpha_permille = 1000;
     return config;
 }
@@ -225,12 +229,27 @@ adc_oneshot_unit_handle_t configure_real_adc() {
 
     if constexpr (kTpsUsesRealAdc) {
         adc_oneshot_chan_cfg_t channel_config{};
-        channel_config.atten = ADC_ATTEN_DB_12;
-        channel_config.bitwidth = ADC_BITWIDTH_DEFAULT;
+        channel_config.atten = kTpsAdcAttenuation;
+        channel_config.bitwidth = kTpsAdcBitwidth;
         ESP_ERROR_CHECK(adc_oneshot_config_channel(adc_handle, kTpsAdcChannel, &channel_config));
     }
 
     return adc_handle;
+}
+
+adc_cali_handle_t configure_tps_adc_calibration() {
+    if constexpr (!kTpsUsesRealAdc) {
+        return nullptr;
+    }
+
+    adc_cali_handle_t handle = nullptr;
+    adc_cali_curve_fitting_config_t calibration_config{};
+    calibration_config.unit_id = ADC_UNIT_1;
+    calibration_config.chan = kTpsAdcChannel;
+    calibration_config.atten = kTpsAdcAttenuation;
+    calibration_config.bitwidth = kTpsAdcBitwidth;
+    ESP_ERROR_CHECK(adc_cali_create_scheme_curve_fitting(&calibration_config, &handle));
+    return handle;
 }
 
 void poll_edge(EspGpioInputSource &source, EspTimeSource &time_source, PolledDigitalInput &input) {
@@ -256,8 +275,14 @@ void run_mixed_harness(EspTimeSource &time_source) {
     ecu::sensor_harness::FakeSensorStimulus stimulus;
 
     adc_oneshot_unit_handle_t adc_handle = configure_real_adc();
+    adc_cali_handle_t tps_calibration_handle = configure_tps_adc_calibration();
     const AdcChannelBinding adc_bindings[] = {
-        {ecu::sensor_harness::kTpsChannel, kTpsAdcChannel},
+        {ecu::sensor_harness::kTpsChannel,
+         kTpsAdcChannel,
+         kTpsAdcAttenuation,
+         kTpsAdcBitwidth,
+         tps_calibration_handle,
+         kTpsUsesRealAdc},
     };
     EspAdcSampleSource real_analog_source(adc_handle, adc_bindings, kAnyRealAdc ? 1 : 0, time_source);
 

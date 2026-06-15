@@ -12,6 +12,10 @@ source is fake, which feeds deterministic samples into the real sensor services
 and prints plot-friendly CSV over serial. Each sensor can then be switched to a
 confirmed real input through ESP-IDF configuration.
 
+The current sensor-only input binding table is maintained in
+[sensor_bindings.md](sensor_bindings.md). That document deliberately excludes
+actuator, CDI, map authority, shutdown and other ECU-output ownership.
+
 ## 1. Host Tests First
 
 Run these from the repository root in PowerShell:
@@ -162,7 +166,7 @@ Currently confirmed real inputs are:
 
 | Signal | ESP32-S3 pin | Harness channel |
 | --- | --- | --- |
-| TPS | GPIO7 / ADC1_CH6 | `tps` |
+| TPS | GPIO7 / ADC1_CH6, calibrated to millivolts | `tps` |
 | Quick-shifter digital output | GPIO9 | `quick` |
 | Map switch | GPIO14 | `map` |
 | Conditioned pickup square wave | GPIO21 / MCPWM capture | `pickup` |
@@ -249,6 +253,8 @@ Start with one input at a time. Do not connect all uncertain hardware at once.
 TPS:
 
 * Confirm GPIO7 receives only 0-3.3 V.
+* Confirm the ESP-IDF ADC calibration path is active; the sensor domain uses
+  calibrated millivolts rather than raw ADC counts for TPS scaling.
 * Sweep from near 0 V to near 3.3 V.
 * Confirm `tps_permille` moves from near `0` to near `1000`.
 * Short-to-ground or over-range tests should be done only through safe test
@@ -284,7 +290,8 @@ Later hardware stages:
 * EGT: enable MAX31856 SPI only after CS/SCK/MISO/MOSI and thermocouple wiring
   are confirmed.
 * Water temperature: enable the NTC ADC binding only after the divider and ADC
-  channel are confirmed.
+  channel, reference voltage, protection/front-end and NTC transfer parameters
+  are confirmed.
 * Knock: enable TPIC8101 window control only after SPI, HOLD/window pin and
   signal-conditioning wiring are confirmed.
 
