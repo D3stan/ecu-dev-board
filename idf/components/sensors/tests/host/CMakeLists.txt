@@ -9,6 +9,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 enable_testing()
 
 add_library(sensor_domain
+    ../../../sensor_harness/src/sensor_harness.cpp
     ../../src/domain/sensor_data_store.cpp
     ../../src/domain/sensor_health_service.cpp
     ../../src/domain/fake_sources.cpp
@@ -22,6 +23,7 @@ add_library(sensor_domain
 )
 
 target_include_directories(sensor_domain PUBLIC ../../include)
+target_include_directories(sensor_domain PUBLIC ../../../sensor_harness/include)
 
 add_executable(sensor_domain_tests
     sensor_domain_tests.cpp

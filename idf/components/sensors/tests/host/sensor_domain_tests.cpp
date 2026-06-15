@@ -4,6 +4,7 @@
 #include <iostream>
 #include <string>
 
+#include "sensor_harness/sensor_harness.hpp"
 #include "sensors/domain/fake_sources.hpp"
 #include "sensors/domain/sensor_data_store.hpp"
 #include "sensors/domain/sensor_health_service.hpp"
@@ -227,6 +228,80 @@ void test_services_and_health_aggregation_are_sensor_only() {
     EXPECT_EQ(SensorHealthState::Uninitialized, health_snapshot.pickup);
 }
 
+void test_sensor_harness_csv_and_events_are_numeric_and_plot_friendly() {
+    SensorDataStore store(4, 4, 4, 4);
+
+    SensorReading<ThrottlePositionPermille> tps{};
+    tps.value.permille = 512;
+    tps.acquired_at = 1000;
+    tps.valid_for_control = true;
+    tps.health = SensorHealthState::Valid;
+    tps.quality = SensorQuality::Good;
+    store.publish_tps(tps);
+
+    SensorReading<EngineSpeedState> rpm{};
+    rpm.value.rpm = 6000.0f;
+    rpm.valid_for_control = true;
+    store.publish_engine_speed(rpm);
+
+    SensorReading<TemperatureReading> egt{};
+    egt.value.celsius = 42.5f;
+    store.publish_egt(egt);
+
+    SensorReading<TemperatureReading> water{};
+    water.value.celsius = 31.0f;
+    store.publish_water_temperature(water);
+
+    SensorReading<QuickShifterState> quick{};
+    quick.value.active = false;
+    store.publish_quick_shifter_state(quick);
+
+    SensorReading<MapSwitchState> map{};
+    map.value.request = PhysicalMapRequest::Secondary;
+    store.publish_map_switch_state(map);
+
+    KnockWindowMeasurement knock{};
+    knock.raw_integrator_count = 1180;
+    knock.valid_for_control = true;
+    EXPECT_TRUE(store.publish_knock_measurement(knock));
+
+    EXPECT_EQ(std::string("# t_us,tps_permille,tps_valid,rpm,rpm_valid,egt_c,water_c,qs_active,map_secondary,knock_raw,knock_valid"),
+              ecu::sensor_harness::csv_header());
+    EXPECT_EQ(std::string("1234567,512,1,6000.0,1,42.5,31.0,0,1,1180,1"),
+              ecu::sensor_harness::format_snapshot_csv(store.snapshot(), 1234567, knock));
+
+    SensorEvent<QuickShiftRequest> request{};
+    request.event.active = true;
+    request.event.activated_at = 2000;
+    request.event.released_at = 2500;
+    request.event.duration_us = 500;
+    EXPECT_TRUE(store.publish_quick_shift_request(request));
+
+    auto events = ecu::sensor_harness::drain_event_lines(store);
+    EXPECT_EQ(1u, events.size());
+    EXPECT_EQ(std::string("# event,quick_shift,1,2000,2500,500"), events.front());
+}
+
+void test_sensor_harness_fake_stimulus_feeds_all_service_sources() {
+    ecu::sensor_harness::FakeSensorStimulus stimulus;
+    FakeAnalogSampleSource analog;
+    FakeSpiMeasurementSource spi;
+    FakeDigitalInputSource digital;
+    FakeEdgeCaptureSource pickup;
+    FakeKnockWindowDevice knock;
+
+    stimulus.push_next(analog, spi, digital, pickup, knock);
+    stimulus.push_next(analog, spi, digital, pickup, knock);
+
+    EXPECT_TRUE(analog.read("tps").has_value());
+    EXPECT_TRUE(analog.read("water").has_value());
+    EXPECT_TRUE(spi.read("egt").has_value());
+    EXPECT_TRUE(digital.read_edge("quick").has_value());
+    EXPECT_TRUE(digital.read_edge("map").has_value());
+    EXPECT_TRUE(pickup.read_capture("pickup").has_value());
+    EXPECT_TRUE(knock.read_result().has_value());
+}
+
 } // namespace
 
 int main() {
@@ -237,6 +312,8 @@ int main() {
     test_pickup_estimator_sync_loss_and_recovery();
     test_knock_measurement_validation_and_feature_backlog();
     test_services_and_health_aggregation_are_sensor_only();
+    test_sensor_harness_csv_and_events_are_numeric_and_plot_friendly();
+    test_sensor_harness_fake_stimulus_feeds_all_service_sources();
 
     if (failures != 0) {
         std::cerr << failures << " sensor domain test failure(s)\n";

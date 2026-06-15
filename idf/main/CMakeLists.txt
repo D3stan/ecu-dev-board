@@ -1,2 +1,7 @@
-idf_component_register(SRCS "main.c"
-                    INCLUDE_DIRS ".")
+idf_component_register(
+    SRCS "main.cpp"
+    INCLUDE_DIRS "."
+    REQUIRES sensors sensor_drivers sensor_harness driver esp_adc
+)
+
+target_compile_features(${COMPONENT_LIB} PUBLIC cxx_std_17)

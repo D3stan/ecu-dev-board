@@ -1,146 +1,89 @@
-S3 MINI
-================
+# ESP32-S3 Mini Development Board
 
-==================  ==================  
- |TOP_IMG|_           |BOTTOM_IMG|_  
-==================  ==================
+Compact ESP32-S3 development board based on the ESP32-S3FH4R2 package. It
+provides 2.4 GHz Wi-Fi, Bluetooth LE, native USB, 4 MB flash, 2 MB PSRAM, and
+3.3 V GPIO broken out on two side headers.
 
-.. |TOP_IMG| image:: ../_static/boards/s3_mini_v1.0.0_1_16x16.jpg
-.. _TOP_IMG: ../_static/boards/s3_mini_v1.0.0_1_16x16.jpg
+![ESP32-S3 Mini pinout](board.png)
 
-.. |BOTTOM_IMG| image:: ../_static/boards/s3_mini_v1.0.0_2_16x16.jpg
-.. _BOTTOM_IMG: ../_static/boards/s3_mini_v1.0.0_2_16x16.jpg
+## Board Summary
 
-WiFi & Bluetooth 5 (LE) boards based ESP32-S3FH4R2. 
-`[Buy it]`_
+| Item | Value |
+| --- | --- |
+| Main chip | ESP32-S3FH4R2 |
+| CPU | Dual-core Xtensa LX7, up to 240 MHz |
+| Wireless | 2.4 GHz Wi-Fi and Bluetooth LE |
+| Flash | 4 MB |
+| PSRAM | 2 MB |
+| Logic voltage | 3.3 V |
+| USB | Native USB through USB-C; VBUS is exposed on the right header |
+| Exposed GPIO | 27 GPIO pins plus EN, 3V3, GND, and VBUS |
+| On-board LED | RGB LED on GPIO47 |
+| Board size | 34.3 x 25.4 mm |
 
-.. _[Buy it]: https://www.aliexpress.com/item/3256805262904443.html
+## Reference Files
 
-Features
-------------------
-* based ESP32-S3FH4R2
-* 2.4 GHz Wi-Fi
-* Bluetooth LE
-* 4MB Flash
-* 2MB PSRAM
-* 27x IO
-* 1x RGB LED (IO47)
-* ADC, DAC, I2C, SPI, UART, USB OTG
-* Compatible with MicroPython, Arduino and ESP-IDF
-* Default firmware: MicroPython
+- [Schematic V1.0.0](sch_s3_mini_v1.0.0.pdf)
+- [Pin tables extracted from the ESP32-S3 datasheet](tables.md)
+- [ESP32-S3 datasheet](https://documentation.espressif.com/esp32-s3_datasheet_en.pdf)
 
-Tutorials
-----------------------
+## Pin Priority Legend
 
-* :doc:`../tutorials/s3/get_started_with_micropython_s3`
-* :doc:`../tutorials/s3/get_started_with_arduino_s3`
+The notes below use the ESP32-S3 datasheet priority labels from `tables.md`.
 
-Documentation
-----------------------
+| Priority | Meaning |
+| --- | --- |
+| P1 | Fixed peripheral function through IO MUX or RTC IO MUX. |
+| P2 | General-purpose GPIO with no special restriction in the datasheet table. |
+| P3 | Usable with caution because the pin may overlap with strapping, USB/JTAG, JTAG, UART0, or 8-line SPI/PSRAM-related functions. |
+| P4 | Avoid for ordinary GPIO; allocated or not recommended because of flash/PSRAM SPI0/1 use. |
 
-* `Schematic V1.0.0[PDF] <../_static/files/sch_s3_mini_v1.0.0.pdf>`_
-* `Dimension V1.0.0[PDF] <../_static/files/dim_s3_mini_v1.0.0.pdf>`_
-* `ESP32-S3 Datasheet <https://www.espressif.com/sites/default/files/documentation/esp32-s3_datasheet_en.pdf>`_
+## Left Header Pins
 
+| Header pin | Board label | Chip pin | RTC GPIO | Reset state | Main functions | Notes |
+| --- | --- | ---: | --- | --- | --- | --- |
+| EN | Reset/chip enable |  |  |  | Pull low to reset the chip; keep high for run | Board control pin |
+| GPIO1 |  | 6 | RTC_GPIO1 | IE | ADC1_CH0; TOUCH1 | P2: general GPIO |
+| GPIO2 |  | 7 | RTC_GPIO2 | IE | ADC1_CH1; TOUCH2 | P2: general GPIO |
+| GPIO4 |  | 9 | RTC_GPIO4 |  | ADC1_CH3; TOUCH4 | P2: general GPIO |
+| GPIO12 | SCK | 17 | RTC_GPIO12 |  | ADC2_CH1; TOUCH12; SPI: SUBSPICLK, FSPICLK, FSPIIO6 | P2: general GPIO |
+| GPIO13 | MISO | 18 | RTC_GPIO13 |  | ADC2_CH2; TOUCH13; SPI: SUBSPIQ, FSPIQ, FSPIIO7 | P2: general GPIO |
+| GPIO11 | MOSI | 16 | RTC_GPIO11 |  | ADC2_CH0; TOUCH11; SPI: SUBSPID, FSPID, FSPIIO5 | P2: general GPIO |
+| GPIO10 |  | 15 | RTC_GPIO10 |  | ADC1_CH9; TOUCH10; SPI: SUBSPICS0, FSPICS0, FSPIIO4 | P2: general GPIO |
+| 3V3 | 3.3 V output/input |  |  |  | Regulated 3.3 V rail | Power |
+| GPIO3 |  | 8 | RTC_GPIO3 | IE | ADC1_CH2; TOUCH3 | P3: caution, strapping pin |
+| GPIO5 |  | 10 | RTC_GPIO5 |  | ADC1_CH4; TOUCH5 | P2: general GPIO |
+| GPIO6 |  | 11 | RTC_GPIO6 |  | ADC1_CH5; TOUCH6 | P2: general GPIO |
+| GPIO7 |  | 12 | RTC_GPIO7 |  | ADC1_CH6; TOUCH7 | P2: general GPIO |
+| GPIO8 |  | 13 | RTC_GPIO8 |  | ADC1_CH7; TOUCH8; SPI: SUBSPICS1 | P2: general GPIO |
+| GPIO9 |  | 14 | RTC_GPIO9 |  | ADC1_CH8; TOUCH9; SPI: SUBSPIHD, FSPIHD | P2: general GPIO |
+| GPIO14 |  | 19 | RTC_GPIO14 |  | ADC2_CH3; TOUCH14; SPI: SUBSPIWP, FSPIWP, FSPIDQS | P2: general GPIO |
 
-Technical specs
-----------------------
+## Right Header Pins
 
-+----------------------+------------+
-| Operating Voltage    | 3.3V       |
-+----------------------+------------+
-| Digital I/O Pins     | 27         |
-+----------------------+------------+
-| Clock Speed          | 240MHz     |
-+----------------------+------------+
-| Flash                | 4M Bytes   |
-+----------------------+------------+
-| PSRAM                | 2M Bytes   |
-+----------------------+------------+
-| Size                 | 34.3*25.4mm|
-+----------------------+------------+
-| Weight               | 3g         |
-+----------------------+------------+
+| Header pin | Board label | Chip pin | RTC GPIO | Reset state | Main functions | Notes |
+| --- | --- | ---: | --- | --- | --- | --- |
+| GPIO33 |  | 38 |  |  | SPI: SPIIO4, SUBSPIHD, FSPIHD | P3: caution, 8-line SPI/PSRAM related |
+| GPIO37 |  | 42 |  |  | SPI: SPIDQS, SUBSPIQ, FSPIQ | P3: caution, 8-line SPI/PSRAM related |
+| GPIO38 |  | 43 |  |  | GPIO38; SPI: SUBSPIWP, FSPIWP | P2: general GPIO |
+| GPIO34 |  | 39 |  |  | SPI: SPIIO5, SUBSPICS0, FSPICS0 | P3: caution, 8-line SPI/PSRAM related |
+| GPIO21 |  | 27 | RTC_GPIO21 |  | GPIO21 | P2: general GPIO |
+| GPIO17 |  | 23 | RTC_GPIO17 |  | ADC2_CH6; U1TXD | P2: general GPIO |
+| GND | Ground |  |  |  | 0 V reference | Power |
+| GPIO15 |  | 21 | RTC_GPIO15 |  | ADC2_CH4; U0RTS | P2: general GPIO |
+| GPIO43 | TX | 49 |  | WPU,IE | U0TXD | P3: caution, UART0 console |
+| GPIO44 | RX | 50 |  | WPU,IE | U0RXD | P3: caution, UART0 console |
+| GPIO36 | SCL | 41 |  |  | SPI: SPIIO7, SUBSPICLK, FSPICLK | P3: caution, 8-line SPI/PSRAM related |
+| GPIO35 | SDA | 40 |  |  | SPI: SPIIO6, SUBSPID, FSPID | P3: caution, 8-line SPI/PSRAM related |
+| GPIO18 |  | 24 | RTC_GPIO18 |  | ADC2_CH7; U1RXD | P2: general GPIO |
+| GPIO16 |  | 22 | RTC_GPIO16 |  | ADC2_CH5; U0CTS | P2: general GPIO |
+| GND | Ground |  |  |  | 0 V reference | Power |
+| VBUS | USB 5 V |  |  |  | USB bus voltage | Power |
 
-Pin
-----------------------
+## Practical Notes
 
-.. image:: ../_static/boards/s3_mini_v1.0.0_4_16x9.jpg
-   :target: ../_static/boards/s3_mini_v1.0.0_4_16x9.jpg
-
-Certification
-----------------------
-
-.. image:: ../_static/logo/CE.png
-   :target: ../_static/files/certification/EMC_s3_mini.pdf
-
-.. image:: ../_static/logo/EUDOC.png
-   :target: ../_static/files/certification/doc_s3_mini.pdf
-
-.. image:: ../_static/logo/ROHS.png
-   :target: ../_static/files/certification/RoHS_s3_mini.pdf
-
-
-
-
-
-2.3.4 Restrictions for GPIOs and RTC_GPIOs
-All IO pins of ESP32-S3 have GPIO and some have RTC_GPIO pin functions. However, the IO pins are
-multiplexed and can be configured for different purposes based on the requirements. Some IOs have
-restrictions for usage. It is essential to consider the multiplexed nature and the limitations when using these IO
-pins.
-In tables of this chapter, some pin functions are in
-red or
-yellow . These functions indicate pins that require
-extra caution when used as
-GPIO /
-GPIO :
-• IO
-Pins– allocated for communication with in-package flash/PSRAM and NOT recommended for other
-uses. For details, see Section 2.6 Pin Mapping Between Chip and Flash/PSRAM.
-• IO
-Pins– have one of the following important functions:– Strapping pins– need to be at certain logic levels at startup. See Section 3 Boot Configurations.
-Note:
-Strapping pins are highlighted by Pin Name or configurations At Reset, instead of the pin functions.– USB_D+/-– by default, connected to the USB Serial/JTAG Controller. To function as GPIOs, these
-pins need to be reconfigured via the IO_MUX_MCU_SEL bit (see
-ESP32-S3 Technical Reference Manual > Chapter IO MUX and GPIO Matrix for details).– JTAGinterface– often used for debugging. See Table 2-4 IO MUX Functions. To free these pins
-up, the pin functions USB_D+/- of the USB Serial/JTAG Controller can be used instead. See also
-Section 3.4 JTAG Signal Source Control.– UART0interface– often used for debugging. See Table 2-4 IO MUX Functions.– 8-line SPI interface– no restrictions, unless the chip is connected to flash/PSRAM using 8-line SPI
-mode.
-For more information about assigning pins, please see Section 2.3.5 Peripheral Pin Assignment and ESP32-S3
-Consolidated Pin Overview.
-Espressif Systems
-25
-Submit Documentation Feedback
-ESP32-S3 Series Datasheet v2.2
-2 Pins
-2.3.5 Peripheral Pin Assignment
-Table 2-9 Peripheral Pin Assignment highlights which pins can be assigned to each peripheral interface
-according to the following priorities:
-• Priority
-1 (P1) : Fixed pins connected directly to peripheral signals via IO MUX or RTC IO MUX.
-If a peripheral interface does not have priority 1 pins, such as UART2, it can be assigned to any GPIO pins
-from priority 2 to priority 4.
-• Any GPIO pins mapping to peripheral signals via GPIO Matrix, can be priority 2, 3, or 4.–Priority
-2 (P2) : GPIO pins can be freely used without restrictions.–Priority
-3 (P3) : GPIO pins should be used with caution, as they may conflict with the following
-important functions described in Section 2.3.4 Restrictions for GPIOs and RTC_GPIOs:
-* GPIO0
-, GPIO3, GPIO45, GPIO46 : Strapping pins.
-* GPIO19
-, GPIO20 : USB Serial/JTAG interface.
-* GPIO3
-9, GPIO40, GPIO41, GPIO42 : JTAG interface.
-* GPIO43
-, GPIO44 : UART0 interface.
-* GPIO33
-, GPIO34, GPIO35, GPIO36, GPIO37 : The higher 4 bits data line interface and DQS
-interface for the SPI0/1 interface in 8-line SPI mode, and can be GPIO pins if the chip is not
-connected to flash or PSRAM in 8-line SPI mode.–Priority
-4 (P4) : GPIO pins already allocated or not recommended for use, as described in Section
-2.3.4 Restrictions for GPIOs and RTC_GPIOs:
-* GPIO2
-6, GPIO27, GPIO28, GPIO29, GPIO30, GPIO31, GPIO32 : SPI0/1 interface connected to
-the in-package flash and PSRAM, or recommended for the off-package flash and PSRAM.
-If a peripheral interface does not have priority 2 to 4 pins, such as USB Serial/JTAG, it means it can be
-assigned only to priority 1 pins
+- GPIO3 is a strapping pin. Avoid external circuits that force the wrong level during reset.
+- GPIO43 and GPIO44 are UART0 TX/RX and are commonly used for the serial console.
+- GPIO33 through GPIO37 are marked P3 in the ESP32-S3 datasheet because they can overlap with 8-line SPI/PSRAM-related functions.
+- GPIO19 and GPIO20 are the native USB D- and D+ pins. They are used by the USB-C connection and are not broken out on these headers.
+- GPIO47 is connected to the on-board RGB LED and is not part of the side-header pin list.
