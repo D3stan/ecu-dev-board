@@ -14,9 +14,14 @@
 #include "sensors/domain/fake_sources.hpp"
 #include "sensors/domain/sensor_data_store.hpp"
 #include "sensors/services/sensor_services.hpp"
+#include "sdkconfig.h"
 
 #ifndef SENSOR_HARNESS_FAKE_MODE
+#if defined(CONFIG_SENSOR_HARNESS_MODE_REAL)
+#define SENSOR_HARNESS_FAKE_MODE 0
+#else
 #define SENSOR_HARNESS_FAKE_MODE 1
+#endif
 #endif
 
 namespace {
@@ -33,6 +38,8 @@ constexpr bool kHarnessFakeMode = SENSOR_HARNESS_FAKE_MODE != 0;
 constexpr int kSerialBaud = 115200;
 constexpr std::uint32_t kPrintIntervalMs = 100;
 constexpr std::uint32_t kStoreQueueCapacity = 8;
+constexpr std::uint32_t kHarnessTaskStackBytes = 16384;
+constexpr UBaseType_t kHarnessTaskPriority = tskIDLE_PRIORITY + 1;
 
 constexpr gpio_num_t kQuickShifterGpio = GPIO_NUM_9;
 constexpr gpio_num_t kMapSwitchGpio = GPIO_NUM_14;
@@ -224,12 +231,7 @@ void run_real_harness(EspTimeSource &time_source) {
 
 #endif
 
-} // namespace
-
-extern "C" void app_main(void) {
-    uart_set_baudrate(UART_NUM_0, kSerialBaud);
-    setvbuf(stdout, nullptr, _IONBF, 0);
-
+void sensor_harness_task(void *) {
     EspTimeSource time_source;
 
     if constexpr (kHarnessFakeMode) {
@@ -238,5 +240,24 @@ extern "C" void app_main(void) {
 #if !SENSOR_HARNESS_FAKE_MODE
         run_real_harness(time_source);
 #endif
+    }
+
+    vTaskDelete(nullptr);
+}
+
+} // namespace
+
+extern "C" void app_main(void) {
+    uart_set_baudrate(UART_NUM_0, kSerialBaud);
+    setvbuf(stdout, nullptr, _IONBF, 0);
+
+    const BaseType_t created = xTaskCreate(sensor_harness_task,
+                                           "sensor_harness",
+                                           kHarnessTaskStackBytes,
+                                           nullptr,
+                                           kHarnessTaskPriority,
+                                           nullptr);
+    if (created != pdPASS) {
+        std::printf("# sensor_harness_error,task_create_failed\n");
     }
 }

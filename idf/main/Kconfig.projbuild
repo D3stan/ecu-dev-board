@@ -1,0 +1,27 @@
+menu "ECU sensor harness"
+
+    choice SENSOR_HARNESS_MODE
+        prompt "Sensor harness mode"
+        default SENSOR_HARNESS_MODE_FAKE
+        help
+            Select where the ESP32-S3 sensor harness reads its input data.
+            Fake mode injects deterministic samples. Real mode enables only
+            the currently confirmed GPIO/ADC inputs.
+
+        config SENSOR_HARNESS_MODE_FAKE
+            bool "Fake injected samples"
+            help
+                Run the real sensor services against deterministic fake
+                samples for repeatable bring-up and plotting.
+
+        config SENSOR_HARNESS_MODE_REAL
+            bool "Real confirmed GPIO/ADC inputs"
+            help
+                Read TPS from ADC1_CH6/GPIO7 and poll GPIO9/GPIO14 for
+                quick-shifter and map-switch testing. Pickup, EGT, water NTC
+                and knock hardware remain disabled until their board wiring is
+                confirmed.
+
+    endchoice
+
+endmenu

@@ -70,10 +70,9 @@ Expected result:
 
 ## 3. Build Fake Harness Mode
 
-Fake mode is the default. It compiles `idf/main/main.cpp` with
-`SENSOR_HARNESS_FAKE_MODE=1`, injects synthetic TPS, water, EGT, pickup,
-quick-shifter, map-switch and knock samples, and prints the resulting sensor
-snapshot.
+Fake mode is the default ESP-IDF configuration. It injects synthetic TPS,
+water, EGT, pickup, quick-shifter, map-switch and knock samples, then prints
+the resulting sensor snapshot.
 
 From the repository root:
 
@@ -156,8 +155,8 @@ Event lines are useful for checking discrete inputs:
 
 ## 6. Optional Real-Input Mode
 
-Real mode is compile-time selected and currently enables only the confirmed
-simple inputs:
+Real mode is compile-time selected through ESP-IDF configuration and currently
+enables only the confirmed simple inputs:
 
 | Signal | ESP32-S3 pin | Harness channel |
 | --- | --- | --- |
@@ -165,8 +164,33 @@ simple inputs:
 | Quick-shifter digital output | GPIO9 | `quick` |
 | Map switch | GPIO14 | `map` |
 
-Build real mode into a separate build directory so it does not disturb the
-default fake-mode build:
+Preferred terminal flow:
+
+```powershell
+idf.py -C idf menuconfig
+```
+
+Then select:
+
+```text
+ECU sensor harness
+  Sensor harness mode
+    Real confirmed GPIO/ADC inputs
+```
+
+Save, exit, build and flash:
+
+```powershell
+idf.py -C idf build
+idf.py -C idf -p COMx flash monitor
+```
+
+In the VS Code ESP-IDF extension, open the SDK Configuration Editor, search
+for `Sensor harness mode`, select `Real confirmed GPIO/ADC inputs`, save,
+then build/flash/monitor from the extension.
+
+For a one-off real-mode compile that does not change `idf/sdkconfig`, build a
+separate directory with the compatibility compiler override:
 
 ```powershell
 idf.py -C idf -B build-real -DIDF_TARGET=esp32s3 "-DCMAKE_CXX_FLAGS=-DSENSOR_HARNESS_FAKE_MODE=0" build
