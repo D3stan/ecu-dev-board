@@ -11,5 +11,6 @@
     "--background-index",
     "--query-driver=**",
     "--compile-commands-dir=/Users/puddu/Documents/GitHub/ecu-dev-board/idf/build"
-  ]
+],
+"idf.currentSetup": "C:\\esp\\v5.5.4\\esp-idf"
 }
