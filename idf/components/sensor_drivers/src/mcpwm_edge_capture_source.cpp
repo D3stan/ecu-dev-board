@@ -8,9 +8,8 @@ bool input_matches(const char *configured, std::string_view requested) {
     return configured != nullptr && requested == std::string_view(configured);
 }
 
-ecu::sensors::EdgePolarity polarity_from_edge(mcpwm_capture_edge_t edge) {
-    return edge == MCPWM_CAP_EDGE_POS ? ecu::sensors::EdgePolarity::Rising
-                                      : ecu::sensors::EdgePolarity::Falling;
+McpwmCaptureEdge capture_edge_from_idf(mcpwm_capture_edge_t edge) {
+    return edge == MCPWM_CAP_EDGE_POS ? McpwmCaptureEdge::Positive : McpwmCaptureEdge::Negative;
 }
 
 } // namespace
@@ -30,13 +29,7 @@ McpwmEdgeCaptureSource::~McpwmEdgeCaptureSource() {
 }
 
 std::size_t McpwmEdgeCaptureSource::configured_queue_depth() const {
-    if (config_.queue_depth == 0) {
-        return 1;
-    }
-    if (config_.queue_depth > kMcpwmCaptureMaxQueueDepth) {
-        return kMcpwmCaptureMaxQueueDepth;
-    }
-    return config_.queue_depth;
+    return clamp_mcpwm_capture_queue_depth(config_.queue_depth);
 }
 
 esp_err_t McpwmEdgeCaptureSource::start() {
@@ -166,11 +159,11 @@ bool IRAM_ATTR McpwmEdgeCaptureSource::handle_capture_from_isr(const mcpwm_captu
     }
 
     BaseType_t high_priority_task_woken = pdFALSE;
+    const auto mapped = make_mcpwm_raw_capture(event.cap_value, capture_edge_from_idf(event.cap_edge));
     RawCapture raw{};
-    raw.capture_ticks = event.cap_value;
-    raw.polarity = polarity_from_edge(event.cap_edge);
-    raw.status = event.cap_edge == MCPWM_CAP_EDGE_NEG ? ecu::sensors::CaptureStatus::Ok
-                                                      : ecu::sensors::CaptureStatus::HardwareFault;
+    raw.capture_ticks = mapped.capture_ticks;
+    raw.polarity = mapped.polarity;
+    raw.status = mapped.status;
 
     if (xQueueSendFromISR(queue_, &raw, &high_priority_task_woken) != pdTRUE) {
         RawCapture dropped{};

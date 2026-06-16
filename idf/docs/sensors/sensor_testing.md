@@ -18,10 +18,10 @@ actuator, CDI, map authority, shutdown and other ECU-output ownership.
 
 ## 1. Host Tests First
 
-Run these from the repository root in PowerShell:
+Run these from the idf folder in PowerShell:
 
 ```powershell
-cmake -S idf/components/sensors/tests/host -B build/sensors-host
+cmake -S components/sensors/tests/host -B build/sensors-host
 cmake --build build/sensors-host
 ctest --test-dir build/sensors-host --output-on-failure
 ```
@@ -34,7 +34,14 @@ Expected result:
 
 These tests do not require ESP-IDF or an ESP32-S3. They verify the sensor
 domain, service contracts, fake sources, data store behavior, CSV formatting
-and fake harness stimulus path.
+and fake harness stimulus path. They also compile no-ESP helper logic from the
+non-SPI driver layer, such as ADC sample mapping, GPIO queue behavior and MCPWM
+capture mapping.
+
+SPI driver-level host tests are intentionally deferred for MAX31856 and
+TPIC8101. Their behavior is validated here through domain-level injected
+samples or window results, and the real driver sources remain covered by the
+ESP-IDF firmware build.
 
 If CMake cannot find a compiler, install one of:
 

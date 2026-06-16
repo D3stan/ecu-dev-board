@@ -12,6 +12,9 @@ struct EgtConfig {
     float derating_celsius{700.0f};
     float critical_celsius{750.0f};
     TimestampUs stale_timeout_us{500000};
+    float maximum_rate_c_per_s{0.0f};
+    std::uint8_t frozen_sample_limit{0};
+    float frozen_delta_celsius{0.0f};
 };
 
 struct WaterTemperatureConfig {
@@ -24,6 +27,9 @@ struct WaterTemperatureConfig {
     float high_celsius{95.0f};
     float critical_celsius{110.0f};
     TimestampUs stale_timeout_us{1000000};
+    float maximum_rate_c_per_s{0.0f};
+    std::uint8_t frozen_sample_limit{0};
+    float frozen_delta_celsius{0.0f};
 };
 
 class EgtSensor {
@@ -40,6 +46,7 @@ private:
     SensorReading<TemperatureReading> last_{};
     bool has_previous_{false};
     float maximum_{0.0f};
+    std::uint32_t repeated_sample_count_{0};
 };
 
 class WaterTemperatureSensor {
@@ -57,6 +64,7 @@ private:
     SensorReading<TemperatureReading> last_{};
     bool has_previous_{false};
     float maximum_{0.0f};
+    std::uint32_t repeated_sample_count_{0};
 };
 
 } // namespace ecu::sensors

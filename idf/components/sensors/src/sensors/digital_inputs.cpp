@@ -65,22 +65,52 @@ QuickShifterProcessResult QuickShifterInput::process(const DigitalEdge &edge) {
     last_accepted_edge_at_ = edge.acquired_at;
 
     if (!active) {
+        const bool had_pending_duration_request = pending_duration_request_;
+        const TimestampUs activated_at = active_since_;
+        const TimestampUs duration_us =
+            activated_at != 0 && edge.acquired_at >= activated_at ? edge.acquired_at - activated_at : 0;
         armed_ = true;
         active_since_ = 0;
+        pending_duration_request_ = false;
         result.state = make_state(edge.acquired_at, false, true, SensorHealthState::Valid, nullptr);
+        if (had_pending_duration_request) {
+            if (config_.minimum_active_us > 0 && duration_us < config_.minimum_active_us) {
+                SensorFault fault = SensorFault::Plausibility;
+                result.state = make_state(edge.acquired_at, false, true, SensorHealthState::Degraded, &fault);
+                return result;
+            }
+            if (config_.maximum_active_us > 0 && duration_us > config_.maximum_active_us) {
+                SensorFault fault = SensorFault::Stuck;
+                result.state = make_state(edge.acquired_at, false, true, SensorHealthState::Failed, &fault);
+                return result;
+            }
+            result.has_request = true;
+            result.request.event.active = true;
+            result.request.event.activated_at = activated_at;
+            result.request.event.released_at = edge.acquired_at;
+            result.request.event.duration_us = static_cast<std::uint32_t>(duration_us);
+            result.request.acquired_at = edge.acquired_at;
+            result.request.valid_for_control = true;
+            result.request.health = SensorHealthState::Valid;
+            result.request.quality = SensorQuality::Good;
+        }
         return result;
     }
 
     active_since_ = edge.acquired_at;
     if (armed_) {
         armed_ = false;
-        result.has_request = true;
-        result.request.event.active = true;
-        result.request.event.activated_at = edge.acquired_at;
-        result.request.acquired_at = edge.acquired_at;
-        result.request.valid_for_control = true;
-        result.request.health = SensorHealthState::Valid;
-        result.request.quality = SensorQuality::Good;
+        if (config_.minimum_active_us > 0 || config_.maximum_active_us > 0) {
+            pending_duration_request_ = true;
+        } else {
+            result.has_request = true;
+            result.request.event.active = true;
+            result.request.event.activated_at = edge.acquired_at;
+            result.request.acquired_at = edge.acquired_at;
+            result.request.valid_for_control = true;
+            result.request.health = SensorHealthState::Valid;
+            result.request.quality = SensorQuality::Good;
+        }
     }
 
     result.state = make_state(edge.acquired_at, true, armed_, SensorHealthState::Valid, nullptr);

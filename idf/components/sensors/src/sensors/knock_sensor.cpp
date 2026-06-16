@@ -2,6 +2,14 @@
 
 namespace ecu::sensors {
 
+namespace {
+
+std::uint32_t absolute_delta(std::uint32_t lhs, std::uint32_t rhs) {
+    return lhs >= rhs ? lhs - rhs : rhs - lhs;
+}
+
+} // namespace
+
 KnockSensor::KnockSensor(KnockConfig config) : config_(config) {}
 
 KnockWindowMeasurement KnockSensor::unavailable(const KnockWindowContext &context, SensorFault fault) const {
@@ -46,6 +54,25 @@ KnockWindowMeasurement KnockSensor::process(const KnockWindowContext &context, c
             measurement.quality = SensorQuality::Bad;
             measurement.faults.add(SensorFault::Saturation);
         } else {
+            std::uint32_t next_repeated_result_count = 1;
+            if (has_last_valid_result_) {
+                next_repeated_result_count =
+                    absolute_delta(result.integrator_count, last_valid_result_count_) <= config_.stuck_delta_count
+                        ? repeated_result_count_ + 1
+                        : 1;
+                if (config_.stuck_result_limit > 0 &&
+                    next_repeated_result_count >= config_.stuck_result_limit) {
+                    repeated_result_count_ = next_repeated_result_count;
+                    measurement.valid_for_control = false;
+                    measurement.health = SensorHealthState::Degraded;
+                    measurement.quality = SensorQuality::Bad;
+                    measurement.faults.add(SensorFault::Stuck);
+                    break;
+                }
+            }
+            repeated_result_count_ = next_repeated_result_count;
+            last_valid_result_count_ = result.integrator_count;
+            has_last_valid_result_ = true;
             measurement.valid_for_control = true;
             measurement.health = SensorHealthState::Valid;
             measurement.quality = SensorQuality::Good;

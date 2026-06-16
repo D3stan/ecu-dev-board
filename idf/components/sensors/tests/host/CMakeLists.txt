@@ -29,6 +29,9 @@ target_include_directories(sensor_domain PUBLIC ../../../sensor_harness/include)
 target_include_directories(sensor_domain PUBLIC ../../../sensor_drivers/include)
 
 add_executable(sensor_domain_tests
+    ../../../sensor_drivers/include/sensor_drivers/adc_sample_source_logic.hpp
+    ../../../sensor_drivers/include/sensor_drivers/fixed_raw_queue.hpp
+    ../../../sensor_drivers/include/sensor_drivers/mcpwm_capture_logic.hpp
     sensor_domain_tests.cpp
 )
 

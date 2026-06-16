@@ -9,6 +9,8 @@ struct QuickShifterConfig {
     TimestampUs debounce_us{20000};
     TimestampUs stuck_active_us{1000000};
     TimestampUs rearm_us{20000};
+    TimestampUs minimum_active_us{0};
+    TimestampUs maximum_active_us{0};
 };
 
 struct QuickShifterProcessResult {
@@ -34,6 +36,7 @@ private:
     TimestampUs active_since_{0};
     bool initialized_{false};
     bool armed_{true};
+    bool pending_duration_request_{false};
 };
 
 struct MapSwitchConfig {

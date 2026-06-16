@@ -9,6 +9,8 @@ namespace ecu::sensors {
 
 struct KnockConfig {
     std::uint32_t saturation_count{65535};
+    std::uint8_t stuck_result_limit{0};
+    std::uint32_t stuck_delta_count{0};
 };
 
 class KnockSensor {
@@ -19,6 +21,9 @@ public:
 
 private:
     KnockConfig config_{};
+    bool has_last_valid_result_{false};
+    std::uint32_t last_valid_result_count_{0};
+    std::uint32_t repeated_result_count_{0};
 };
 
 struct KnockFeatureConfig {

@@ -15,11 +15,10 @@
 #include "freertos/queue.h"
 #include "freertos/task.h"
 #include "sensor_drivers/capture_tick_converter.hpp"
+#include "sensor_drivers/mcpwm_capture_logic.hpp"
 #include "sensors/ports/hardware_ports.hpp"
 
 namespace ecu::sensor_drivers {
-
-inline constexpr std::size_t kMcpwmCaptureMaxQueueDepth = 32;
 
 struct McpwmEdgeCaptureConfig {
     const char *input_name{"pickup"};

@@ -1,6 +1,7 @@
 #include "sensors/sensors/thermal_sensors.hpp"
 
 #include <algorithm>
+#include <cmath>
 
 namespace ecu::sensors {
 
@@ -80,6 +81,26 @@ SensorReading<TemperatureReading> EgtSensor::process(const Max31856Sample &sampl
         return invalid(sample.acquired_at, SensorFault::RangeHigh, SensorHealthState::Failed);
     }
 
+    if (has_previous_ &&
+        config_.maximum_rate_c_per_s > 0.0f &&
+        std::fabs(rate(last_.value.celsius, last_.acquired_at, sample.celsius, sample.acquired_at)) >
+            config_.maximum_rate_c_per_s) {
+        return invalid(sample.acquired_at, SensorFault::Rate, SensorHealthState::Degraded);
+    }
+
+    std::uint32_t next_repeated_sample_count = 1;
+    if (has_previous_) {
+        next_repeated_sample_count =
+            std::fabs(sample.celsius - last_.value.celsius) <= config_.frozen_delta_celsius
+                ? repeated_sample_count_ + 1
+                : 1;
+        if (config_.frozen_sample_limit > 0 &&
+            next_repeated_sample_count >= config_.frozen_sample_limit) {
+            repeated_sample_count_ = next_repeated_sample_count;
+            return invalid(sample.acquired_at, SensorFault::Frozen, SensorHealthState::Degraded);
+        }
+    }
+
     SensorReading<TemperatureReading> reading{};
     reading.value = classify(sample.celsius, sample.acquired_at);
     reading.acquired_at = sample.acquired_at;
@@ -87,6 +108,7 @@ SensorReading<TemperatureReading> EgtSensor::process(const Max31856Sample &sampl
     reading.health = SensorHealthState::Valid;
     reading.quality = SensorQuality::Good;
     has_previous_ = true;
+    repeated_sample_count_ = next_repeated_sample_count;
     last_ = reading;
     return reading;
 }
@@ -105,7 +127,9 @@ bool WaterTemperatureSensor::config_valid() const {
            config_.minimum_valid_mv > config_.short_to_ground_mv &&
            config_.maximum_valid_mv < config_.open_circuit_mv &&
            config_.minimum_valid_mv < config_.maximum_valid_mv &&
-           config_.open_circuit_mv <= config_.ntc.vref_mv;
+           config_.open_circuit_mv <= config_.ntc.vref_mv &&
+           config_.maximum_rate_c_per_s >= 0.0f &&
+           config_.frozen_delta_celsius >= 0.0f;
 }
 
 TemperatureReading WaterTemperatureSensor::classify(float celsius, TimestampUs acquired_at) {
@@ -160,6 +184,26 @@ SensorReading<TemperatureReading> WaterTemperatureSensor::process(const AnalogSa
         return invalid(sample.acquired_at, SensorFault::RangeHigh, SensorHealthState::Failed);
     }
 
+    if (has_previous_ &&
+        config_.maximum_rate_c_per_s > 0.0f &&
+        std::fabs(rate(last_.value.celsius, last_.acquired_at, *celsius, sample.acquired_at)) >
+            config_.maximum_rate_c_per_s) {
+        return invalid(sample.acquired_at, SensorFault::Rate, SensorHealthState::Degraded);
+    }
+
+    std::uint32_t next_repeated_sample_count = 1;
+    if (has_previous_) {
+        next_repeated_sample_count =
+            std::fabs(*celsius - last_.value.celsius) <= config_.frozen_delta_celsius
+                ? repeated_sample_count_ + 1
+                : 1;
+        if (config_.frozen_sample_limit > 0 &&
+            next_repeated_sample_count >= config_.frozen_sample_limit) {
+            repeated_sample_count_ = next_repeated_sample_count;
+            return invalid(sample.acquired_at, SensorFault::Frozen, SensorHealthState::Degraded);
+        }
+    }
+
     SensorReading<TemperatureReading> reading{};
     reading.value = classify(*celsius, sample.acquired_at);
     reading.acquired_at = sample.acquired_at;
@@ -167,6 +211,7 @@ SensorReading<TemperatureReading> WaterTemperatureSensor::process(const AnalogSa
     reading.health = SensorHealthState::Valid;
     reading.quality = SensorQuality::Good;
     has_previous_ = true;
+    repeated_sample_count_ = next_repeated_sample_count;
     last_ = reading;
     return reading;
 }
