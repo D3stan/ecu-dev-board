@@ -1,267 +1,279 @@
 # ECU WebUI Adaptation Proposal
 
-This document describes the UI work still needed after the WebSocket Telemetry
-V1 migration. The current WebUI is a vanilla JS mobile SPA that was ported from
-the emulator dashboard. It now receives ECU-shaped telemetry, but the visible
-experience still presents simulator controls and old emulator concepts.
+This proposal covers the WebUI work that remains after the WebSocket Telemetry
+V1 migration.
 
-Scope of this document:
-- Adapt the current WebUI to the current `basic_sensor_telemetry_core.md`
-  telemetry state.
-- Focus on the onboard WebUI served by the ECU.
-- Keep this as proposed UI/application work; the implemented code change remains
-  limited to websocket parsing and mock V1 emission.
+The parser, Store paths, mock V1 telemetry, and adapter tests already exist.
+Do not repeat that work as part of the UI adaptation unless the firmware
+contract changes. The next step is to replace the simulator-facing experience
+with an ECU-facing dashboard, diagnostics view, and browser-only rolling
+history.
+
+Sources:
+- `docs/webui/js_architecture.md`
+- `docs/webui/websocket.md`
+- `docs/webserver/websocket_contract.md`
+- `docs/telemetry/basic_sensor_telemetry_core.md`
 
 ---
 
 ## Current State
 
-The WebUI shell is already useful:
-- `App.js` builds a top bar, sidebar, and page skeletons.
-- `DashboardPage.js` is the homepage.
-- `RpmSettingsPage.js`, `TpsSettingsPage.js`, and `EgtSettingsPage.js` are
-  simulator override pages.
-- Components bind to the central Store via path strings.
-- The layout is mobile-first, constrained to a phone-like max width.
+The application shell is already usable:
+- `App.js` creates the page skeletons and wires `Socket`, `NavigatorManager`,
+  `SidebarManager`, `ModalManager`, and `CommandManager`.
+- `adapter.js` consumes `capabilities` and `telemetry` frames.
+- `paths.js` and `store.js` expose V1 telemetry paths.
+- `mockData.js` emits V1-shaped telemetry for local development.
+- Parser behavior is covered by `adapter.test.js` and
+  `test/adapter-contract.test.mjs`.
 
-The visible homepage is still emulator-oriented:
-- Large RPM gauge.
-- TPS card.
-- EGT card.
-- Ignition advance card.
-- Spark detected card.
-- Quick-shift trigger button.
-- Clicks on RPM/TPS/EGT navigate to override pages.
-
-After the websocket migration, the Store can now receive:
-- RPM, TPS, EGT, water temperature.
-- TPS fallback state.
-- RPM acceleration and synchronization state.
-- Quick-shifter `active` and `armed`.
-- Physical map-switch request.
-- Latest knock summary, when available.
-- Per-sensor metadata: acquisition time, sequence, validity, health, quality,
-  fault bits.
-- Ordered events: quick-shift requests, map-switch changes, fault transitions.
-- Sensor overflow counters.
-- WebSocket transport counters.
-- Connection capabilities: schema version, nominal state rate, events per batch.
+The visible UI is still simulator-oriented:
+- `DashboardPage.js` binds old dashboard fields directly with string paths.
+- RPM, TPS, and EGT taps navigate to override pages.
+- The homepage shows spark detection, which V1 does not expose.
+- The quick-shift button sends a command even though the V1 WebSocket contract
+  only defines ECU-to-UI telemetry frames.
+- `Sidebar.js` renders a fixed simulator menu.
+- The RPM gauge scale is embedded in the page implementation.
 
 ---
 
-## Important ECU Semantics
+## Design Constraints
 
-The UI should not carry over simulator assumptions where the telemetry core is
-more precise:
-
-- `state.map_switch.request` is the physical switch request, not the effective
-  active map.
-- `state.egt.request` and `state.water.request` are sensor-side request levels,
-  not final safety or actuator commands.
-- `state.knock` is a latest summary only. It is not a revolution history stream.
-- Events are ordered observability records. They are not a complete run log.
-- Staleness is not computed by telemetry; the UI should derive it from
-  `t_us`, `meta.acquired_at_us`, `meta.seq`, `meta.valid`, `health`, and
-  `quality`.
-- Spark detection has no V1 equivalent and should be removed from the ECU UI.
-
----
-
-## Proposed Homepage
-
-The homepage should become a live ECU cockpit, not a simulator override panel.
-
-### Top Status Strip
-
-Place a compact status strip below the top bar:
-- WebSocket status and schema version.
-- Telemetry cadence from `connection.state_hz`.
-- Current generation `telemetry.gen`.
-- Frame age derived from the latest `telemetry.t_us`.
-- Transport health from `telemetry.transport`.
-
-This gives immediate confidence that the browser is receiving current ECU data.
-
-### Primary RPM Panel
-
-Keep RPM as the dominant first-viewport element, but adapt it to engine-speed
-telemetry:
-- Large RPM number and arc gauge.
-- Secondary line for synchronized/not synchronized.
-- Small acceleration value (`rpm_accel`) where useful.
-- Health badge from `rpm_meta`.
-- Do not navigate to RPM override on tap in ECU mode. Tapping should open an RPM
-  history/detail view.
-
-### Sensor Card Grid
-
-Replace the current emulator metric grid with ECU sensor cards:
-
-| Card | Primary value | Secondary state |
-| --- | --- | --- |
-| TPS | `telemetry.tps` percent | fallback used, health/quality |
-| EGT | `telemetry.egt` C | thermal state/request, max if later exposed |
-| Water | `telemetry.water_temp` C | thermal state/request |
-| Engine Sync | `telemetry.rpm_synchronized` | RPM acceleration |
-| Quick Shifter | active/armed | last quick-shift event marker |
-| Map Request | Primary/Secondary | label clearly as physical request |
-| Knock | normalized index or candidate flag when present | ignition angle only when knock exists |
-
-Each card should include:
-- A compact validity/health badge.
-- A stale indicator if acquisition time lags behind the frame time.
-- A fault marker when `faultBits` is non-zero.
-- Click action opening the detail/history view for that signal.
-
-### Event Rail
-
-Add a small "recent events" rail below the sensor grid:
-- Last 5 to 8 events from `telemetry.events`.
-- Kind, relative time, and relevant payload summary.
-- Use it for quick-shift requests, map-switch changes, and fault transitions.
-
-This should not replace a diagnostics page; it is a quick situational feed.
-
-### Remove or Move Simulator Controls
-
-The current override affordances should not be first-class ECU controls:
-- RPM/TPS/EGT override badges should be removed from the ECU homepage.
-- The three override pages should be hidden behind a development/simulator mode
-  or removed from the ECU build.
-- The quick-shift trigger may remain only if the ECU command contract supports
-  `{"cmd":"qs_trigger"}` in the current firmware. Otherwise show QS state only.
+- Keep `adapter.js` as the WebSocket boundary. UI code should consume Store
+  paths, not raw WebSocket frames.
+- Use `Paths` constants when touching UI code. Do not add new literal Store
+  path strings inside pages or components.
+- Preserve V1 semantics:
+  - `map_switch.request` is a physical switch request, not the effective active
+    map.
+  - `egt.request` and `water.request` are sensor-side request levels, not final
+    safety commands.
+  - `knock` is only the latest summary. It is not a revolution log.
+  - Events are ordered observability records, not a complete recorded run.
+  - Spark detection has no V1 equivalent and should not appear in the ECU UI.
+- Any display-only constants, such as RPM gauge scale or history retention,
+  should live in a small config module. Do not bury them inside component
+  update methods.
+- Browser history must stay in memory only. Do not write telemetry samples to
+  ECU flash.
 
 ---
 
-## Other Pages
+## Implementation Approach
 
-### Telemetry Details Page
+### 1. Add an ECU UI Mode Boundary
 
-Add a read-only telemetry details page for advanced inspection:
-- Table of all sensors.
-- Current value.
-- `valid`, `health`, `quality`.
-- `seq`, `acquired_at_us`, and derived age.
-- `fault_bits` shown as raw hex/decimal until fault names are mapped.
+The app needs an explicit split between normal ECU mode and local simulator
+mode.
 
-This page is the best place for dense metadata that would overload the homepage.
+Implementation:
+- Add a small app mode value derived from the existing config:
+  - ECU mode when `useMockData` is false.
+  - Development mode when `useMockData` is true.
+- Pass the mode into page registration and sidebar menu construction.
+- Keep override pages available only in development mode.
+- Keep `CommandManager.triggerQs()` out of the normal ECU homepage until a
+  command contract documents that command.
 
-### Events and Diagnostics Page
+Recommended files:
+- `webui/src/js/core/App.js`
+- `webui/src/js/components/Sidebar/Sidebar.js`
+- `webui/src/js/managers/sidebarManager.js`
 
-Add a diagnostics page showing:
-- Full bounded event log.
-- Overflow counters.
-- Transport counters.
-- Capabilities frame details.
+The sidebar should receive menu items as data from the manager or app setup.
+The component should render the provided items instead of owning a fixed list
+of simulator routes.
 
-Use this page to debug dropped frames, source queue overflows, and state gaps.
+### 2. Add Telemetry View Model Helpers
 
-### Development Overrides Page
+Before rewriting `DashboardPage`, add small pure helpers that turn Store values
+into display-ready objects.
 
-If local/mock development remains important, keep RPM/TPS/EGT override pages but
-gate them behind `config.useMockData` or a "Developer" sidebar section. They
-should not be visible in normal ECU mode because the V1 telemetry core is
-read-only and does not expose those override commands.
+Recommended file:
+- `webui/src/js/utils/telemetryViewModel.js`
 
----
+Responsibilities:
+- Build status-strip data from:
+  - `Paths.SOCKET.STATE`
+  - `Paths.CONNECTION.SCHEMA_VERSION`
+  - `Paths.CONNECTION.STATE_HZ`
+  - `Paths.TELEMETRY.GEN`
+  - `Paths.TELEMETRY.TIMESTAMP`
+  - `Paths.TELEMETRY.TRANSPORT`
+- Build sensor-card data from a signal definition and current Store values.
+- Derive age from `telemetry.t_us` and each signal's `meta.acquiredAtUs`.
+- Derive health display from `valid`, `health`, `quality`, and `faultBits`.
+- Format values and units consistently.
 
-## Logging Over Time Feature
-
-The useful near-term feature is browser-side rolling history for live signals.
-This does not require ECU RAM or protocol changes.
-
-### Behavior
-
-- Every telemetry frame appends samples to an in-browser rolling buffer.
-- Each sensor card is clickable.
-- Clicking a card opens a detail view with that signal plotted over time.
-- Event markers are overlaid on the graph.
-- The graph follows live data by default and can pause when the user pans or
-  inspects a point.
-
-### Suggested Initial Signals
-
-Start with:
-- RPM.
-- TPS percent.
-- EGT.
-- Water temperature.
-- RPM acceleration.
-- Quick-shifter active/armed as a stepped digital trace.
-- Knock normalized index when `state.knock` exists.
-
-### Buffering Model
-
-Use a client-only ring buffer:
+Keep the signal list as data, not as repeated card markup:
 
 ```js
-{
-  rpm: [{ tUs, value, meta }],
-  tps: [{ tUs, value, meta }],
-  egt: [{ tUs, value, meta }],
-  water: [{ tUs, value, meta }],
-  qsActive: [{ tUs, value }],
-  events: [{ at_us, kind, ...payload }]
-}
+export const TELEMETRY_SIGNALS = [
+  { id: "rpm", valuePath: Paths.TELEMETRY.RPM, metaPath: Paths.TELEMETRY.RPM_META, unit: "rpm" },
+  { id: "tps", valuePath: Paths.TELEMETRY.TPS, metaPath: Paths.TELEMETRY.TPS_META, unit: "%" },
+  { id: "egt", valuePath: Paths.TELEMETRY.EGT, metaPath: Paths.TELEMETRY.EGT_META, unit: "C" },
+  { id: "water", valuePath: Paths.TELEMETRY.WATER_TEMP, metaPath: Paths.TELEMETRY.WATER_META, unit: "C" },
+  { id: "qs", valuePath: Paths.TELEMETRY.QS_ACTIVE, metaPath: Paths.TELEMETRY.QS_META },
+  { id: "mapRequest", valuePath: Paths.TELEMETRY.MAP_REQUEST, metaPath: Paths.TELEMETRY.MAP_META },
+  { id: "knock", valuePath: Paths.TELEMETRY.KNOCK }
+];
 ```
 
-At 10 Hz, 10 minutes is about 6000 samples per signal. This is reasonable in
-the browser if capped and stored in memory only. Do not persist to ECU flash.
-IndexedDB export can be a later browser-only enhancement.
+This is still explicit, but it keeps labels, paths, units, and detail routing
+in one place instead of spreading them across dashboard markup, sidebar code,
+and chart code.
 
-### UI Shape
+### 3. Add a Browser-Only History Manager
 
-Use a `SensorDetailPage` or modal:
-- Header with sensor name, latest value, and health badge.
-- Main chart using canvas for performance.
-- Time range selector: 30 s, 2 min, 10 min.
-- Toggle event markers.
-- Table of last metadata values below the chart.
+Add a manager that keeps bounded per-signal buffers in memory.
 
-This complements, but does not replace, the future MQTT session logging path
-described in `elaborato.md`.
+Recommended file:
+- `webui/src/js/managers/telemetryHistoryManager.js`
 
----
+Important implementation detail: do not append history samples directly from
+each individual Store subscription callback. `adapter.js` updates several paths
+one after another for the same frame. Sampling each path callback would produce
+partial samples.
 
-## Implementation Phases
+Instead:
+- Subscribe to the relevant telemetry paths.
+- On the first change in a JavaScript turn, schedule one `queueMicrotask()`.
+- In the microtask, read all current Store values.
+- Append one sample per generation, using `telemetry.gen` or `telemetry.t_us` to
+  deduplicate.
 
-1. Create ECU-specific display components:
-   - `TelemetryCard`.
-   - `HealthBadge`.
-   - `RecentEventsRail`.
-   - `MiniSparkline` or `SensorHistoryChart`.
+Suggested API:
 
-2. Add a history manager:
-   - Subscribe to telemetry paths.
-   - Maintain bounded per-signal buffers.
-   - Keep it browser-memory-only.
+```js
+TelemetryHistoryManager.init({ Store, Paths, signals, maxSeconds });
+TelemetryHistoryManager.getSeries(signalId, rangeSeconds);
+TelemetryHistoryManager.getEvents(rangeSeconds);
+TelemetryHistoryManager.clear();
+TelemetryHistoryManager.stop();
+```
 
-3. Rework `DashboardPage`:
-   - Bind all V1 telemetry paths.
-   - Replace override navigation with detail navigation.
-   - Remove spark card.
-   - Add water, quick-shifter, map request, metadata health, and event rail.
+Retention should be derived from `connection.state_hz` when available:
 
-4. Add detail/diagnostic pages:
-   - `SensorDetailPage` for per-sensor graphing.
-   - `TelemetryDiagnosticsPage` for events, overflow, transport, and schema.
+```js
+maxSamples = Math.ceil(stateHz * maxSeconds);
+```
 
-5. Gate emulator pages:
-   - Sidebar shows override pages only in mock/development mode.
-   - Normal ECU mode shows dashboard, sensor details, diagnostics, and future
-     map/OTA pages when their contracts exist.
+Use a default when capabilities have not arrived yet. Keep the default in a
+config module, not inside chart or page code.
+
+### 4. Replace the Dashboard Content
+
+Once the mode boundary and view helpers exist, rework `DashboardPage` around
+V1 telemetry.
+
+Homepage layout:
+- Compact status strip below the top bar.
+- Dominant RPM panel:
+  - RPM value.
+  - Sync state.
+  - RPM acceleration.
+  - RPM health badge.
+- Sensor grid:
+  - TPS, including fallback state.
+  - EGT, including thermal state and request.
+  - Water temperature, including thermal state and request.
+  - Engine sync.
+  - Quick-shifter active and armed state.
+  - Physical map request.
+  - Latest knock summary when present.
+- Recent events rail:
+  - Most recent events from `Paths.TELEMETRY.EVENTS`.
+  - Preserve Store order.
+  - Show concise payload summaries for quick-shift, map-switch, and fault
+    transition events.
+
+Remove from normal ECU mode:
+- Spark card.
+- Override badges.
+- RPM/TPS/EGT tap-to-override navigation.
+- Quick-shift trigger button unless a command contract exists.
+
+For detail navigation, clicking a sensor card should navigate to a read-only
+detail page with the selected signal id in the route data.
+
+### 5. Add Read-Only Detail Pages
+
+Add two pages rather than overloading the homepage.
+
+`SensorDetailPage`:
+- Receives a signal id through `NavigatorManager.navigateTo(pageId, data)`.
+- Uses `TelemetryHistoryManager.getSeries()` for the chart.
+- Shows latest value, health, quality, validity, fault bits, sequence, and age.
+- Uses a canvas chart for live samples and stepped traces for boolean signals.
+- Overlays event markers when they apply to the selected signal.
+
+`TelemetryDiagnosticsPage`:
+- Shows the bounded event log.
+- Shows overflow counters.
+- Shows WebSocket transport counters.
+- Shows capabilities fields.
+- Shows raw fault bits until a fault-bit label map is added from firmware
+  constants.
+
+Recommended files:
+- `webui/src/js/pages/SensorDetailPage.js`
+- `webui/src/js/pages/TelemetryDiagnosticsPage.js`
+
+### 6. Keep Components Small
+
+Add components only where they remove repetition:
+- `StatusStrip`
+- `RpmPanel`
+- `TelemetryCard`
+- `HealthBadge`
+- `RecentEventsRail`
+- `SensorHistoryChart`
+
+Do not create a large abstraction layer around every metric. The existing
+`Component` and `Page` lifecycle is enough.
+
+Recommended files:
+- `webui/src/js/components/StatusStrip/StatusStrip.js`
+- `webui/src/js/components/RpmPanel/RpmPanel.js`
+- `webui/src/js/components/TelemetryCard/TelemetryCard.js`
+- `webui/src/js/components/HealthBadge/HealthBadge.js`
+- `webui/src/js/components/RecentEventsRail/RecentEventsRail.js`
+- `webui/src/js/components/SensorHistoryChart/SensorHistoryChart.js`
+
+### 7. Verification
+
+Keep the existing parser tests and add focused tests for the new non-visual
+logic.
+
+Tests to add:
+- View-model helper formats map request and thermal request without changing
+  their meaning.
+- Health helper marks invalid, degraded, stale, and faulted states correctly.
+- History manager appends one sample per frame even when many Store paths
+  change in one adapter dispatch.
+- History manager keeps bounded buffers when `state_hz` changes.
+- Recent events preserve order.
+
+Manual checks:
+- `npm test`
+- `npm run build`
+- Mock mode still shows development override routes.
+- ECU mode does not show simulator controls.
 
 ---
 
 ## Acceptance Criteria
 
-- Homepage shows all V1 latest-state signals currently available from
+- Normal ECU mode homepage shows V1 latest-state signals available from
   `basic_sensor_telemetry_core.md`.
-- No homepage element presents simulator-only override state in normal ECU mode.
-- No UI label treats physical map request as the active map.
-- No UI label treats thermal request as a final safety command.
-- Sensor cards visibly reflect validity, health, quality, and fault bits.
-- Recent event order is preserved.
-- Clicking a sensor card opens a rolling graph of that signal.
-- Browser-side history is bounded and does not write to ECU flash.
-- Existing WebSocket parser tests continue to pass.
+- No normal ECU homepage element exposes simulator-only override state.
+- No label treats physical map request as active map.
+- No label treats thermal request as a final safety command.
+- Spark detection is absent from the ECU UI.
+- Sensor cards show value, validity, health, quality, age, and fault state.
+- Event order is preserved.
+- Sensor-card navigation opens a read-only rolling-history view.
+- Browser-side history is bounded and memory-only.
+- Existing WebSocket parser tests still pass.
