@@ -7,7 +7,7 @@ This document describes the JavaScript architecture of the ECU Simulator WebUI, 
 ## Architecture Overview
 
 The WebUI uses a clean, decoupled Single Page Application (SPA) architecture written in Vanilla ES6 JavaScript:
-1. **Centralized Reactive State (`core/store.js`)**: All application state resides in a single, path-addressable Store. Components react to state changes by subscribing to specific paths (e.g., `telemetry.rpm`).
+1. **Centralized Reactive State (`core/store.js` & `utils/paths.js`)**: All application state resides in a single, path-addressable Store. The specific path strings are defined in the central constants registry [paths.js](file:///c:/Users/puddu/Documents/Github/ecu-dev-board/idf/webui/src/js/utils/paths.js) (e.g., `Paths.TELEMETRY.RPM` maps to `"telemetry.rpm"`). Components react to state changes by subscribing to these path strings.
 2. **WebSocket Core (`core/socket.js` & `core/adapter.js`)**: Manages the connection, watchdog, background/foreground state, and serializes/deserializes communication with the ESP32.
 3. **Component Lifecycle (`core/Component.js` & `core/Page.js`)**: Standardizes rendering, event binding, reactive subscriptions, sub-components, and deferred asset loading.
 4. **Dedicated Managers (`managers/`)**: Decouple logic for routing (`NavigatorManager`), overlays (`ModalManager`), side drawer (`SidebarManager`), hardware actions (`CommandManager`), image loading (`ImageManager`), and startup sequence (`BootstrapRequestPipeline`).
@@ -258,6 +258,9 @@ graph TD
 ## Behavior Modification Guidelines
 
 When implementing changes to the WebUI application, refer to the following guidelines:
+
+### Adding or Modifying State Paths
+* Store state path keys are maintained in [paths.js](file:///c:/Users/puddu/Documents/Github/ecu-dev-board/idf/webui/src/js/utils/paths.js). Before using or listening to any new state path, define the new key under the `Paths` object in this file to maintain a single source of truth.
 
 ### Modifying Network Protocol or Commands
 * To add a new command sent to the ECU, add a helper function in [commandManager.js](file:///c:/Users/puddu/Documents/Github/ecu-dev-board/idf/webui/src/js/managers/commandManager.js) and call `Socket.send`.
