@@ -8,7 +8,7 @@ The firmware contract is defined in:
 - `docs/telemetry/basic_sensor_telemetry_core.md` — C++ types behind the JSON
 
 The WebUI architecture is described in:
-- `webui/doc/js_architecture.md`
+- `docs/webui/js_architecture.md`
 
 ---
 
@@ -55,10 +55,16 @@ flat payload:
 
 ## Required Changes
 
-### 1. `utils/paths.js`
+### 1. `utils/paths.js` and `core/store.js`
 
 Add all new telemetry path constants. **Existing keys must not be renamed** to
 preserve current UI component bindings.
+
+The current Store implementation validates every `set()`, `get()`, and
+`subscribe()` target against the predeclared state tree. The same V1 leaves
+must therefore be added to the Store initial state and to `Store.reset()`.
+Object-valued leaves such as `telemetry.meta.tps`, `telemetry.overflow`, and
+`telemetry.transport` must be valid Store leaves.
 
 ```js
 export const Paths = {
@@ -328,10 +334,12 @@ spurious watchdog timeouts.
 
 ---
 
-### 4. `App.js` — Mock data generator
+### 4. `utils/mockData.js` — Mock data generator
 
-When `config.useMockData` is true, `App.js` injects a mock telemetry emitter.
-The mock must now emit **V1-shaped frames** instead of `sim_telemetry`:
+When `config.useMockData` is true, `App.js` calls `loadMockData()` and
+`startMockEmulator()` from `utils/mockData.js`. The mock must now emit
+**V1-shaped frames** through `dispatchMessage()` instead of directly mutating
+only the old emulator telemetry keys:
 
 ```js
 // Mock emitter — replace old sim_telemetry generator with:
@@ -419,7 +427,7 @@ dispatchMessage(JSON.stringify({
 
 | Module                         | Reason                                                                  |
 |--------------------------------|-------------------------------------------------------------------------|
-| `core/store.js`                | No changes needed; path strings are just string constants               |
+| `core/store.js`                | Must add V1 leaves because this Store validates paths before writes      |
 | `core/socket.js`               | Connection/reconnect/watchdog logic is protocol-agnostic                |
 | `core/Component.js`, `Page.js` | Lifecycle and reactive subscription system is unaffected                |
 | All UI components / pages      | They subscribe to `Paths.TELEMETRY.*` keys which are preserved          |

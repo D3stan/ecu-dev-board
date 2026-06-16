@@ -1,19 +1,52 @@
-// store.js
 import { SocketState } from "../utils/constants.js";
 
-/**
- * Store centralizzato con pattern Observer e path-based subscription
- * Notifica solo se il valore cambia effettivamente (diff automatico)
- */
-const Store = (() => {
-  // Stato globale dell'applicazione
-  let state = {
+function createInitialState() {
+  return {
     telemetry: {
       rpm: 1200.0,
       tps: 0.0,
       egt: 20.0,
-      ecu_advance: 15.0,
-      spark_detected: true
+      ecu_advance: 0.0,
+      spark_detected: false,
+      t_us: 0,
+      gen: 0,
+      tps_fallback_used: false,
+      rpm_accel: 0.0,
+      rpm_synchronized: false,
+      water_temp: 0.0,
+      water_state: "Unknown",
+      water_request: "Normal",
+      egt_state: "Unknown",
+      egt_request: "Normal",
+      qs_active: false,
+      qs_armed: false,
+      map_request: "Primary",
+      knock: null,
+      meta: {
+        tps: null,
+        rpm: null,
+        egt: null,
+        water: null,
+        qs: null,
+        map: null
+      },
+      overflow: {
+        quick_shift_events: 0,
+        map_switch_events: 0,
+        knock_measurements: 0,
+        fault_events: 0
+      },
+      transport: {
+        sent_frames: 0,
+        dropped_frames: 0,
+        send_errors: 0
+      },
+      events: []
+    },
+    connection: {
+      schema_version: 0,
+      state_hz: 0,
+      events_per_batch: 0
     },
     overrides: {
       tps: { active: false, value: 0.0 },
@@ -25,18 +58,13 @@ const Store = (() => {
       state: SocketState.DISCONNECTED
     }
   };
+}
 
-  // Mappa dei subscriber: { "path": [callback1, callback2, ...] }
+const Store = (() => {
+  let state = createInitialState();
   const listeners = {};
-
-  // Mappa per tracciare quali path sono stati impostati almeno una volta
-  // { "path": true } → path già impostato, false → mai impostato
   const pathInitialized = {};
 
-  /**
-   * Normalizza gli argomenti in una stringa path "a.b.c"
-   * Supporta: get("a", "b", "c") oppure get("a.b.c")
-   */
   function normalizePath(args) {
     if (args.length === 1) {
       if (Array.isArray(args[0])) return args[0].join(".");
@@ -45,10 +73,6 @@ const Store = (() => {
     return Array.from(args).join(".");
   }
 
-  /**
-   * Verifica se un path punta a un valore foglia valido
-   * @returns { valid: boolean, finalValue: any, error: string }
-   */
   function validatePath(path) {
     if (!path || typeof path !== "string") {
       return { valid: false, error: "Path vuoto o non valido" };
@@ -56,49 +80,31 @@ const Store = (() => {
 
     const keys = path.split(".");
     let obj = state;
-    let traversedPath = [];
+    const traversedPath = [];
 
-    for (let i = 0; i < keys.length; i++) {
-      const key = keys[i];
+    for (const key of keys) {
       traversedPath.push(key);
 
       if (obj === undefined || obj === null) {
         return {
           valid: false,
-          error: `Path non valido: ${traversedPath.join(".")} → valore undefined/null`,
+          error: `Path non valido: ${traversedPath.join(".")} -> valore undefined/null`,
         };
       }
 
       if (!(key in obj)) {
         return {
           valid: false,
-          error: `Path non valido: proprietà "${key}" non esiste in ${traversedPath.slice(0, -1).join(".")}`,
+          error: `Path non valido: proprieta "${key}" non esiste in ${traversedPath.slice(0, -1).join(".")}`,
         };
       }
 
       obj = obj[key];
     }
 
-    // Controlla se è un valore foglia (non un oggetto navigabile)
-    // Eccezione: array e oggetti semplici sono considerati valori foglia
-    if (typeof obj === "object" && obj !== null && !Array.isArray(obj)) {
-      // Verifica se è un oggetto con proprietà (non foglia)
-      if (Object.keys(obj).length > 0) {
-        return {
-          valid: false,
-          error: `Path incompleto: ${path} punta a un oggetto con proprietà [${Object.keys(obj).join(", ")}]`,
-        };
-      }
-    }
-
     return { valid: true, finalValue: obj };
   }
 
-  /**
-   * Ottiene il valore di un path nello Store
-   * @example get("runtime.outputs.pumpState")
-   * @example get("runtime", "outputs", "pumpState")
-   */
   function get(...args) {
     const path = normalizePath(args);
     const validation = validatePath(path);
@@ -111,14 +117,8 @@ const Store = (() => {
     return validation.finalValue;
   }
 
-  /**
-   * Imposta un valore nello Store e notifica i subscriber
-   * Notifica SOLO se il valore cambia effettivamente (diff automatico)
-   * @example set("runtime.outputs.pumpState", PumpState.ON)
-   * @example set("runtime", "outputs", "pumpState", PumpState.ON)
-   */
   function set(...args) {
-    const value = args.pop(); // ultimo argomento = valore
+    const value = args.pop();
     const path = normalizePath(args);
 
     if (!path) {
@@ -127,10 +127,9 @@ const Store = (() => {
     }
 
     const keys = path.split(".");
-
-    // Naviga fino al penultimo livello
     let obj = state;
-    for (let i = 0; i < keys.length - 1; i++) {
+
+    for (let i = 0; i < keys.length - 1; i += 1) {
       const key = keys[i];
       if (!(key in obj)) {
         console.error(`[Store.set] Path non valido: ${path} (errore a "${key}")`);
@@ -140,35 +139,26 @@ const Store = (() => {
     }
 
     const lastKey = keys[keys.length - 1];
-
     if (!(lastKey in obj)) {
-      console.error(`[Store.set] Path non valido: ${path} (proprietà "${lastKey}" non esiste)`);
+      console.error(`[Store.set] Path non valido: ${path} (proprieta "${lastKey}" non esiste)`);
       throw new Error(`[Store.set] Path non valido: ${path}`);
     }
 
     const oldValue = obj[lastKey];
-    
-    // Verifica se questo path è mai stato impostato prima
     const isFirstSet = !pathInitialized[path];
 
-    // ⚠️ DIFF: notifica SOLO se il valore cambia O se è la prima volta che viene impostato
-    // EXCEPTION 1: config.menu SEMPRE notificato (menu può cambiare anche con stessa struttura)
-    // EXCEPTION 2: Prima impostazione SEMPRE notificata (per inizializzazione corretta UI)
-    if (path !== 'config.menu' && !isFirstSet && oldValue === value) {
-      return; // Nessun cambiamento e già inizializzato → non notificare
+    if (path !== "config.menu" && !isFirstSet && oldValue === value) {
+      return;
     }
 
-    // Aggiorna il valore
     obj[lastKey] = value;
-    
-    // Marca il path come inizializzato
+
     if (isFirstSet) {
       pathInitialized[path] = true;
     }
 
-    // Notifica i subscriber del path specifico
     if (listeners[path]) {
-      listeners[path].forEach((callback, index) => {
+      listeners[path].forEach((callback) => {
         try {
           callback(value, oldValue);
         } catch (err) {
@@ -178,13 +168,6 @@ const Store = (() => {
     }
   }
 
-  /**
-   * Registra un callback per essere notificato quando un path cambia
-   * @param {string} path - Path completo al valore (es: "runtime.outputs.pumpState")
-   * @param {function} callback - Funzione chiamata con (newValue, oldValue)
-   * @param {boolean} immediate - Se true, triggera immediatamente il callback con il valore corrente (default: true)
-   * @returns {function} unsubscribe function
-   */
   function subscribe(path, callback, immediate = true) {
     if (typeof path !== "string") {
       console.error("[Store.subscribe] Path deve essere una stringa", path);
@@ -196,26 +179,20 @@ const Store = (() => {
       throw new Error("[Store.subscribe] Callback deve essere una funzione");
     }
 
-    // Valida che il path esista
     const validation = validatePath(path);
     if (!validation.valid) {
       console.error(`[Store.subscribe] ${validation.error}`);
       throw new Error(`[Store.subscribe] ${validation.error}`);
     }
 
-    // Crea l'array di listener se non esiste
     if (!listeners[path]) {
       listeners[path] = [];
     }
 
-    // Aggiungi il callback
     listeners[path].push(callback);
 
-    // 🔥 IMMEDIATE TRIGGER: Se richiesto, triggera subito il callback con il valore corrente
-    if (immediate && validation.valid) {
+    if (immediate) {
       const currentValue = validation.finalValue;
-      
-      // Triggera il callback in modo asincrono per evitare side-effects durante la subscription
       setTimeout(() => {
         try {
           callback(currentValue, undefined);
@@ -225,73 +202,40 @@ const Store = (() => {
       }, 0);
     }
 
-    // Ritorna la funzione di unsubscribe
     return () => {
       const idx = listeners[path].indexOf(callback);
       if (idx >= 0) {
         listeners[path].splice(idx, 1);
       }
 
-      // Cleanup: rimuovi l'array se vuoto
       if (listeners[path].length === 0) {
         delete listeners[path];
       }
     };
   }
 
-  /**
-   * Ritorna una copia profonda dello stato (per debug/logging)
-   */
   function getState() {
     return JSON.parse(JSON.stringify(state));
   }
 
-  /**
-   * Reset dello stato (per test o riconnessione)
-   */
   function reset() {
-    state.telemetry = {
-      rpm: 1200.0,
-      tps: 0.0,
-      egt: 20.0,
-      ecu_advance: 15.0,
-      spark_detected: true
-    };
-    state.overrides = {
-      tps: { active: false, value: 0.0 },
-      egt: { active: false, value: 20.0 },
-      rpm: { active: false, value: 1200.0 },
-      egt_fault: { active: false }
-    };
-    state.socket.state = SocketState.DISCONNECTED;
-
-    // ⚠️ Reset anche la mappa di inizializzazione per forzare re-notifica dopo reset
-    Object.keys(pathInitialized).forEach(key => delete pathInitialized[key]);
+    state = createInitialState();
+    Object.keys(pathInitialized).forEach((key) => delete pathInitialized[key]);
   }
 
-  /**
-   * Metodo di debug per vedere tutti i listener attivi
-   */
   function _debugListeners() {
-    return Object.keys(listeners).map(path => ({
+    return Object.keys(listeners).map((path) => ({
       path,
       count: listeners[path].length
     }));
   }
 
-  /**
-   * Forza il replay di tutti i listener attivi usando i valori correnti dello Store.
-   * - Non usa set()
-   * - Non modifica lo stato
-   * - Non modifica pathInitialized
-   * - Usa una fotografia stabile dei listener al momento della chiamata
-   */
   function updateAllListeners() {
-    const activePaths = Object.keys(listeners).filter(path =>
+    const activePaths = Object.keys(listeners).filter((path) =>
       Array.isArray(listeners[path]) && listeners[path].length > 0
     );
 
-    const listenersSnapshot = activePaths.map(path => ({
+    const listenersSnapshot = activePaths.map((path) => ({
       path,
       callbacks: listeners[path].slice()
     }));
@@ -301,7 +245,7 @@ const Store = (() => {
       try {
         currentValue = get(path);
       } catch (err) {
-        console.error(`[STORE] updateAllListeners() skip path \"${path}\" (get error):`, err);
+        console.error(`[STORE] updateAllListeners() skip path "${path}" (get error):`, err);
         continue;
       }
 
@@ -309,7 +253,7 @@ const Store = (() => {
         try {
           callback(currentValue, undefined);
         } catch (err) {
-          console.error(`[STORE] updateAllListeners() callback error path=\"${path}\" #${index + 1}/${callbacks.length}:`, err);
+          console.error(`[STORE] updateAllListeners() callback error path="${path}" #${index + 1}/${callbacks.length}:`, err);
         }
       });
     }
