@@ -1,0 +1,321 @@
+/* ============================================================
+   DASHBOARD PAGE STYLES
+   ============================================================ */
+
+.dashboard-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 0.5rem 0.75rem 1.5rem 0.75rem;
+  width: 100%;
+}
+
+/* HERO SECTION (RPM GAUGE) */
+.hero-section {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem 0;
+  width: 100%;
+}
+
+.rpm-gauge-wrapper {
+  background: var(--card);
+  border-radius: 1.5rem;
+  padding: 1.5rem;
+  box-shadow: var(--shadow-lg);
+  border: 2px solid transparent;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  max-width: 18rem;
+}
+
+.rpm-gauge-wrapper.interactive:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 20px -8px rgba(13, 43, 69, 0.15);
+  border-color: var(--ring);
+}
+
+.rpm-gauge-wrapper.override-active {
+  border-color: var(--accent, #3B82F6);
+  background: linear-gradient(180deg, var(--card) 0%, rgba(59, 130, 246, 0.03) 100%);
+}
+
+.rpm-gauge-container {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.rpm-gauge-svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(0deg);
+}
+
+.gauge-track {
+  stroke: var(--surface);
+  stroke-width: 10;
+}
+
+.gauge-fill {
+  stroke: var(--accent, #3B82F6);
+  stroke-width: 10;
+  transition: stroke-dashoffset 0.1s ease-out, stroke 0.3s ease;
+}
+
+.rpm-gauge-wrapper.override-active .gauge-fill {
+  stroke: #10b981; /* Green when overridden */
+}
+
+.gauge-text-container {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -40%);
+  width: 80%;
+}
+
+.gauge-value {
+  font-size: 2.25rem;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1.1;
+  font-feature-settings: "tnum";
+}
+
+.gauge-unit {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.gauge-badge {
+  margin-top: 0.5rem;
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 0.2rem 0.6rem;
+  border-radius: 10rem;
+  background: var(--surface);
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+  transition: all 0.2s ease;
+}
+
+.gauge-badge.active {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+}
+
+/* QUICK-SHIFT TRIGGER */
+.qs-trigger-section {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.qs-btn {
+  width: 100%;
+  background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 1rem;
+  padding: 1rem 1.5rem;
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(239, 68, 68, 0.25);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.qs-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(239, 68, 68, 0.35);
+  filter: brightness(1.05);
+}
+
+.qs-btn:active, .qs-btn.active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 6px rgba(239, 68, 68, 0.15);
+  filter: brightness(0.95);
+}
+
+.qs-icon {
+  font-size: 1.25rem;
+  animation: sparkFlash 2s infinite ease-in-out;
+}
+
+/* METRICS GRID */
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.875rem;
+  width: 100%;
+}
+
+.metric-card {
+  background: var(--card);
+  border-radius: 1.25rem;
+  padding: 1rem 1.125rem;
+  box-shadow: var(--shadow);
+  border: 2px solid transparent;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 0.5rem;
+  min-height: 7.5rem;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.metric-card.interactive {
+  cursor: pointer;
+}
+
+.metric-card.interactive:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--ring);
+}
+
+.metric-card.override-active {
+  border-color: #10b981;
+}
+
+.metric-card.fault-active {
+  border-color: var(--danger);
+  animation: faultPulse 1.5s infinite ease-in-out;
+}
+
+.metric-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.metric-title {
+  font-size: 0.725rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  line-height: 1.2;
+}
+
+.status-indicator {
+  font-size: 0.575rem;
+  font-weight: 800;
+  padding: 0.1rem 0.4rem;
+  border-radius: 0.25rem;
+  background: var(--surface);
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
+}
+
+.status-indicator.active {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+}
+
+.metric-body {
+  display: flex;
+  align-items: baseline;
+  gap: 0.125rem;
+}
+
+.metric-value {
+  font-size: 1.625rem;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1;
+}
+
+.metric-unit {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.metric-footer {
+  font-size: 0.675rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+/* SPARK DETECTION LED */
+.spark-status-body {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.25rem 0;
+}
+
+.spark-led {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 50%;
+  background-color: var(--border);
+  transition: all 0.2s ease;
+}
+
+.spark-led.active {
+  background-color: #10b981;
+  box-shadow: 0 0 8px #10b981;
+}
+
+.spark-led.pulsing {
+  animation: ledPulse 0.4s infinite alternate;
+}
+
+.spark-text {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--text);
+}
+
+/* KEYFRAMES */
+@keyframes ledPulse {
+  0% {
+    opacity: 0.6;
+    box-shadow: 0 0 4px #10b981;
+  }
+  100% {
+    opacity: 1;
+    box-shadow: 0 0 12px #10b981;
+  }
+}
+
+@keyframes faultPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 6px rgba(239, 68, 68, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+  }
+}
+
+@keyframes sparkFlash {
+  0%, 100% { opacity: 0.8; }
+  50% { opacity: 1; transform: scale(1.1); }
+}

@@ -1,0 +1,193 @@
+/**
+ * GanttChart.css
+ * ==============
+ * Styling per il componente GanttChart
+ * Grafico Gantt settimanale con 3 slides (00-07, 08-15, 16-23)
+ */
+
+/* ============= GANTT CHART ============= */
+.gantt-section {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 1rem;
+  padding-bottom: .5rem;
+  padding-left: .5rem;
+  box-shadow: var(--shadow);
+  overflow: visible; /* Allow content to flow naturally for page scroll */
+  margin-bottom: 1rem; /* Add spacing before TimeSlotRender */
+}
+
+.gantt-carousel {
+  position: relative;
+  overflow: hidden;
+}
+
+.gantt-carousel-inner {
+  display: flex;
+  transition: transform 300ms ease;
+}
+
+.gantt-slide {
+  min-width: 100%;
+  flex-shrink: 0;
+}
+
+.gantt-container {
+  min-width: 100%;
+}
+
+.gantt-header {
+  display: grid;
+  grid-template-columns: 1.5rem 1fr;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.gantt-day-label {
+  width: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.75rem;
+  color: var(--text);
+  transition: all 150ms;
+}
+
+/* Current day highlight */
+.gantt-day-label.current-day {
+  transform: scale(1.5);
+  color: #2ecfff;
+}
+
+.gantt-time-axis {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  position: relative;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--border);
+}
+
+.time-marker {
+  font-size: 0.575rem;
+  color: var(--text-muted);
+  text-align: center;
+  font-weight: 600;
+  padding: 0.125rem 0;
+  position: relative;
+}
+
+.time-marker::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 100%;
+  width: 1px;
+  height: 0.25rem;
+  background: var(--border);
+}
+
+.gantt-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding-top: 0.5rem;
+}
+
+.gantt-row {
+  display: grid;
+  grid-template-columns: 1.5rem 1fr;
+  gap: 0.5rem;
+  min-height: 1.25rem;
+}
+
+.gantt-timeline {
+  position: relative;
+  background: var(--bg);
+  border-radius: 4rem;
+  min-height: 1.25rem;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+
+.gantt-bar {
+  position: absolute;
+  height: 1rem;
+  background: var(--brand);
+  border-radius: 4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0.75rem;
+  color: white;
+  font-size: 0.6rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 150ms;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.gantt-bar:hover {
+  background: var(--brand-light);
+  transform: scale(1.02);
+}
+
+/* Active slot highlight (current time) */
+.gantt-bar.active {
+  background: #2ecfff;
+}
+
+.gantt-bar.active:hover {
+  background: #1eb8e6;
+}
+
+.bar-time {
+  white-space: nowrap;
+}
+
+/* Carousel dots for gantt */
+.carousel-dots.gantt-dots {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.gantt-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--border);
+  cursor: pointer;
+  transition: all 150ms;
+}
+
+.gantt-dot.active {
+  background: var(--brand);
+  width: 1.5rem;
+  border-radius: 0.25rem;
+}
+
+/* ============= RESPONSIVE ============= */
+@media (max-width: 600px) {
+  .gantt-section {
+    padding: 0.75rem;
+    padding-bottom: 0.5rem;
+    padding-left: 0.5rem;
+  }
+  
+  .gantt-day-label {
+    font-size: 0.7rem;
+  }
+  
+  .time-marker {
+    font-size: 0.5rem;
+  }
+  
+  .gantt-bar {
+    font-size: 0.55rem;
+    padding: 0 0.5rem;
+  }
+}

@@ -1,0 +1,261 @@
+/**
+ * ModeSelector.css
+ * ================
+ * Stili per il componente ModeSelector (Mode Selector Section).
+ * 
+ * Features:
+ * - Responsive grid layout (6 buttons → 3×2 → 2×3 → stacked)
+ * - Three-state buttons (disabled, enabled-inactive, enabled-active)
+ * - Pump badge integration in header
+ * - Dark mode support
+ * 
+ * @author FogExtra Team
+ * @version 1.0.0
+ */
+
+/* ============================================
+   SECTION CONTAINER
+   ============================================ */
+
+.mode-section {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 1rem;
+  box-shadow: var(--shadow);
+}
+
+/* ============================================
+   HEADER (Title + Pump Badge)
+   ============================================ */
+
+.mode-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.mode-title-left {
+  font-weight: 700;
+  font-size: 1.25rem;
+  color: var(--text);
+}
+
+/* Pump Badge Styles */
+.pump-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.75rem 0.25rem 0.5rem;
+  border-radius: 1.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: 1px solid transparent;
+  background: var(--bg);
+  color: var(--text);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+
+.pump-badge-icon {
+  width: 1.75rem;
+  height: 1.75rem;
+  object-fit: contain;
+  transition: filter 150ms ease;
+}
+
+/* Color variants for pump states */
+.pump-badge.on {
+  background: rgba(16, 185, 129, 0.2);
+  border-color: rgba(16, 185, 129, 0.4);
+  color: #059669;
+}
+
+.pump-badge.on .pump-badge-icon {
+  filter: invert(46%) sepia(77%) saturate(502%) hue-rotate(103deg) brightness(93%) contrast(96%);
+}
+
+.pump-badge.off {
+  background: rgba(100, 116, 139, 0.2);
+  border-color: rgba(100, 116, 139, 0.3);
+  color: #475569;
+}
+
+.pump-badge.off .pump-badge-icon {
+  filter: invert(33%) sepia(11%) saturate(705%) hue-rotate(179deg) brightness(94%) contrast(89%);
+}
+
+.pump-badge.warning {
+  background: rgba(245, 158, 11, 0.2);
+  border-color: rgba(245, 158, 11, 0.3);
+  color: #d97706;
+}
+
+.pump-badge.warning .pump-badge-icon {
+  filter: invert(55%) sepia(98%) saturate(1379%) hue-rotate(0deg) brightness(98%) contrast(91%);
+}
+
+.pump-badge.error {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #dc2626;
+}
+
+.pump-badge.error .pump-badge-icon {
+  filter: invert(21%) sepia(88%) saturate(2905%) hue-rotate(347deg) brightness(93%) contrast(88%);
+}
+
+.pump-badge.testing {
+  background: rgba(59, 130, 246, 0.2);
+  border-color: rgba(59, 130, 246, 0.3);
+  color: #2563eb;
+}
+
+.pump-badge.testing .pump-badge-icon {
+  filter: invert(35%) sepia(94%) saturate(1844%) hue-rotate(206deg) brightness(98%) contrast(91%);
+}
+
+/* ============================================
+   MODE GRID (Responsive Layout)
+   ============================================ */
+
+.mode-grid {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+/* ============================================
+   MODE INSTRUCTION (Card under buttons)
+   ============================================ */
+
+.mode-instruction-card {
+  background: var(--bg);
+  border-radius: 0.75rem;
+  padding: 0.65rem 1rem;
+  margin-top: 0.75rem;
+  display: grid;
+  place-items: center;
+}
+
+.mode-instruction {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* ============================================
+   MODE ITEM (Container for each button)
+   ============================================ */
+
+.mode-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  /* Width calculation for responsive grid */
+  /* Default: 4 items per row */
+  flex: 0 0 calc((100% - 1.5rem) / 4);
+}
+
+/* Responsive: 2 items per row on small screens */
+@media (max-width: 260px) {
+  .mode-item {
+    flex: 0 0 calc((100% - 0.5rem) / 2);
+  }
+}
+
+/* Mode label under button */
+.mode-label {
+  font-size: 0.65rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+/* ============================================
+   MODE BUTTON (Base Styles)
+   ============================================ */
+
+.mode-btn {
+  width: 3.25rem;
+  aspect-ratio: 1;
+  border-radius: 1rem;
+  border: 1px solid var(--ring);
+  background: var(--icon-bg);
+  display: grid;
+  place-items: center;
+  position: relative;
+  cursor: pointer;
+  transition: transform 0.05s linear;
+}
+
+.mode-btn:active {
+  transform: scale(0.98);
+}
+
+.mode-btn img {
+  width: 1.75rem;
+  height: 1.75rem;
+  object-fit: contain;
+}
+
+/* ============================================
+   MODE BUTTON STATES
+   ============================================ */
+
+/* DISABLED State - blue border like OFF, but desaturated icon */
+.mode-item.disabled .mode-btn {
+  background: var(--bg);
+  outline: 0.125rem solid var(--ring);
+  cursor: not-allowed;
+}
+
+.mode-item.disabled .mode-btn img {
+  opacity: 0.4;
+  filter: grayscale(100%);
+}
+
+/* ENABLED but INACTIVE State */
+.mode-item.enabled-inactive .mode-btn {
+  background: var(--bg);
+  outline: 0.125rem solid var(--ring);
+}
+
+/* ACTIVE State */
+.mode-item.enabled-active .mode-btn {
+  background: var(--brand);
+  border-color: transparent;
+}
+
+.mode-item.enabled-active .mode-btn img {
+  filter: brightness(0) invert(1);
+}
+
+/* ============================================
+   DARK MODE SUPPORT
+   ============================================ */
+
+/* Dark mode icon inversion for pump badge */
+[data-theme="dark"] .pump-badge-icon {
+  filter: invert(1);
+}
+
+/* Dark mode - preserve colors for active/warning/error states */
+[data-theme="dark"] .pump-badge.on .pump-badge-icon,
+[data-theme="dark"] .pump-badge.warning .pump-badge-icon,
+[data-theme="dark"] .pump-badge.error .pump-badge-icon,
+[data-theme="dark"] .pump-badge.testing .pump-badge-icon {
+  filter: none;
+}
+
+/* Dark mode - disabled icons should be white (inverted) */
+[data-theme="dark"] .mode-item.disabled .mode-btn img {
+  filter: grayscale(100%) invert(1);
+}
