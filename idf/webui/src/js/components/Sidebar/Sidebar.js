@@ -23,6 +23,11 @@ export class Sidebar extends Component {
     this.activeItemId = config.activeItemId || 'dashboardPage';
     this.onItemClick = config.onItemClick || (() => {});
     this.onClose = config.onClose || (() => {});
+    this.brand = config.brand || "ECU WEBUI";
+    this.footerLabel = config.footerLabel || "ECU Dev Board";
+    this.items = Array.isArray(config.items) && config.items.length > 0
+      ? config.items
+      : defaultItems();
     
     // DOM references
     this.overlayEl = null;
@@ -87,7 +92,7 @@ export class Sidebar extends Component {
         
         <div class="sidebar">
           <div class="sidebar-header">
-            <div class="sidebar-brand">ECU SIMULATOR</div>
+            <div class="sidebar-brand">${escapeHtml(this.brand)}</div>
             
             <button class="sidebar-close-btn" aria-label="Close menu">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -104,7 +109,7 @@ export class Sidebar extends Component {
           </div>
           
           <div class="sidebar-footer">
-            <div class="sidebar-version">ECU Dev Board HIL</div>
+            <div class="sidebar-version">${escapeHtml(this.footerLabel)}</div>
           </div>
         </div>
       </div>
@@ -116,25 +121,23 @@ export class Sidebar extends Component {
    * @private
    */
   _renderMenuItems() {
-    const items = [
-      { id: 'dashboardPage', label: 'Dashboard', icon: 'icon-thermo', route: 'dashboardPage' },
-      { id: 'rpmSettingsPage', label: 'RPM Override', icon: 'icon-timer', route: 'rpmSettingsPage' },
-      { id: 'tpsSettingsPage', label: 'TPS Override', icon: 'icon-fan', route: 'tpsSettingsPage' },
-      { id: 'egtSettingsPage', label: 'EGT Override', icon: 'icon-humidity', route: 'egtSettingsPage' }
-    ];
+    return this.items.map(item => {
+      if (item.type === "section") {
+        return `<div class="sidebar-section-title">${escapeHtml(item.label || "")}</div>`;
+      }
 
-    return items.map(item => {
       const isActive = item.id === this.activeItemId;
       const activeClass = isActive ? 'active' : '';
       return `
-        <div class="sidebar-item ${activeClass}" 
-             data-menu-id="${item.id}" 
-             data-route="${item.route}">
+        <button class="sidebar-item ${activeClass}"
+             type="button"
+             data-menu-id="${escapeHtml(item.id)}"
+             data-route="${escapeHtml(item.route || "")}">
           <div class="sidebar-item-icon">
-            <img data-asset-key="${item.icon}" alt="${item.label}" />
+            <img data-asset-key="${escapeHtml(item.icon)}" alt="${escapeHtml(item.label)}" />
           </div>
-          <span class="sidebar-item-label">${item.label}</span>
-        </div>
+          <span class="sidebar-item-label">${escapeHtml(item.label)}</span>
+        </button>
       `;
     }).join('');
   }
@@ -219,6 +222,21 @@ export class Sidebar extends Component {
       }
     });
   }
+}
+
+function defaultItems() {
+  return [
+    { id: 'dashboardPage', label: 'Dashboard', icon: 'icon-thermo', route: 'dashboardPage' }
+  ];
+}
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
 }
 
 export default Sidebar;

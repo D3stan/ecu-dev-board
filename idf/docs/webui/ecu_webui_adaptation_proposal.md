@@ -130,7 +130,7 @@ and chart code.
 Add a manager that keeps bounded per-signal buffers in memory.
 
 Recommended file:
-- `webui/src/js/managers/telemetryHistoryManager.js`
+- `webui/src/js/managers/TelemetryHistoryManager.js`
 
 Important implementation detail: do not append history samples directly from
 each individual Store subscription callback. `adapter.js` updates several paths

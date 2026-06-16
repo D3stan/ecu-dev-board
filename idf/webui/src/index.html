@@ -11,7 +11,7 @@
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
   
-  <title>ECU Simulator Control Center</title>
+  <title>ECU WebUI</title>
   
   <!-- Applica tema salvato IMMEDIATAMENTE per evitare flash -->
   <script>
@@ -45,9 +45,11 @@
   <link rel="stylesheet" href="./css/components/LoadingSpinner.css">
   <link rel="stylesheet" href="./css/components/Badge.css">
   <link rel="stylesheet" href="./css/components/Banner.css">
+  <link rel="stylesheet" href="./css/components/RecentEventsRail.css">
   
   <!-- Page Styles -->
   <link rel="stylesheet" href="./css/pages/DashboardPage.css">
+  <link rel="stylesheet" href="./css/pages/TelemetryPages.css">
   <link rel="stylesheet" href="./css/pages/RpmSettingsPage.css">
   <link rel="stylesheet" href="./css/pages/TpsSettingsPage.css">
   <link rel="stylesheet" href="./css/pages/EgtSettingsPage.css">
@@ -89,24 +91,11 @@
        JAVASCRIPT BOOTSTRAP
        ============================================ -->
   
-  <!-- Configurazione Socket (FASE 1: MAC rimosso, URL auto-detect) -->
+  <!-- Runtime configuration -->
   <script>
-    // FASE 1+4: Auto-detect WebSocket URL da window.location.hostname
-    // MAC completamente rimosso — zero retrocompatibilità
-    // STABILITY FIX: WS URL computed entirely in browser — no server templating
-
-    const isDev = true;
-
-    if (!isDev) {
-      window.APP_CONFIG = {
-        socketUrl: window.location.hostname + "/ws"
-      };
-    } else {
-      window.APP_CONFIG = {
-        socketUrl: "192.168.4.1/ws" // Default ESP32 AP mode IP
-      };
-    }
-
+    window.APP_CONFIG = {
+      socketUrl: window.location.host + "/ws"
+    };
   </script>
   
   <!-- Main application bootstrap -->

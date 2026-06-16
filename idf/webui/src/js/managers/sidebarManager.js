@@ -132,7 +132,7 @@ export function getActiveItem() {
 /**
  * Inizializza il SidebarManager
  */
-export function init() {
+export function init(options = {}) {
   if (state.initialized) {
     log.warn('[SidebarManager] already initialized — skipping duplicate init');
     return;
@@ -143,6 +143,9 @@ export function init() {
   // Crea il componente Sidebar
   state.sidebar = new Sidebar({
     activeItemId: state.activeItemId,
+    brand: options.brand,
+    footerLabel: options.footerLabel,
+    items: options.menuItems,
     onItemClick: handleItemClick,
     onClose: handleClose
   });

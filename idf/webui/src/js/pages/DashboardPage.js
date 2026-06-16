@@ -1,72 +1,93 @@
-/**
- * DashboardPage.js
- * ================
- * Redesigned Main Dashboard Page for the ECU Simulator.
- * Features a large centered RPM arc gauge, spark indicator,
- * telemetry metrics grid, and Quick-Shift trigger.
- */
+import { Page } from "../core/Page.js";
+import { CommandManager } from "../managers/commandManager.js";
+import { NavigatorManager } from "../managers/navigatorManager.js";
+import { RecentEventsRail } from "../components/RecentEventsRail/RecentEventsRail.js";
+import { AppMode, TelemetryUiConfig } from "../utils/telemetryConfig.js";
+import { Paths } from "../utils/paths.js";
+import {
+  formatDurationMs,
+  formatFaultBits,
+  formatMetaAge,
+  formatNumber,
+  formatPercent,
+  formatRpm,
+  formatSigned,
+  formatTemp,
+  healthState
+} from "../utils/telemetryFormat.js";
 
-import { Page } from '../core/Page.js';
-import { log } from '../utils/logger.js';
-import { NavigatorManager } from '../managers/navigatorManager.js';
-import { CommandManager } from '../managers/commandManager.js';
+const MAX_RPM = TelemetryUiConfig.rpmGaugeMax;
+const GAUGE_STROKE = 377;
 
 export class DashboardPage extends Page {
   constructor(options = {}) {
     super({
-      id: 'dashboardPage',
-      title: 'ECU Dashboard',
+      id: "dashboardPage",
+      title: "ECU Dashboard",
       showBackButton: false,
       bindings: {
-        rpm: 'telemetry.rpm',
-        tps: 'telemetry.tps',
-        egt: 'telemetry.egt',
-        ecu_advance: 'telemetry.ecu_advance',
-        spark_detected: 'telemetry.spark_detected',
-        tpsOverrideActive: 'overrides.tps.active',
-        egtOverrideActive: 'overrides.egt.active',
-        rpmOverrideActive: 'overrides.rpm.active',
-        egtFaultActive: 'overrides.egt_fault.active'
+        socketStatus: Paths.SOCKET.STATE,
+        schemaVersion: Paths.CONNECTION.SCHEMA_VERSION,
+        stateHz: Paths.CONNECTION.STATE_HZ,
+        eventsPerBatch: Paths.CONNECTION.EVENTS_PER_BATCH,
+        frameTUs: Paths.TELEMETRY.TIMESTAMP,
+        gen: Paths.TELEMETRY.GEN,
+        rpm: Paths.TELEMETRY.RPM,
+        rpmAccel: Paths.TELEMETRY.RPM_ACCEL,
+        rpmSynchronized: Paths.TELEMETRY.RPM_SYNCHRONIZED,
+        rpmMeta: Paths.TELEMETRY.RPM_META,
+        tps: Paths.TELEMETRY.TPS,
+        tpsFallbackUsed: Paths.TELEMETRY.TPS_FALLBACK_USED,
+        tpsMeta: Paths.TELEMETRY.TPS_META,
+        egt: Paths.TELEMETRY.EGT,
+        egtState: Paths.TELEMETRY.EGT_STATE,
+        egtRequest: Paths.TELEMETRY.EGT_REQUEST,
+        egtMeta: Paths.TELEMETRY.EGT_META,
+        waterTemp: Paths.TELEMETRY.WATER_TEMP,
+        waterState: Paths.TELEMETRY.WATER_STATE,
+        waterRequest: Paths.TELEMETRY.WATER_REQUEST,
+        waterMeta: Paths.TELEMETRY.WATER_META,
+        qsActive: Paths.TELEMETRY.QS_ACTIVE,
+        qsArmed: Paths.TELEMETRY.QS_ARMED,
+        qsMeta: Paths.TELEMETRY.QS_META,
+        mapRequest: Paths.TELEMETRY.MAP_REQUEST,
+        mapMeta: Paths.TELEMETRY.MAP_META,
+        knock: Paths.TELEMETRY.KNOCK,
+        transport: Paths.TELEMETRY.TRANSPORT,
+        overflow: Paths.TELEMETRY.OVERFLOW
       },
       ...options
     });
+
+    this.showDevActions = options.appMode === AppMode.DEVELOPMENT || Boolean(options.showDevActions);
+    this.recentEventsRail = null;
+    this.lastFrameReceivedMs = null;
+    this.ageTimerId = null;
+  }
+
+  onMount() {
+    const railHost = this.$("#recent-events-root");
+    if (!railHost) return;
+
+    this.recentEventsRail = new RecentEventsRail();
+    this.recentEventsRail.mount(railHost);
+    this.recentEventsRail.bindEvents();
   }
 
   onBindEvents() {
-    log.debug('DashboardPage', 'onBindEvents');
-
-    // Click handlers for navigating to override pages
-    const rpmTrigger = this.el.querySelector('#rpm-gauge-trigger');
-    if (rpmTrigger) {
-      rpmTrigger.addEventListener('click', () => {
-        NavigatorManager.navigateTo('rpmSettingsPage');
+    this.$$("[data-signal]").forEach((element) => {
+      this.addEventListener(element, "click", () => {
+        const signal = element.getAttribute("data-signal");
+        NavigatorManager.navigateTo("sensorDetailPage", { signal });
       });
-    }
+    });
 
-    const tpsCard = this.el.querySelector('#tps-card');
-    if (tpsCard) {
-      tpsCard.addEventListener('click', () => {
-        NavigatorManager.navigateTo('tpsSettingsPage');
-      });
-    }
-
-    const egtCard = this.el.querySelector('#egt-card');
-    if (egtCard) {
-      egtCard.addEventListener('click', () => {
-        NavigatorManager.navigateTo('egtSettingsPage');
-      });
-    }
-
-    // Quick-shift trigger button click handler
-    const qsBtn = this.el.querySelector('#qs-trigger-btn');
-    if (qsBtn) {
-      qsBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        
-        // Visual button trigger effect
-        qsBtn.classList.add('active');
-        setTimeout(() => qsBtn.classList.remove('active'), 150);
-
+    const qsButton = this.$("#qs-trigger-btn");
+    if (qsButton && this.showDevActions) {
+      this.addEventListener(qsButton, "click", (event) => {
+        event.stopPropagation();
+        qsButton.classList.add("active");
+        setTimeout(() => qsButton.classList.remove("active"), 150);
         CommandManager.triggerQs();
       });
     }
@@ -74,315 +95,221 @@ export class DashboardPage extends Page {
 
   onActivate() {
     super.onActivate();
-    log.debug('DashboardPage', 'Activated');
-    this._updateAll();
+    if (this.data.gen) this.lastFrameReceivedMs = Date.now();
+    if (this.recentEventsRail) this.recentEventsRail.activate();
+
+    this.ageTimerId = setInterval(() => this._updateFrameAge(), 1000);
+    this.update();
   }
 
-  onDataChange(key, newValue) {
-    if (!this.el) return;
+  onDeactivate() {
+    if (this.ageTimerId) {
+      clearInterval(this.ageTimerId);
+      this.ageTimerId = null;
+    }
 
-    switch (key) {
-      case 'rpm':
-        this._updateRpmGauge(newValue);
-        break;
-      case 'tps':
-        this._updateTpsCard(newValue);
-        break;
-      case 'egt':
-        this._updateEgtCard(newValue);
-        break;
-      case 'ecu_advance':
-        this._updateIgnitionAdvance(newValue);
-        break;
-      case 'spark_detected':
-        this._updateSparkStatus(newValue);
-        break;
-      case 'tpsOverrideActive':
-        this._updateTpsOverrideState(newValue);
-        break;
-      case 'egtOverrideActive':
-        this._updateEgtOverrideState(newValue);
-        break;
-      case 'rpmOverrideActive':
-        this._updateRpmOverrideState(newValue);
-        break;
-      case 'egtFaultActive':
-        this._updateEgtFaultState(newValue);
-        break;
+    if (this.recentEventsRail) this.recentEventsRail.deactivate();
+    super.onDeactivate();
+  }
+
+  onDestroy() {
+    if (this.recentEventsRail) {
+      this.recentEventsRail.destroy();
+      this.recentEventsRail = null;
+    }
+    super.onDestroy();
+  }
+
+  onDataChange(key) {
+    if (key === "gen") {
+      this.lastFrameReceivedMs = Date.now();
     }
   }
 
   renderContent() {
     return `
-      <div class="dashboard-container">
-        
-        <!-- RPM HERO SECTION -->
-        <div class="hero-section">
-          <div class="rpm-gauge-wrapper interactive" id="rpm-gauge-trigger" title="Configure RPM Overrides">
-            <div class="rpm-gauge-container">
-              <svg class="rpm-gauge-svg" viewBox="0 0 200 200">
-                <!-- Gauge track -->
-                <path class="gauge-track" d="M 40 160 A 80 80 0 1 1 160 160" fill="none" stroke-linecap="round"/>
-                <!-- Gauge active fill -->
-                <path class="gauge-fill" id="rpm-gauge-fill" d="M 40 160 A 80 80 0 1 1 160 160" fill="none" stroke-linecap="round" stroke-dasharray="377" stroke-dashoffset="377"/>
-              </svg>
-              <div class="gauge-text-container">
-                <div class="gauge-value" id="rpm-gauge-value">0</div>
-                <div class="gauge-unit">RPM</div>
-                <div class="gauge-badge" id="rpm-override-badge">PHYSICAL</div>
-              </div>
+      <div class="dashboard-container ecu-cockpit">
+        <section class="telemetry-status-strip" aria-label="Telemetry status">
+          <span class="status-pill" id="status-socket">WS --</span>
+          <span class="status-pill">schema v<span id="status-schema">--</span></span>
+          <span class="status-pill"><span id="status-hz">--</span> Hz</span>
+          <span class="status-pill">gen <span id="status-gen">--</span></span>
+          <span class="status-pill">rx <span id="status-age">--</span></span>
+          <span class="status-pill" id="status-transport">transport --</span>
+        </section>
+
+        <section class="rpm-hero" data-signal="rpm" title="Open RPM history">
+          <div class="rpm-gauge-container">
+            <svg class="rpm-gauge-svg" viewBox="0 0 200 200" aria-hidden="true">
+              <path class="gauge-track" d="M 40 160 A 80 80 0 1 1 160 160" fill="none" stroke-linecap="round"/>
+              <path class="gauge-fill" id="rpm-gauge-fill" d="M 40 160 A 80 80 0 1 1 160 160" fill="none" stroke-linecap="round" stroke-dasharray="${GAUGE_STROKE}" stroke-dashoffset="${GAUGE_STROKE}"/>
+            </svg>
+            <div class="gauge-text-container">
+              <div class="gauge-value" id="rpm-gauge-value">--</div>
+              <div class="gauge-unit">RPM</div>
+              <div class="rpm-subline" id="rpm-sync">NOT SYNCHRONIZED</div>
+              <div class="rpm-subline muted" id="rpm-accel">accel -- rpm/s</div>
+              <div class="telemetry-badge unknown" id="rpm-health">NO META</div>
             </div>
           </div>
-        </div>
+        </section>
 
-        <!-- QUICK-SHIFT TRIGGER SECTION -->
-        <div class="qs-trigger-section">
-          <button class="qs-btn" id="qs-trigger-btn">
-            <span class="qs-icon">⚡</span>
-            <span class="qs-text">TRIGGER QUICK-SHIFT</span>
-          </button>
-        </div>
+        <section class="metrics-grid" aria-label="ECU telemetry">
+          ${this._renderMetricCard("tps", "Throttle", "tps-value", "%", "tps-badge", "tps-footer")}
+          ${this._renderMetricCard("egt", "EGT", "egt-value", "C", "egt-badge", "egt-footer")}
+          ${this._renderMetricCard("water", "Water Temp", "water-value", "C", "water-badge", "water-footer")}
+          ${this._renderMetricCard("rpmAccel", "Engine Sync", "sync-value", "", "sync-badge", "sync-footer")}
+          ${this._renderMetricCard("qsActive", "Quick Shifter", "qs-value", "", "qs-badge", "qs-footer")}
+          ${this._renderMetricCard("mapRequest", "Map Request", "map-value", "", "map-badge", "map-footer")}
+          ${this._renderMetricCard("knock", "Knock", "knock-value", "", "knock-badge", "knock-footer", "wide")}
+        </section>
 
-        <!-- METRICS GRID -->
-        <div class="metrics-grid">
-          
-          <!-- TPS CARD -->
-          <div class="metric-card interactive" id="tps-card" title="Configure TPS Overrides">
-            <div class="metric-header">
-              <span class="metric-title">Throttle Position (TPS)</span>
-              <span class="status-indicator" id="tps-override-indicator">PHYSICAL</span>
-            </div>
-            <div class="metric-body">
-              <span class="metric-value" id="tps-value">0.0</span>
-              <span class="metric-unit">%</span>
-            </div>
-            <div class="metric-footer" id="tps-card-footer">Physical Sensor</div>
-          </div>
+        ${this.showDevActions ? `
+          <section class="dev-actions">
+            <button class="qs-btn" id="qs-trigger-btn" type="button">
+              <span class="qs-text">Trigger Quick Shift</span>
+            </button>
+          </section>
+        ` : ""}
 
-          <!-- EGT CARD -->
-          <div class="metric-card interactive" id="egt-card" title="Configure EGT Overrides">
-            <div class="metric-header">
-              <span class="metric-title">Exhaust Gas Temp (EGT)</span>
-              <span class="status-indicator" id="egt-override-indicator">PHYSICAL</span>
-            </div>
-            <div class="metric-body">
-              <span class="metric-value" id="egt-value">20.0</span>
-              <span class="metric-unit">°C</span>
-            </div>
-            <div class="metric-footer" id="egt-card-footer">Ambient Temp</div>
-          </div>
-
-          <!-- IGNITION ADVANCE CARD -->
-          <div class="metric-card">
-            <div class="metric-header">
-              <span class="metric-title">Ignition Advance</span>
-            </div>
-            <div class="metric-body">
-              <span class="metric-value" id="advance-value">0.00</span>
-              <span class="metric-unit">° BTDC</span>
-            </div>
-            <div class="metric-footer">Computed Timing Angle</div>
-          </div>
-
-          <!-- SPARK DETECTED CARD -->
-          <div class="metric-card" id="spark-card">
-            <div class="metric-header">
-              <span class="metric-title">Spark Detected</span>
-            </div>
-            <div class="spark-status-body">
-              <span class="spark-led" id="spark-led"></span>
-              <span class="spark-text" id="spark-status-text">NO SPARK</span>
-            </div>
-            <div class="metric-footer">Live CDI Pulse Capture</div>
-          </div>
-
-        </div>
-
+        <div id="recent-events-root"></div>
       </div>
     `;
   }
 
-  /**
-   * Helper to update all items on activation
-   * @private
-   */
-  _updateAll() {
-    this._updateRpmGauge(this.data.rpm || 0);
-    this._updateTpsCard(this.data.tps || 0);
-    this._updateEgtCard(this.data.egt || 20);
-    this._updateIgnitionAdvance(this.data.ecu_advance || 0);
-    this._updateSparkStatus(this.data.spark_detected);
-    this._updateTpsOverrideState(this.data.tpsOverrideActive);
-    this._updateEgtOverrideState(this.data.egtOverrideActive);
-    this._updateRpmOverrideState(this.data.rpmOverrideActive);
-    this._updateEgtFaultState(this.data.egtFaultActive);
+  update() {
+    if (!this.el) return;
+
+    this._updateStatusStrip();
+    this._updateRpmHero();
+    this._updateSensorCards();
   }
 
-  /**
-   * Update RPM gauge fill and center text
-   * @private
-   */
-  _updateRpmGauge(rpm) {
-    const valueEl = this.el.querySelector('#rpm-gauge-value');
-    const fillEl = this.el.querySelector('#rpm-gauge-fill');
-    
-    if (valueEl) {
-      valueEl.textContent = Math.round(rpm).toLocaleString();
-    }
-
-    if (fillEl) {
-      const maxRpm = 18000.0;
-      const percentage = Math.min(Math.max(rpm / maxRpm, 0.0), 1.0);
-      const strokeLength = 377; // length of the arc
-      const offset = strokeLength * (1.0 - percentage);
-      fillEl.style.strokeDashoffset = offset;
-    }
+  _renderMetricCard(signal, title, valueId, unit, badgeId, footerId, extraClass = "") {
+    return `
+      <button class="metric-card telemetry-card ${extraClass}" type="button" data-signal="${signal}">
+        <div class="metric-header">
+          <span class="metric-title">${title}</span>
+          <span class="telemetry-badge unknown" id="${badgeId}">NO META</span>
+        </div>
+        <div class="metric-body">
+          <span class="metric-value" id="${valueId}">--</span>
+          ${unit ? `<span class="metric-unit">${unit}</span>` : ""}
+        </div>
+        <div class="metric-footer" id="${footerId}">--</div>
+      </button>
+    `;
   }
 
-  /**
-   * Update TPS card display
-   * @private
-   */
-  _updateTpsCard(tps) {
-    const valEl = this.el.querySelector('#tps-value');
-    if (valEl) {
-      valEl.textContent = Number(tps).toFixed(1);
-    }
+  _updateStatusStrip() {
+    setText(this.$("#status-socket"), `WS ${String(this.data.socketStatus || "--").toUpperCase()}`);
+    this.$("#status-socket")?.setAttribute("data-state", String(this.data.socketStatus || "unknown").toLowerCase());
+    setText(this.$("#status-schema"), this.data.schemaVersion || "--");
+    setText(this.$("#status-hz"), this.data.stateHz || "--");
+    setText(this.$("#status-gen"), this.data.gen || "--");
+    this._updateFrameAge();
+
+    const transport = this.data.transport || {};
+    const hasTransportIssue = Number(transport.dropped_frames) > 0 || Number(transport.send_errors) > 0;
+    const label = hasTransportIssue
+      ? `transport drop ${transport.dropped_frames || 0} err ${transport.send_errors || 0}`
+      : "transport OK";
+
+    const transportEl = this.$("#status-transport");
+    setText(transportEl, label);
+    transportEl?.classList.toggle("warning", hasTransportIssue);
   }
 
-  /**
-   * Update EGT card display
-   * @private
-   */
-  _updateEgtCard(egt) {
-    const valEl = this.el.querySelector('#egt-value');
-    if (valEl) {
-      valEl.textContent = Number(egt).toFixed(1);
+  _updateFrameAge() {
+    const ageEl = this.$("#status-age");
+    if (!ageEl) return;
+    if (!this.lastFrameReceivedMs) {
+      ageEl.textContent = "--";
+      return;
     }
+    ageEl.textContent = formatDurationMs(Date.now() - this.lastFrameReceivedMs);
   }
 
-  /**
-   * Update ignition advance timing display
-   * @private
-   */
-  _updateIgnitionAdvance(adv) {
-    const valEl = this.el.querySelector('#advance-value');
-    if (valEl) {
-      valEl.textContent = Number(adv).toFixed(2);
+  _updateRpmHero() {
+    const rpm = Number(this.data.rpm) || 0;
+    setText(this.$("#rpm-gauge-value"), formatRpm(rpm));
+    setText(this.$("#rpm-sync"), this.data.rpmSynchronized ? "SYNCHRONIZED" : "NOT SYNCHRONIZED");
+    setText(this.$("#rpm-accel"), `accel ${formatSigned(this.data.rpmAccel, 0)} rpm/s`);
+    setBadge(this.$("#rpm-health"), this.data.rpmMeta);
+
+    const fill = this.$("#rpm-gauge-fill");
+    if (fill) {
+      const percent = Math.max(0, Math.min(rpm / MAX_RPM, 1));
+      fill.style.strokeDashoffset = String(GAUGE_STROKE * (1 - percent));
     }
   }
 
-  /**
-   * Update spark detection status display
-   * @private
-   */
-  _updateSparkStatus(hasSpark) {
-    const ledEl = this.el.querySelector('#spark-led');
-    const textEl = this.el.querySelector('#spark-status-text');
-    
-    if (ledEl) {
-      if (hasSpark) {
-        ledEl.className = 'spark-led active pulsing';
-      } else {
-        ledEl.className = 'spark-led inactive';
-      }
-    }
+  _updateSensorCards() {
+    setText(this.$("#tps-value"), formatPercent(this.data.tps));
+    setBadge(this.$("#tps-badge"), this.data.tpsMeta);
+    setText(
+      this.$("#tps-footer"),
+      this.data.tpsFallbackUsed ? "fallback active" : `age ${formatMetaAge(this.data.frameTUs, this.data.tpsMeta)}`
+    );
+    setCardFault(this.$('[data-signal="tps"]'), this.data.tpsMeta);
 
-    if (textEl) {
-      textEl.textContent = hasSpark ? 'SPARK ACTIVE' : 'NO SPARK';
-    }
+    setText(this.$("#egt-value"), formatTemp(this.data.egt));
+    setBadge(this.$("#egt-badge"), this.data.egtMeta);
+    setText(this.$("#egt-footer"), `${this.data.egtState || "--"} / ${this.data.egtRequest || "--"}`);
+    setCardFault(this.$('[data-signal="egt"]'), this.data.egtMeta);
+
+    setText(this.$("#water-value"), formatTemp(this.data.waterTemp));
+    setBadge(this.$("#water-badge"), this.data.waterMeta);
+    setText(this.$("#water-footer"), `${this.data.waterState || "--"} / ${this.data.waterRequest || "--"}`);
+    setCardFault(this.$('[data-signal="water"]'), this.data.waterMeta);
+
+    setText(this.$("#sync-value"), this.data.rpmSynchronized ? "SYNC" : "OPEN");
+    setBadge(this.$("#sync-badge"), this.data.rpmMeta);
+    setText(this.$("#sync-footer"), `${formatSigned(this.data.rpmAccel, 0)} rpm/s`);
+
+    setText(this.$("#qs-value"), this.data.qsActive ? "ACTIVE" : "IDLE");
+    setBadge(this.$("#qs-badge"), this.data.qsMeta);
+    setText(this.$("#qs-footer"), this.data.qsArmed ? "armed" : "not armed");
+    setCardFault(this.$('[data-signal="qsActive"]'), this.data.qsMeta);
+
+    setText(this.$("#map-value"), this.data.mapRequest || "--");
+    setBadge(this.$("#map-badge"), this.data.mapMeta);
+    setText(this.$("#map-footer"), "physical switch request");
+    setCardFault(this.$('[data-signal="mapRequest"]'), this.data.mapMeta);
+
+    const knock = this.data.knock;
+    const knockMeta = knock
+      ? { valid: knock.valid, health: knock.health, quality: knock.quality, faultBits: knock.fault_bits }
+      : null;
+
+    setText(this.$("#knock-value"), knock ? formatNumber(knock.normalized_index, 2) : "none");
+    setBadge(this.$("#knock-badge"), knockMeta);
+    setText(
+      this.$("#knock-footer"),
+      knock ? `${knock.candidate_knock ? "candidate" : "quiet"} / ignition ${formatNumber(knock.ignition_angle_deg, 1)} deg` : "latest summary unavailable"
+    );
+    setCardFault(this.$('[data-signal="knock"]'), knockMeta);
   }
+}
 
-  /**
-   * Update TPS card override status badges
-   * @private
-   */
-  _updateTpsOverrideState(active) {
-    const indEl = this.el.querySelector('#tps-override-indicator');
-    const footerEl = this.el.querySelector('#tps-card-footer');
-    const cardEl = this.el.querySelector('#tps-card');
+function setText(element, value) {
+  if (element) element.textContent = String(value);
+}
 
-    if (indEl) {
-      indEl.textContent = active ? 'VIRTUAL' : 'PHYSICAL';
-      indEl.className = active ? 'status-indicator active' : 'status-indicator';
-    }
-
-    if (footerEl) {
-      footerEl.textContent = active ? 'Manual Override Active' : 'Physical Sensor';
-    }
-
-    if (cardEl) {
-      if (active) cardEl.classList.add('override-active');
-      else cardEl.classList.remove('override-active');
-    }
+function setBadge(element, meta) {
+  if (!element) return;
+  const state = healthState(meta);
+  element.textContent = state.label;
+  element.className = `telemetry-badge ${state.className}`;
+  if (meta?.faultBits) {
+    element.title = formatFaultBits(meta.faultBits);
+  } else {
+    element.removeAttribute("title");
   }
+}
 
-  /**
-   * Update EGT card override status badges
-   * @private
-   */
-  _updateEgtOverrideState(active) {
-    const indEl = this.el.querySelector('#egt-override-indicator');
-    const footerEl = this.el.querySelector('#egt-card-footer');
-    const cardEl = this.el.querySelector('#egt-card');
-
-    if (indEl) {
-      indEl.textContent = active ? 'VIRTUAL' : 'PHYSICAL';
-      indEl.className = active ? 'status-indicator active' : 'status-indicator';
-    }
-
-    if (footerEl) {
-      // If fault is active, EgtFaultState takes precedence for text
-      if (!this.data.egtFaultActive) {
-        footerEl.textContent = active ? 'Manual Override Active' : 'Physics Superloop';
-      }
-    }
-
-    if (cardEl) {
-      if (active) cardEl.classList.add('override-active');
-      else cardEl.classList.remove('override-active');
-    }
-  }
-
-  /**
-   * Update RPM Gauge override status badges
-   * @private
-   */
-  _updateRpmOverrideState(active) {
-    const badgeEl = this.el.querySelector('#rpm-override-badge');
-    const wrapperEl = this.el.querySelector('#rpm-gauge-trigger');
-
-    if (badgeEl) {
-      badgeEl.textContent = active ? 'OVERRIDDEN' : 'PHYSICAL';
-      badgeEl.className = active ? 'gauge-badge active' : 'gauge-badge';
-    }
-
-    if (wrapperEl) {
-      if (active) wrapperEl.classList.add('override-active');
-      else wrapperEl.classList.remove('override-active');
-    }
-  }
-
-  /**
-   * Update EGT overheat fault display
-   * @private
-   */
-  _updateEgtFaultState(active) {
-    const footerEl = this.el.querySelector('#egt-card-footer');
-    const cardEl = this.el.querySelector('#egt-card');
-
-    if (cardEl) {
-      if (active) {
-        cardEl.classList.add('fault-active');
-        if (footerEl) {
-          footerEl.textContent = 'FAULT: OVERHEAT INJECTED';
-        }
-      } else {
-        cardEl.classList.remove('fault-active');
-        if (footerEl) {
-          footerEl.textContent = this.data.egtOverrideActive ? 'Manual Override Active' : 'Physics Superloop';
-        }
-      }
-    }
-  }
+function setCardFault(element, meta) {
+  if (!element) return;
+  element.classList.toggle("fault-active", Boolean(meta?.faultBits));
+  element.classList.toggle("invalid", Boolean(meta && !meta.valid));
 }

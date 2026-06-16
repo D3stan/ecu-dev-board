@@ -1,0 +1,116 @@
+.recent-events-rail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  padding: 0.875rem;
+  box-shadow: var(--shadow);
+}
+
+.recent-events-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.recent-events-header h3 {
+  color: var(--text);
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.recent-events-header span {
+  align-items: center;
+  background: var(--surface);
+  border-radius: 999px;
+  color: var(--text-muted);
+  display: inline-flex;
+  font-size: 0.7rem;
+  font-weight: 800;
+  height: 1.25rem;
+  justify-content: center;
+  min-width: 1.25rem;
+  padding: 0 0.4rem;
+}
+
+.recent-events-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.recent-event,
+.recent-event-empty {
+  align-items: center;
+  background: var(--bg);
+  border: 1px solid transparent;
+  border-radius: 0.5rem;
+  display: grid;
+  gap: 0.625rem;
+  grid-template-columns: auto 1fr auto;
+  min-height: 3rem;
+  padding: 0.625rem;
+}
+
+.recent-event-empty {
+  color: var(--text-muted);
+  display: flex;
+  font-size: 0.8rem;
+  font-weight: 700;
+  justify-content: center;
+}
+
+.recent-event-dot {
+  background: var(--brand);
+  border-radius: 999px;
+  height: 0.625rem;
+  width: 0.625rem;
+}
+
+.recent-event.quick-shift .recent-event-dot {
+  background: #ff6b35;
+}
+
+.recent-event.map .recent-event-dot {
+  background: #4fc3f7;
+}
+
+.recent-event.fault {
+  border-color: rgba(239, 68, 68, 0.35);
+}
+
+.recent-event.fault .recent-event-dot {
+  background: var(--danger);
+}
+
+.recent-event-main {
+  min-width: 0;
+}
+
+.recent-event-kind {
+  color: var(--text);
+  font-size: 0.76rem;
+  font-weight: 800;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recent-event-summary,
+.recent-event-age {
+  color: var(--text-muted);
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.recent-event-age {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+

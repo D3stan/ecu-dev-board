@@ -1,7 +1,7 @@
 /**
  * TopBar.js
  * ==========
- * Top bar component for the ECU Simulator.
+ * Top bar component for the ECU WebUI.
  * Shows branding, connection status badge, theme toggle, and menu button.
  */
 
@@ -50,7 +50,7 @@ export class TopBar extends Component {
       <div class="top-bar-content">
         <div class="top-bar-left">
           <div class="product-info">
-            <div class="product-name">ECU TEST CENTER</div>
+            <div class="product-name">ECU WEBUI</div>
           </div>
         </div>
         

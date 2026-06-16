@@ -1,7 +1,7 @@
 /**
  * App.js
  * ======
- * Main application orchestrator for ECU Simulator Control Center.
+ * Main application orchestrator for the ECU WebUI.
  * Manages initialization sequence, page registration, and UI setup.
  * 
  * Bootstrap Sequence:
@@ -21,12 +21,14 @@ import { i18n } from '../utils/i18n.js';
 import { Socket } from './socket.js';
 import { dispatchMessage } from './adapter.js';
 import { SocketState } from '../utils/constants.js';
+import { AppMode } from '../utils/telemetryConfig.js';
 
 // Managers
 import { NavigatorManager } from '../managers/navigatorManager.js';
 import { ModalManager } from '../managers/modalManager.js';
 import { SidebarManager } from '../managers/sidebarManager.js';
 import { CommandManager } from '../managers/commandManager.js';
+import { TelemetryHistoryManager } from '../managers/TelemetryHistoryManager.js';
 
 // UI Components
 import { TopBar } from '../components/TopBar/TopBar.js';
@@ -37,6 +39,9 @@ import { loadMockData, startMockEmulator } from '../utils/mockData.js';
 
 // Pages
 import { DashboardPage } from '../pages/DashboardPage.js';
+import { SensorDetailPage } from '../pages/SensorDetailPage.js';
+import { TelemetryDiagnosticsPage } from '../pages/TelemetryDiagnosticsPage.js';
+import { TelemetrySensorsPage } from '../pages/TelemetrySensorsPage.js';
 import { RpmSettingsPage } from '../pages/RpmSettingsPage.js';
 import { TpsSettingsPage } from '../pages/TpsSettingsPage.js';
 import { EgtSettingsPage } from '../pages/EgtSettingsPage.js';
@@ -48,11 +53,12 @@ export class App {
    */
   constructor(config = {}) {
     this.config = {
-      socketUrl: config.socketUrl || "192.168.4.1/ws",
+      socketUrl: config.socketUrl || (typeof window !== 'undefined' ? `${window.location.host}/ws` : ""),
       appVersion: config.appVersion || "dev",
       enableDebugLogs: config.enableDebugLogs !== undefined ? config.enableDebugLogs : false,
       autoConnectSocket: config.autoConnectSocket !== undefined ? config.autoConnectSocket : false,
-      useMockData: config.useMockData !== undefined ? config.useMockData : false
+      useMockData: config.useMockData !== undefined ? config.useMockData : false,
+      appMode: config.appMode || (config.useMockData ? AppMode.DEVELOPMENT : AppMode.ECU)
     };
 
     // Set logger debug mode
@@ -76,12 +82,15 @@ export class App {
   async bootstrap() {
     try {
       log.info('════════════════════════════════════════');
-      log.info('  ECU Simulator WebUI - Bootstrap Start ');
+      log.info('  ECU WebUI - Bootstrap Start ');
       log.info(`  Version: ${this.config.appVersion}        `);
       log.info('════════════════════════════════════════');
 
       // 1. Init Socket (background communication)
       await this.initSocket();
+
+      TelemetryHistoryManager.init({ Store });
+      this.managers.telemetryHistory = TelemetryHistoryManager;
 
       // 2. Load mock data & start emulator if offline/dev mode
       if (this.config.useMockData) {
@@ -108,7 +117,7 @@ export class App {
       // 8. Navigate to initial dashboard page
       this.managers.navigator.navigateTo('dashboardPage');
 
-      log.info('✅ ECU Simulator bootstrap completed!');
+      log.info('✅ ECU WebUI bootstrap completed!');
       log.info('════════════════════════════════════════');
 
       // Expose globally for debugging
@@ -120,7 +129,8 @@ export class App {
           i18n,
           NavigatorManager: this.managers.navigator,
           SidebarManager: this.managers.sidebar,
-          CommandManager: this.managers.command
+          CommandManager: this.managers.command,
+          TelemetryHistoryManager
         };
       }
     } catch (error) {
@@ -174,13 +184,25 @@ export class App {
       return;
     }
 
-    // Instantiate all ECU pages
-    this.pages = [
-      new DashboardPage(),
-      new RpmSettingsPage(),
-      new TpsSettingsPage(),
-      new EgtSettingsPage()
+    const pages = [
+      new DashboardPage({
+        appMode: this.config.appMode,
+        showDevActions: this.config.appMode === AppMode.DEVELOPMENT
+      }),
+      new SensorDetailPage(),
+      new TelemetrySensorsPage(),
+      new TelemetryDiagnosticsPage()
     ];
+
+    if (this.config.appMode === AppMode.DEVELOPMENT) {
+      pages.push(
+        new RpmSettingsPage(),
+        new TpsSettingsPage(),
+        new EgtSettingsPage()
+      );
+    }
+
+    this.pages = pages;
 
     // Create and inject skeletons
     this.pages.forEach(page => {
@@ -204,7 +226,11 @@ export class App {
     ModalManager.init();
     this.managers.modal = ModalManager;
 
-    SidebarManager.init();
+    SidebarManager.init({
+      brand: this.config.appMode === AppMode.DEVELOPMENT ? 'ECU DEV' : 'ECU WEBUI',
+      footerLabel: this.config.appMode === AppMode.DEVELOPMENT ? 'Development mode' : 'Live ECU',
+      menuItems: this._buildSidebarMenu()
+    });
     this.managers.sidebar = SidebarManager;
 
     CommandManager.init();
@@ -272,8 +298,28 @@ export class App {
         if (this._mockEmulatorStop) {
           try { this._mockEmulatorStop(); } catch (_) {}
         }
+        TelemetryHistoryManager.stop();
       });
       this._beforeUnloadCleanupBound = true;
     }
+  }
+
+  _buildSidebarMenu() {
+    const items = [
+      { id: 'dashboardPage', label: 'Dashboard', icon: 'icon-thermo', route: 'dashboardPage' },
+      { id: 'telemetrySensorsPage', label: 'Sensors', icon: 'icon-humidity', route: 'telemetrySensorsPage' },
+      { id: 'telemetryDiagnosticsPage', label: 'Diagnostics', icon: 'icon-wifi', route: 'telemetryDiagnosticsPage' }
+    ];
+
+    if (this.config.appMode === AppMode.DEVELOPMENT) {
+      items.push(
+        { type: 'section', label: 'Development' },
+        { id: 'rpmSettingsPage', label: 'RPM Override', icon: 'icon-timer', route: 'rpmSettingsPage' },
+        { id: 'tpsSettingsPage', label: 'TPS Override', icon: 'icon-fan', route: 'tpsSettingsPage' },
+        { id: 'egtSettingsPage', label: 'EGT Override', icon: 'icon-humidity', route: 'egtSettingsPage' }
+      );
+    }
+
+    return items;
   }
 }

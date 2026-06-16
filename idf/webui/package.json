@@ -7,7 +7,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "vite",
-    "test": "node --test src/js/core/adapter.test.js test/adapter-contract.test.mjs",
+    "test": "node --test src/js/core/adapter.test.js test/adapter-contract.test.mjs test/telemetry-view-model.test.mjs test/telemetry-history-manager.test.mjs",
     "build": "vite build",
     "preview": "vite preview"
   },
