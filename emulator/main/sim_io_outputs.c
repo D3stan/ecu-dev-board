@@ -1,7 +1,6 @@
 #include "sim_io_outputs.h"
 #include "pins.h"
 
-#include <math.h>
 #include <stdio.h>
 #include "esp_timer.h"
 #include "esp_log.h"
@@ -191,9 +190,6 @@ static bool sim_io_adc_calibration_init(void) {
 }
 
 static float sim_io_clamp_percent(float percent) {
-    if (!isfinite(percent)) {
-        percent = 0.0f;
-    }
     if (percent < 0.0f) percent = 0.0f;
     if (percent > 100.0f) percent = 100.0f;
     return percent;
@@ -230,24 +226,6 @@ static float sim_io_adc_raw_to_pot_fraction(float raw_avg, int *voltage_mv_out) 
     return fraction;
 }
 
-static float sim_io_average_sample(int sample, int history[4], int *history_idx, bool *history_filled) {
-    history[*history_idx] = sample;
-    *history_idx = (*history_idx + 1) % 4;
-    if (*history_idx == 0) {
-        *history_filled = true;
-    }
-
-    int count = *history_filled ? 4 : *history_idx;
-    if (count == 0) {
-        return (float)sample;
-    }
-
-    float sum = 0.0f;
-    for (int i = 0; i < count; i++) {
-        sum += history[i];
-    }
-    return sum / count;
-}
 
 static void sim_io_adc_init(void) {
     ESP_LOGI(TAG, "Initializing ADC1 for manual cockpit potentiometer inputs...");
@@ -282,7 +260,6 @@ static void sim_io_adc_init(void) {
 void sim_io_init(void) {
     ESP_LOGI(TAG, "Initializing Emulator Hardware I/O drivers...");
 
-    // 1. Configure Quick-Shifter digital output pin
     gpio_config_t qs_out_conf = {
         .pin_bit_mask = (1ULL << SIM_PIN_QS_OUT),
         .mode = GPIO_MODE_OUTPUT,
@@ -293,7 +270,6 @@ void sim_io_init(void) {
     gpio_config(&qs_out_conf);
     gpio_set_level(SIM_PIN_QS_OUT, 1); // Default HIGH
 
-    // 2. Configure physical active-low Quick-Shifter button input
     gpio_config_t qs_in_conf = {
         .pin_bit_mask = (1ULL << SIM_PIN_QS_IN),
         .mode = GPIO_MODE_INPUT,
@@ -307,13 +283,10 @@ void sim_io_init(void) {
     qs_input_last_change_time = esp_timer_get_time();
     qs_input_press_handled = (qs_input_debounced_level == 0);
 
-    // 3. Initialize Pick-up coil generator
     sim_io_pickup_init();
 
-    // 4. Initialize analog sensor outputs
     sim_io_analog_out_init();
 
-    // 5. Initialize manual cockpit potentiometers ADC inputs
     sim_io_adc_init();
 }
 
@@ -416,7 +389,14 @@ void sim_io_read_potentiometers(void) {
     if (!g_sim_state.tps.is_overridden) {
         int raw_tps = 0;
         if (adc_oneshot_read(adc1_handle, SIM_TPS_ADC_CHANNEL, &raw_tps) == ESP_OK) {
-            float avg_tps = sim_io_average_sample(raw_tps, tps_history, &tps_history_idx, &tps_history_filled);
+            tps_history[tps_history_idx] = raw_tps;
+            tps_history_idx = (tps_history_idx + 1) % 4;
+            if (tps_history_idx == 0) tps_history_filled = true;
+            int tps_count = tps_history_filled ? 4 : tps_history_idx;
+            float avg_tps = 0.0f;
+            for (int i = 0; i < tps_count; i++) avg_tps += tps_history[i];
+            avg_tps /= tps_count;
+
             float tps_fraction = sim_io_adc_raw_to_pot_fraction(avg_tps, NULL);
             float phys_tps = tps_fraction * 100.0f;
             if (phys_tps < 0.0f) phys_tps = 0.0f;
@@ -429,7 +409,14 @@ void sim_io_read_potentiometers(void) {
     if (!g_sim_state.egt.is_overridden) {
         int raw_egt = 0;
         if (adc_oneshot_read(adc1_handle, SIM_EGT_ADC_CHANNEL, &raw_egt) == ESP_OK) {
-            float avg_egt = sim_io_average_sample(raw_egt, egt_history, &egt_history_idx, &egt_history_filled);
+            egt_history[egt_history_idx] = raw_egt;
+            egt_history_idx = (egt_history_idx + 1) % 4;
+            if (egt_history_idx == 0) egt_history_filled = true;
+            int egt_count = egt_history_filled ? 4 : egt_history_idx;
+            float avg_egt = 0.0f;
+            for (int i = 0; i < egt_count; i++) avg_egt += egt_history[i];
+            avg_egt /= egt_count;
+
             float egt_fraction = sim_io_adc_raw_to_pot_fraction(avg_egt, NULL);
             float phys_egt = 20.0f + egt_fraction * 980.0f;
             if (phys_egt < 20.0f) phys_egt = 20.0f;

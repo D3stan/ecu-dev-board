@@ -28,7 +28,7 @@ volatile sim_state_t g_sim_state = {
  */
 void run_engine_simulation(float dt)
 {
-    // --- 1. Throttle Position Sensor (TPS) Input Mapping ---
+    // TPS input
     float active_tps = g_sim_state.tps.is_overridden ? 
                        g_sim_state.tps.virtual_val : 
                        g_sim_state.tps.physical_val;
@@ -38,7 +38,7 @@ void run_engine_simulation(float dt)
     if (active_tps > 100.0f) active_tps = 100.0f;
     g_sim_state.current_tps = active_tps;
 
-    // --- 2. Engine Kinematics (RPM Calculation with Flywheel Inertia) ---
+    // RPM
     if (g_sim_state.rpm.is_overridden) {
         g_sim_state.current_rpm = g_sim_state.rpm.virtual_val;
     } else {
@@ -58,7 +58,7 @@ void run_engine_simulation(float dt)
     if (g_sim_state.current_rpm < 0.0f) g_sim_state.current_rpm = 0.0f;
     if (g_sim_state.current_rpm > 18000.0f) g_sim_state.current_rpm = 18000.0f;
 
-    // --- 3. Thermodynamics (EGT Simulation) ---
+    // EGT
     if (g_sim_state.egt.is_overridden) {
         g_sim_state.current_egt = g_sim_state.egt.virtual_val;
     } else if (g_sim_state.fault_egt_overheat) {
@@ -163,16 +163,12 @@ void app_main(void)
     while (1) {
         int64_t now = esp_timer_get_time();
 
-        // Process incoming network messages drained from network handlers
-        sim_net_poll();
-
         // 100 Hz Kinematics and Thermodynamics physics engine tick
         if (now - last_sim_tick >= SIM_TICK_INTERVAL_US) {
             sim_io_read_potentiometers();
             run_engine_simulation(SIM_TICK_INTERVAL_US / 1000000.0f);
             last_sim_tick += SIM_TICK_INTERVAL_US;
             
-            // Mitigate CPU schedule drifts or startup lock delays
             if (now - last_sim_tick > SIM_TICK_INTERVAL_US * 10) {
                 last_sim_tick = now;
             }
@@ -183,7 +179,7 @@ void app_main(void)
             broadcast_simulator_telemetry();
             last_telemetry_tick += TELEMETRY_INTERVAL_US;
             
-            // Mitigate CPU schedule drifts or startup lock delays
+            // Catch-up guard: reset telemetry tick if behind by >10 intervals
             if (now - last_telemetry_tick > TELEMETRY_INTERVAL_US * 10) {
                 last_telemetry_tick = now;
             }

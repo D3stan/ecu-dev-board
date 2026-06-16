@@ -77,9 +77,6 @@ static void sim_wifi_init(void) {
 static void sim_net_handle_command(const char *payload, size_t len) {
     cJSON *root = cJSON_ParseWithLength(payload, len);
     if (!root) {
-        root = cJSON_Parse(payload); // Fallback to standard parse if length-bounded fails
-    }
-    if (!root) {
         ESP_LOGW(TAG, "Failed to parse incoming JSON command: %.*s", (int)len, payload);
         return;
     }
@@ -213,10 +210,8 @@ static esp_err_t ws_handler(httpd_req_t *req) {
 }
 
 void sim_net_init(void) {
-    // 1. Initialize WiFi AP
     sim_wifi_init();
 
-    // 2. Start HTTP server
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
     config.lru_purge_enable = false;
     
@@ -257,9 +252,6 @@ void sim_net_init(void) {
     }
 }
 
-void sim_net_poll(void) {
-    // Throttled by esp_http_server internally, no superloop polling required
-}
 
 static void sim_net_ws_send_done(esp_err_t err, int socket, void *arg) {
     if (err != ESP_OK) {

@@ -21,6 +21,7 @@ actuator, CDI, map authority, shutdown and other ECU-output ownership.
 Run these from the idf folder in PowerShell:
 
 ```powershell
+Remove-Item -Recurse -Force build/sensors-host
 cmake -S components/sensors/tests/host -B build/sensors-host
 cmake --build build/sensors-host
 ctest --test-dir build/sensors-host --output-on-failure
