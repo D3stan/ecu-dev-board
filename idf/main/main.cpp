@@ -20,6 +20,14 @@
 #include "sensors/services/sensor_services.hpp"
 #include "sdkconfig.h"
 
+#if defined(CONFIG_TELEMETRY_SERVER_ENABLED)
+#include "telemetry_server/telemetry_server.hpp"
+#endif
+
+#ifndef APP_CPU_NUM
+#define APP_CPU_NUM PRO_CPU_NUM
+#endif
+
 #if defined(CONFIG_SENSOR_HARNESS_WATER_SOURCE_REAL_ADC)
 #error "Real water-temperature ADC source is not wired yet. Confirm the ADC channel/divider before enabling it."
 #endif
@@ -88,6 +96,12 @@ constexpr bool kPickupUsesRealCapture = false;
 constexpr bool kAnyRealAdc = kTpsUsesRealAdc;
 constexpr bool kAnyRealGpio = kQuickUsesRealGpio || kMapUsesRealGpio;
 
+#if defined(CONFIG_TELEMETRY_SERVER_ENABLED)
+constexpr bool kTelemetryServerEnabled = true;
+#else
+constexpr bool kTelemetryServerEnabled = false;
+#endif
+
 struct PolledDigitalInput {
     const char *name;
     gpio_num_t gpio;
@@ -151,12 +165,17 @@ void update_latest_knock(SensorDataStore &store, KnockWindowMeasurement &latest_
     }
 }
 
-void print_snapshot(SensorDataStore &store, TimestampUs now, const KnockWindowMeasurement &latest_knock) {
+void print_snapshot(SensorDataStore &store,
+                    TimestampUs now,
+                    const KnockWindowMeasurement &latest_knock,
+                    bool drain_events) {
     const auto line = ecu::sensor_harness::format_snapshot_csv(store.snapshot(), now, latest_knock);
     std::printf("%s\n", line.c_str());
 
-    for (const auto &event_line : ecu::sensor_harness::drain_event_lines(store)) {
-        std::printf("%s\n", event_line.c_str());
+    if (drain_events) {
+        for (const auto &event_line : ecu::sensor_harness::drain_event_lines(store)) {
+            std::printf("%s\n", event_line.c_str());
+        }
     }
 }
 
@@ -262,8 +281,7 @@ void poll_edge(EspGpioInputSource &source, EspTimeSource &time_source, PolledDig
     }
 }
 
-void run_mixed_harness(EspTimeSource &time_source) {
-    SensorDataStore store(kStoreQueueCapacity, kStoreQueueCapacity, kStoreQueueCapacity, kStoreQueueCapacity);
+void run_mixed_harness(EspTimeSource &time_source, SensorDataStore &store) {
     const HarnessInputRoutes routes = make_harness_routes();
     const auto fake_mask = ecu::sensor_harness::fake_stimulus_mask_from_routes(routes);
 
@@ -374,14 +392,23 @@ void run_mixed_harness(EspTimeSource &time_source) {
         }
         knock_service.run_once(make_knock_context(store.snapshot()));
 
-        update_latest_knock(store, latest_knock);
-        print_snapshot(store, now, latest_knock);
+        if constexpr (!kTelemetryServerEnabled) {
+            update_latest_knock(store, latest_knock);
+        }
+        print_snapshot(store, now, latest_knock, !kTelemetryServerEnabled);
     }
 }
 
-void sensor_harness_task(void *) {
+void sensor_harness_task(void *arg) {
+    auto *store = static_cast<SensorDataStore *>(arg);
+    if (store == nullptr) {
+        std::printf("# sensor_harness_error,missing_store\n");
+        vTaskDelete(nullptr);
+        return;
+    }
+
     EspTimeSource time_source;
-    run_mixed_harness(time_source);
+    run_mixed_harness(time_source, *store);
     vTaskDelete(nullptr);
 }
 
@@ -391,12 +418,31 @@ extern "C" void app_main(void) {
     uart_set_baudrate(UART_NUM_0, kSerialBaud);
     setvbuf(stdout, nullptr, _IONBF, 0);
 
-    const BaseType_t created = xTaskCreate(sensor_harness_task,
-                                           "sensor_harness",
-                                           kHarnessTaskStackBytes,
-                                           nullptr,
-                                           kHarnessTaskPriority,
-                                           nullptr);
+    static SensorDataStore store(kStoreQueueCapacity, kStoreQueueCapacity, kStoreQueueCapacity, kStoreQueueCapacity);
+
+#if defined(CONFIG_TELEMETRY_SERVER_ENABLED)
+    ecu::telemetry_server::TelemetryServerConfig telemetry_config{};
+    telemetry_config.sta_ssid = CONFIG_TELEMETRY_SERVER_STA_SSID;
+    telemetry_config.sta_password = CONFIG_TELEMETRY_SERVER_STA_PASSWORD;
+    telemetry_config.http_port = CONFIG_TELEMETRY_SERVER_HTTP_PORT;
+    telemetry_config.state_hz = CONFIG_TELEMETRY_SERVER_STATE_HZ;
+    telemetry_config.max_events_per_batch = CONFIG_TELEMETRY_SERVER_MAX_EVENTS_PER_BATCH;
+    telemetry_config.task_stack_bytes = CONFIG_TELEMETRY_SERVER_TASK_STACK_BYTES;
+    telemetry_config.task_priority_offset = CONFIG_TELEMETRY_SERVER_TASK_PRIORITY;
+
+    const esp_err_t telemetry_started = ecu::telemetry_server::start(store, telemetry_config);
+    if (telemetry_started != ESP_OK) {
+        std::printf("# telemetry_server_error,%s\n", esp_err_to_name(telemetry_started));
+    }
+#endif
+
+    const BaseType_t created = xTaskCreatePinnedToCore(sensor_harness_task,
+                                                       "sensor_harness",
+                                                       kHarnessTaskStackBytes,
+                                                       &store,
+                                                       kHarnessTaskPriority,
+                                                       nullptr,
+                                                       APP_CPU_NUM);
     if (created != pdPASS) {
         std::printf("# sensor_harness_error,task_create_failed\n");
     }

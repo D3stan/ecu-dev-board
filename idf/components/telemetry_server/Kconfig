@@ -1,0 +1,47 @@
+menu "ECU telemetry server"
+
+    config TELEMETRY_SERVER_ENABLED
+        bool "Enable WebSocket telemetry server"
+        default y
+
+    config TELEMETRY_SERVER_STA_SSID
+        string "WiFi station SSID"
+        default ""
+        depends on TELEMETRY_SERVER_ENABLED
+
+    config TELEMETRY_SERVER_STA_PASSWORD
+        string "WiFi station password"
+        default ""
+        depends on TELEMETRY_SERVER_ENABLED
+
+    config TELEMETRY_SERVER_HTTP_PORT
+        int "HTTP/WebSocket port"
+        default 80
+        range 1 65535
+        depends on TELEMETRY_SERVER_ENABLED
+
+    config TELEMETRY_SERVER_STATE_HZ
+        int "Telemetry state rate (Hz)"
+        default 10
+        range 1 50
+        depends on TELEMETRY_SERVER_ENABLED
+
+    config TELEMETRY_SERVER_MAX_EVENTS_PER_BATCH
+        int "Maximum telemetry events per frame"
+        default 8
+        range 0 32
+        depends on TELEMETRY_SERVER_ENABLED
+
+    config TELEMETRY_SERVER_TASK_STACK_BYTES
+        int "Telemetry pump task stack bytes"
+        default 8192
+        range 4096 32768
+        depends on TELEMETRY_SERVER_ENABLED
+
+    config TELEMETRY_SERVER_TASK_PRIORITY
+        int "Telemetry pump task priority"
+        default 2
+        range 1 10
+        depends on TELEMETRY_SERVER_ENABLED
+
+endmenu

@@ -28,54 +28,75 @@ bool SensorDataStore::push_bounded(std::deque<T> &queue, std::size_t capacity, c
 }
 
 void SensorDataStore::publish_tps(SensorReading<ThrottlePositionPermille> reading) {
+    std::lock_guard<std::mutex> lock(mutex_);
     assign_sequence(reading, tps_sequence_);
     snapshot_.tps = reading;
 }
 
 void SensorDataStore::publish_egt(SensorReading<TemperatureReading> reading) {
+    std::lock_guard<std::mutex> lock(mutex_);
     assign_sequence(reading, egt_sequence_);
     snapshot_.egt = reading;
 }
 
 void SensorDataStore::publish_water_temperature(SensorReading<TemperatureReading> reading) {
+    std::lock_guard<std::mutex> lock(mutex_);
     assign_sequence(reading, water_sequence_);
     snapshot_.water_temperature = reading;
 }
 
 void SensorDataStore::publish_engine_speed(SensorReading<EngineSpeedState> reading) {
+    std::lock_guard<std::mutex> lock(mutex_);
     assign_sequence(reading, engine_sequence_);
     snapshot_.engine_speed = reading;
 }
 
 void SensorDataStore::publish_quick_shifter_state(SensorReading<QuickShifterState> reading) {
+    std::lock_guard<std::mutex> lock(mutex_);
     assign_sequence(reading, quick_state_sequence_);
     snapshot_.quick_shifter_state = reading;
 }
 
 void SensorDataStore::publish_map_switch_state(SensorReading<MapSwitchState> reading) {
+    std::lock_guard<std::mutex> lock(mutex_);
     assign_sequence(reading, map_state_sequence_);
     snapshot_.map_switch = reading;
 }
 
 bool SensorDataStore::publish_quick_shift_request(SensorEvent<QuickShiftRequest> event) {
+    std::lock_guard<std::mutex> lock(mutex_);
     event.sequence = ++quick_event_sequence_;
     return push_bounded(quick_shift_events_, quick_shift_capacity_, event, overflow_.quick_shift_events);
 }
 
 bool SensorDataStore::publish_map_switch_event(SensorEvent<MapSwitchState> event) {
+    std::lock_guard<std::mutex> lock(mutex_);
     event.sequence = ++map_event_sequence_;
     return push_bounded(map_switch_events_, map_switch_capacity_, event, overflow_.map_switch_events);
 }
 
 bool SensorDataStore::publish_knock_measurement(KnockWindowMeasurement measurement) {
+    std::lock_guard<std::mutex> lock(mutex_);
     return push_bounded(knock_measurements_, knock_capacity_, measurement, overflow_.knock_measurements);
 }
 
 bool SensorDataStore::publish_fault(FaultTransition transition) {
+    std::lock_guard<std::mutex> lock(mutex_);
     return push_bounded(fault_events_, fault_capacity_, transition, overflow_.fault_events);
 }
 
+EngineInputSnapshot SensorDataStore::snapshot() const {
+    std::lock_guard<std::mutex> lock(mutex_);
+    return snapshot_;
+}
+
+SensorOverflowCounters SensorDataStore::overflow_counters() const {
+    std::lock_guard<std::mutex> lock(mutex_);
+    return overflow_;
+}
+
 std::optional<SensorEvent<QuickShiftRequest>> SensorDataStore::pop_quick_shift_request() {
+    std::lock_guard<std::mutex> lock(mutex_);
     if (quick_shift_events_.empty()) {
         return std::nullopt;
     }
@@ -85,6 +106,7 @@ std::optional<SensorEvent<QuickShiftRequest>> SensorDataStore::pop_quick_shift_r
 }
 
 std::optional<SensorEvent<MapSwitchState>> SensorDataStore::pop_map_switch_event() {
+    std::lock_guard<std::mutex> lock(mutex_);
     if (map_switch_events_.empty()) {
         return std::nullopt;
     }
@@ -94,6 +116,7 @@ std::optional<SensorEvent<MapSwitchState>> SensorDataStore::pop_map_switch_event
 }
 
 std::optional<KnockWindowMeasurement> SensorDataStore::pop_knock_measurement() {
+    std::lock_guard<std::mutex> lock(mutex_);
     if (knock_measurements_.empty()) {
         return std::nullopt;
     }
@@ -103,6 +126,7 @@ std::optional<KnockWindowMeasurement> SensorDataStore::pop_knock_measurement() {
 }
 
 std::optional<FaultTransition> SensorDataStore::pop_fault() {
+    std::lock_guard<std::mutex> lock(mutex_);
     if (fault_events_.empty()) {
         return std::nullopt;
     }

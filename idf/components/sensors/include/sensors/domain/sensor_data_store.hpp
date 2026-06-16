@@ -1,6 +1,7 @@
 #pragma once
 
 #include <deque>
+#include <mutex>
 #include <optional>
 
 #include "sensors/domain/types.hpp"
@@ -51,8 +52,8 @@ public:
     bool publish_knock_measurement(KnockWindowMeasurement measurement);
     bool publish_fault(FaultTransition transition);
 
-    EngineInputSnapshot snapshot() const { return snapshot_; }
-    SensorOverflowCounters overflow_counters() const { return overflow_; }
+    EngineInputSnapshot snapshot() const;
+    SensorOverflowCounters overflow_counters() const;
 
     std::optional<SensorEvent<QuickShiftRequest>> pop_quick_shift_request();
     std::optional<SensorEvent<MapSwitchState>> pop_map_switch_event();
@@ -84,6 +85,7 @@ private:
     std::deque<SensorEvent<MapSwitchState>> map_switch_events_{};
     std::deque<KnockWindowMeasurement> knock_measurements_{};
     std::deque<FaultTransition> fault_events_{};
+    mutable std::mutex mutex_{};
 };
 
 } // namespace ecu::sensors
