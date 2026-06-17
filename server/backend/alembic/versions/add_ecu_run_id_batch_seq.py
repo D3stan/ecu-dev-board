@@ -24,7 +24,7 @@ def upgrade() -> None:
         'ix_telemetry_states_run_ecu_batch',
         'telemetry_states',
         ['run_id', 'ecu_run_id', 'batch_seq'],
-        unique=True,
+        unique=False,
         postgresql_where=sa.text('ecu_run_id IS NOT NULL AND batch_seq IS NOT NULL')
     )
 

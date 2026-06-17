@@ -249,28 +249,45 @@ class PostgreSQLService(DatabaseService):
     ) -> None:
         """
         Bulk insert all batches in a chunk within one transaction.
-        Duplicate (run_id, ecu_run_id, batch_seq) combinations are silently ignored
-        via ON CONFLICT DO NOTHING on the partial unique index.
+        Duplicate (run_id, ecu_run_id, batch_seq) combinations are filtered out
+        programmatically before insertion to comply with TimescaleDB limitations on unique indexes.
         """
-        for entry in chunk:
+        if not chunk:
+            return
+
+        batch_seqs = [entry.batch_seq for entry in chunk]
+
+        # Query existing batch_seqs for this run and ecu_run_id to prevent duplicates
+        if ecu_run_id is not None:
+            existing_result = await self._session.execute(
+                select(TelemetryStateModel.batch_seq)
+                .where(
+                    TelemetryStateModel.run_id == run_id,
+                    TelemetryStateModel.ecu_run_id == ecu_run_id,
+                    TelemetryStateModel.batch_seq.in_(batch_seqs),
+                )
+            )
+            existing_seqs = set(existing_result.scalars().all())
+        else:
+            existing_seqs = set()
+
+        new_entries = [entry for entry in chunk if entry.batch_seq not in existing_seqs]
+
+        # Insert new states and events
+        for entry in new_entries:
             batch = entry.frame  # EcuTelemetryBatch
 
-            # Insert state row — conflict on partial unique index is silently ignored
-            stmt = (
-                pg_insert(TelemetryStateModel)
-                .values(
-                    run_id=run_id,
-                    ecu_run_id=ecu_run_id,
-                    server_received_at=received_at,
-                    ecu_collected_at_us=batch.t_us,
-                    snapshot_generation=batch.gen,
-                    state_json=batch.state.model_dump(),
-                    overflow_json=batch.overflow.model_dump(),
-                    batch_seq=entry.batch_seq,
-                )
-                .on_conflict_do_nothing()
+            state_record = TelemetryStateModel(
+                run_id=run_id,
+                ecu_run_id=ecu_run_id,
+                server_received_at=received_at,
+                ecu_collected_at_us=batch.t_us,
+                snapshot_generation=batch.gen,
+                state_json=batch.state.model_dump(),
+                overflow_json=batch.overflow.model_dump(),
+                batch_seq=entry.batch_seq,
             )
-            await self._session.execute(stmt)
+            self._session.add(state_record)
 
             # Insert event rows
             for event in (batch.events or []):
@@ -284,13 +301,14 @@ class PostgreSQLService(DatabaseService):
                 self._session.add(event_record)
 
         # Update run heartbeat and counters using the max batch_seq in the chunk
+        # and only incrementing the batch_count by the number of new entries.
         max_seq = max(entry.batch_seq for entry in chunk)
         await self._session.execute(
             update(RunModel)
             .where(RunModel.id == run_id)
             .values(
                 heartbeat=received_at,
-                batch_count=RunModel.batch_count + len(chunk),
+                batch_count=RunModel.batch_count + len(new_entries),
                 last_committed_sequence=max_seq,
             )
         )
