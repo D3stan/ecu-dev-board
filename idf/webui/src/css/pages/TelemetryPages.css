@@ -17,6 +17,7 @@
   box-shadow: var(--shadow);
 }
 
+/* ---- Live Value Panel ---- */
 .detail-live-panel {
   align-items: center;
   display: flex;
@@ -26,8 +27,10 @@
 
 .detail-label {
   color: var(--text-muted);
-  font-size: 0.72rem;
-  font-weight: 800;
+  font-family: var(--font-family);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-extrabold);
+  letter-spacing: var(--ls-wide);
   text-transform: uppercase;
 }
 
@@ -37,21 +40,26 @@
   gap: 0.375rem;
 }
 
+/* Primary live number */
 .detail-value span:first-child {
   color: var(--text);
-  font-size: 2.1rem;
+  font-family: var(--font-family);
+  font-size: var(--fs-2xl);
   font-variant-numeric: tabular-nums;
-  font-weight: 900;
-  letter-spacing: 0;
-  line-height: 1.1;
+  font-weight: var(--fw-black);
+  letter-spacing: var(--ls-tight);
+  line-height: var(--lh-tight);
 }
 
+/* Unit suffix */
 .detail-value span:last-child {
   color: var(--text-muted);
-  font-size: 0.9rem;
-  font-weight: 800;
+  font-family: var(--font-family);
+  font-size: var(--fs-base);
+  font-weight: var(--fw-extrabold);
 }
 
+/* ---- History Chart Card ---- */
 .history-chart-card {
   display: flex;
   flex-direction: column;
@@ -70,6 +78,7 @@
   justify-content: space-between;
 }
 
+/* Range buttons + Pause */
 .range-tabs button,
 .chart-pause-btn {
   background: var(--surface);
@@ -77,8 +86,10 @@
   border-radius: 0.5rem;
   color: var(--text-muted);
   cursor: pointer;
-  font-size: 0.72rem;
-  font-weight: 900;
+  font-family: var(--font-family);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-extrabold);
+  letter-spacing: var(--ls-wide);
   min-height: 2rem;
   padding: 0 0.625rem;
 }
@@ -87,9 +98,10 @@
 .chart-pause-btn {
   background: rgba(0, 201, 167, 0.14);
   border-color: rgba(0, 201, 167, 0.35);
-  color: #00c9a7;
+  color: var(--accent);
 }
 
+/* Canvas */
 .history-chart {
   border: 1px solid var(--border);
   border-radius: 0.5rem;
@@ -98,15 +110,26 @@
   width: 100%;
 }
 
+/* ---- Toggle row ---- */
+.chart-toggles {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
 .chart-toggle {
   align-items: center;
   color: var(--text-muted);
   display: inline-flex;
-  font-size: 0.78rem;
-  font-weight: 800;
+  font-family: var(--font-family);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-bold);
   gap: 0.5rem;
+  cursor: pointer;
 }
 
+/* ---- Metadata Panel ---- */
 .telemetry-panel {
   display: flex;
   flex-direction: column;
@@ -116,8 +139,10 @@
 
 .telemetry-panel h3 {
   color: var(--text);
-  font-size: 0.85rem;
-  font-weight: 900;
+  font-family: var(--font-family);
+  font-size: var(--fs-base);
+  font-weight: var(--fw-black);
+  letter-spacing: var(--ls-wide);
   margin: 0;
   text-transform: uppercase;
 }
@@ -143,25 +168,31 @@
   padding: 0.625rem;
 }
 
+/* Metadata key label */
 .metadata-row span,
 .stat-cell span,
 .sensor-table-meta span {
   color: var(--text-muted);
-  font-size: 0.65rem;
-  font-weight: 800;
+  font-family: var(--font-family);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-extrabold);
+  letter-spacing: var(--ls-wide);
   text-transform: uppercase;
 }
 
+/* Metadata value */
 .metadata-row strong,
 .stat-cell strong,
 .sensor-table-meta strong {
   color: var(--text);
-  font-size: 0.78rem;
+  font-family: var(--font-family);
+  font-size: var(--fs-sm-plus);
   font-variant-numeric: tabular-nums;
-  font-weight: 800;
+  font-weight: var(--fw-semibold);
   overflow-wrap: anywhere;
 }
 
+/* ---- Event Log ---- */
 .event-log {
   display: flex;
   flex-direction: column;
@@ -190,24 +221,28 @@
 
 .event-log-row strong {
   color: var(--text);
-  font-size: 0.78rem;
-  font-weight: 900;
+  font-family: var(--font-family);
+  font-size: var(--fs-sm-plus);
+  font-weight: var(--fw-black);
 }
 
 .event-log-row span,
 .event-log-empty {
   color: var(--text-muted);
-  font-size: 0.72rem;
-  font-weight: 700;
+  font-family: var(--font-family);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-bold);
 }
 
 .event-log-row code {
-  color: #ff6b35;
-  font-size: 0.72rem;
-  font-weight: 900;
+  color: var(--ecu-warning);
+  font-family: var(--font-family);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-black);
   white-space: nowrap;
 }
 
+/* ---- Frame Info Strip ---- */
 .frame-info-strip {
   display: flex;
   gap: 0.5rem;
@@ -220,8 +255,10 @@
   border-radius: 999px;
   color: var(--text-muted);
   flex: 0 0 auto;
-  font-size: 0.72rem;
-  font-weight: 800;
+  font-family: var(--font-family);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-extrabold);
+  letter-spacing: var(--ls-wide);
   padding: 0.375rem 0.625rem;
   text-transform: uppercase;
 }
@@ -231,6 +268,7 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* ---- Sensor Table Card ---- */
 .sensor-table-list {
   display: flex;
   flex-direction: column;
@@ -257,20 +295,24 @@
 
 .sensor-table-header h3 {
   color: var(--text);
-  font-size: 0.9rem;
-  font-weight: 900;
+  font-family: var(--font-family);
+  font-size: var(--fs-base);
+  font-weight: var(--fw-black);
+  letter-spacing: var(--ls-wide);
   margin: 0;
   text-transform: uppercase;
 }
 
 .sensor-table-header strong {
   color: var(--text);
-  font-size: 1rem;
+  font-family: var(--font-family);
+  font-size: var(--fs-md);
   font-variant-numeric: tabular-nums;
-  font-weight: 900;
+  font-weight: var(--fw-black);
   text-align: right;
 }
 
+/* ---- Responsive ---- */
 @media (max-width: 340px) {
   .metadata-grid,
   .stat-grid,
@@ -281,5 +323,8 @@
   .detail-value span:first-child {
     font-size: 1.7rem;
   }
-}
 
+  .chart-toggles {
+    gap: 0.75rem;
+  }
+}

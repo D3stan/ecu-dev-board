@@ -153,7 +153,6 @@ export class DashboardPage extends Page {
               <div class="gauge-value" id="rpm-gauge-value">--</div>
               <div class="gauge-unit">RPM</div>
               <div class="rpm-subline" id="rpm-sync">NOT SYNCHRONIZED</div>
-              <div class="rpm-subline muted" id="rpm-accel">accel -- rpm/s</div>
               <div class="telemetry-badge unknown" id="rpm-health">NO META</div>
             </div>
           </div>
@@ -240,7 +239,6 @@ export class DashboardPage extends Page {
     const rpm = Number(this.data.rpm) || 0;
     setText(this.$("#rpm-gauge-value"), formatRpm(rpm));
     setText(this.$("#rpm-sync"), this.data.rpmSynchronized ? "SYNCHRONIZED" : "NOT SYNCHRONIZED");
-    setText(this.$("#rpm-accel"), `accel ${formatSigned(this.data.rpmAccel, 0)} rpm/s`);
     setBadge(this.$("#rpm-health"), this.data.rpmMeta);
 
     const fill = this.$("#rpm-gauge-fill");

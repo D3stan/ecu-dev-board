@@ -625,7 +625,7 @@ private:
                     const cJSON *ae_j = cJSON_GetObjectItemCaseSensitive(root, "auto_enabled");
                     if (cJSON_IsBool(ae_j)) {
                         const RecordingCommand cmd{RecordingCommandType::SetAutoEnabled,
-                                                   cJSON_IsTrue(ae_j)};
+                                                   cJSON_IsTrue(ae_j) != 0};
                         if (self->cmd_queue_ != nullptr) {
                             xQueueSend(self->cmd_queue_, &cmd, 0);
                         }

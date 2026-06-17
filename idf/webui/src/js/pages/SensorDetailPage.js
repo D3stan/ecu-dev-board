@@ -118,6 +118,7 @@ export class SensorDetailPage extends Page {
     this.signal = "rpm";
     this.rangeKey = "2m";
     this.showEventMarkers = true;
+    this.showYAxis = false;
     this.paused = false;
     this.pageTopBar = null;
   }
@@ -145,6 +146,14 @@ export class SensorDetailPage extends Page {
     if (markerToggle) {
       this.addEventListener(markerToggle, "change", () => {
         this.showEventMarkers = markerToggle.checked;
+        this._drawChart();
+      });
+    }
+
+    const yAxisToggle = this.$("#y-axis-toggle");
+    if (yAxisToggle) {
+      this.addEventListener(yAxisToggle, "change", () => {
+        this.showYAxis = yAxisToggle.checked;
         this._drawChart();
       });
     }
@@ -197,19 +206,25 @@ export class SensorDetailPage extends Page {
         <section class="history-chart-card">
           <div class="chart-toolbar">
             <div class="range-tabs">
-              <button type="button" data-range="30s">30s</button>
-              <button type="button" data-range="2m" class="active">2min</button>
-              <button type="button" data-range="10m">10min</button>
+              <button type="button" data-range="30s">30 s</button>
+              <button type="button" data-range="2m" class="active">2 min</button>
+              <button type="button" data-range="10m">10 min</button>
             </div>
             <button type="button" class="chart-pause-btn" id="history-pause-btn">Pause</button>
           </div>
 
           <canvas class="history-chart" id="history-chart"></canvas>
 
-          <label class="chart-toggle">
-            <input type="checkbox" id="event-markers-toggle" checked>
-            <span>Event markers</span>
-          </label>
+          <div class="chart-toggles">
+            <label class="chart-toggle">
+              <input type="checkbox" id="event-markers-toggle" checked>
+              <span>Event markers</span>
+            </label>
+            <label class="chart-toggle">
+              <input type="checkbox" id="y-axis-toggle">
+              <span>Y-axis labels</span>
+            </label>
+          </div>
         </section>
 
         <section class="telemetry-panel">
@@ -254,10 +269,10 @@ export class SensorDetailPage extends Page {
       ["health", meta?.health || "--"],
       ["quality", meta?.quality || "--"],
       ["seq", meta?.seq ?? "--"],
-      ["acquired_at_us", meta?.acquiredAtUs ?? "--"],
+      ["acquired_at_us", formatUs(meta?.acquiredAtUs)],
       ["age", formatMetaAge(frameTUs, meta)],
       ["fault_bits", meta ? formatFaultBits(meta.faultBits) : "--"],
-      ["frame_t_us", frameTUs || "--"]
+      ["frame_t_us", formatUs(frameTUs)]
     ];
 
     grid.innerHTML = rows.map(([label, value]) => `
@@ -304,6 +319,10 @@ export class SensorDetailPage extends Page {
 
     if (this.showEventMarkers) {
       drawEventMarkers(context, canvas, TelemetryHistoryManager.getEvents(rangeSeconds), minTime, maxTime);
+    }
+
+    if (this.showYAxis && this.signal === "tps") {
+      drawYAxisLabels(context, canvas, yMin, yMax, [25, 50, 75], "%");
     }
   }
 }
@@ -394,6 +413,33 @@ function toPlotValue(value, signal) {
 
 function setText(element, value) {
   if (element) element.textContent = String(value ?? "--");
+}
+
+function formatUs(value) {
+  if (value == null || value === "--") return "--";
+  const num = Number(value);
+  if (!Number.isFinite(num)) return String(value);
+  return num.toLocaleString() + "\u00a0\u00b5s";
+}
+
+function drawYAxisLabels(context, canvas, yMin, yMax, labelValues, unit) {
+  const width = canvas.clientWidth;
+  const height = canvas.clientHeight;
+  const range = yMax - yMin || 1;
+
+  context.save();
+  context.font = "600 10px 'Inter', sans-serif";
+  context.textAlign = "right";
+  context.globalAlpha = 0.65;
+  context.fillStyle = getCss("--text-muted", "#8b949e");
+
+  labelValues.forEach((value) => {
+    const y = height - ((value - yMin) / range) * height;
+    const label = `${value}${unit}`;
+    context.fillText(label, width - 4, y - 3);
+  });
+
+  context.restore();
 }
 
 function getCss(name, fallback) {

@@ -1,4 +1,5 @@
 /* ============= IMPORTS ============= */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 @import url('./components/Banner.css');
 @import url('./components/MachineIdPreviewItem.css');
 @import url('./components/WifiConnectionCard.css');
@@ -6,7 +7,46 @@
 
 /* ============= THEME VARS ============= */
 :root {
-  /* Brand Colors - Industrial Blue */
+  /* -------- Typography -------- */
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+  /* Font weights */
+  --fw-regular:   400;
+  --fw-medium:    500;
+  --fw-semibold:  600;
+  --fw-bold:      700;
+  --fw-extrabold: 800;
+  --fw-black:     900;
+
+  /* Font sizes */
+  --fs-xs:   0.65rem;   /* badge / metadata key labels              */
+  --fs-sm:   0.72rem;   /* pills, units, supporting text, toggles   */
+  --fs-sm-plus: 0.78rem; /* metadata values, log entries            */
+  --fs-base: 0.875rem;  /* body copy, buttons, toggles              */
+  --fs-md:   1rem;      /* card labels, tab text                    */
+  --fs-lg:   1.25rem;   /* section headings, parameter labels       */
+  --fs-xl:   1.5rem;    /* page / sub-header titles                 */
+  --fs-2xl:  2.1rem;    /* live sensor value (detail page)          */
+  --fs-3xl:  2.6rem;    /* RPM gauge primary value                  */
+
+  /* Letter spacing */
+  --ls-tight:  -0.01em;  /* large numerics                          */
+  --ls-normal:  0em;     /* body text                               */
+  --ls-wide:    0.04em;  /* uppercase labels                        */
+  --ls-wider:   0.07em;  /* badges                                  */
+
+  /* Line heights */
+  --lh-tight:  1;     /* hero numbers                              */
+  --lh-snug:   1.2;   /* headings, labels                          */
+  --lh-normal: 1.5;   /* body text                                 */
+
+  /* -------- ECU Accent Colors (global) -------- */
+  --accent:      #00c9a7;  /* teal — primary ECU accent             */
+  --ecu-primary: #00c9a7;
+  --ecu-warning: #ff6b35;
+  --ecu-info:    #4fc3f7;
+
+  /* -------- Brand Colors - Industrial Blue -------- */
   --brand: #0D2B45;
   --brand-light: #1e3e5c;
   --brand-dark: #07192b;
@@ -102,7 +142,7 @@ html, body {
   height: 100dvh; /* Dynamic viewport height - adapts to browser UI */
   background: var(--bg);
   color: var(--text);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+  font-family: var(--font-family);
   overflow: hidden;
 }
 
@@ -194,9 +234,12 @@ html, body {
 }
 
 .product-name {
-  font-weight: 700;
-  font-size: 1rem;
+  font-family: var(--font-family);
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-md);
   color: var(--text);
+  letter-spacing: var(--ls-wide);
+  text-transform: uppercase;
 }
 
 .current-time {

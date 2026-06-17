@@ -7,20 +7,14 @@
 }
 
 .ecu-cockpit {
-  --ecu-primary: #00c9a7;
-  --ecu-warning: #ff6b35;
-  --ecu-info: #4fc3f7;
+  /* Local alias kept for backwards compat — tokens now live in :root */
+  --ecu-primary: var(--accent);
+  --ecu-warning: var(--ecu-warning);
+  --ecu-info:    var(--ecu-info);
 }
 
+/* ---- Prompt 1: hide the status strip ---- */
 .telemetry-status-strip {
-  display: flex;
-  gap: 0.5rem;
-  overflow-x: auto;
-  padding: 0.125rem 0 0.25rem;
-  scrollbar-width: none;
-}
-
-.telemetry-status-strip::-webkit-scrollbar {
   display: none;
 }
 
@@ -32,10 +26,11 @@
   color: var(--text-muted);
   display: inline-flex;
   flex: 0 0 auto;
-  font-size: 0.68rem;
-  font-weight: 800;
+  font-family: var(--font-family);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-extrabold);
   font-variant-numeric: tabular-nums;
-  letter-spacing: 0.02em;
+  letter-spacing: var(--ls-wide);
   min-height: 1.75rem;
   padding: 0 0.625rem;
   text-transform: uppercase;
@@ -53,6 +48,7 @@
   color: var(--ecu-warning);
 }
 
+/* ---- RPM Hero Card ---- */
 .rpm-hero {
   align-items: center;
   background:
@@ -95,7 +91,7 @@
 }
 
 .gauge-fill {
-  stroke: var(--ecu-primary);
+  stroke: var(--accent);
   stroke-width: 10;
   transition: stroke-dashoffset 120ms linear;
 }
@@ -113,26 +109,31 @@
   width: 78%;
 }
 
+/* Primary RPM number */
 .gauge-value {
   color: var(--text);
-  font-size: 2.6rem;
+  font-family: var(--font-family);
+  font-size: var(--fs-3xl);
   font-variant-numeric: tabular-nums;
-  font-weight: 900;
-  letter-spacing: 0;
-  line-height: 1;
+  font-weight: var(--fw-black);
+  letter-spacing: var(--ls-tight);
+  line-height: var(--lh-tight);
 }
 
+/* "RPM" unit label + sync subline */
 .gauge-unit,
 .rpm-subline {
   color: var(--text-muted);
-  font-size: 0.72rem;
-  font-weight: 800;
-  line-height: 1.35;
+  font-family: var(--font-family);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-extrabold);
+  letter-spacing: var(--ls-wide);
+  line-height: var(--lh-snug);
   text-transform: uppercase;
 }
 
 .rpm-subline {
-  color: var(--ecu-primary);
+  color: var(--accent);
   margin-top: 0.2rem;
 }
 
@@ -141,6 +142,7 @@
   text-transform: none;
 }
 
+/* ---- Metrics Grid ---- */
 .metrics-grid {
   display: grid;
   gap: 0.75rem;
@@ -184,6 +186,7 @@
   border-color: rgba(255, 107, 53, 0.6);
 }
 
+/* Card header: title + badge */
 .metric-header {
   align-items: flex-start;
   display: flex;
@@ -193,12 +196,15 @@
 
 .metric-title {
   color: var(--text-muted);
-  font-size: 0.72rem;
-  font-weight: 800;
-  line-height: 1.2;
+  font-family: var(--font-family);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-extrabold);
+  letter-spacing: var(--ls-wide);
+  line-height: var(--lh-snug);
   text-transform: uppercase;
 }
 
+/* Card body: value + unit */
 .metric-body {
   align-items: baseline;
   display: flex;
@@ -208,11 +214,12 @@
 
 .metric-value {
   color: var(--text);
+  font-family: var(--font-family);
   font-size: 1.65rem;
   font-variant-numeric: tabular-nums;
-  font-weight: 900;
-  letter-spacing: 0;
-  line-height: 1;
+  font-weight: var(--fw-black);
+  letter-spacing: var(--ls-tight);
+  line-height: var(--lh-tight);
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -220,24 +227,30 @@
 
 .metric-unit {
   color: var(--text-muted);
-  font-size: 0.82rem;
-  font-weight: 800;
+  font-family: var(--font-family);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-extrabold);
 }
 
+/* Card footer */
 .metric-footer {
   color: var(--text-muted);
-  font-size: 0.68rem;
-  font-weight: 700;
-  line-height: 1.25;
+  font-family: var(--font-family);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-bold);
+  line-height: var(--lh-snug);
   min-height: 1.7em;
 }
 
+/* ---- Telemetry Badge ---- */
 .telemetry-badge {
   border-radius: 999px;
   display: inline-flex;
   flex: 0 0 auto;
-  font-size: 0.58rem;
-  font-weight: 900;
+  font-family: var(--font-family);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-black);
+  letter-spacing: var(--ls-wider);
   line-height: 1;
   padding: 0.32rem 0.45rem;
   text-transform: uppercase;
@@ -246,7 +259,7 @@
 
 .telemetry-badge.ok {
   background: rgba(0, 201, 167, 0.14);
-  color: var(--ecu-primary);
+  color: var(--accent);
 }
 
 .telemetry-badge.degraded {
@@ -265,6 +278,7 @@
   color: var(--text-muted);
 }
 
+/* ---- Dev Actions ---- */
 .dev-actions {
   display: flex;
 }
@@ -276,8 +290,10 @@
   box-shadow: var(--shadow);
   color: #ffffff;
   cursor: pointer;
-  font-size: 0.88rem;
-  font-weight: 900;
+  font-family: var(--font-family);
+  font-size: var(--fs-base);
+  font-weight: var(--fw-black);
+  letter-spacing: var(--ls-wide);
   min-height: 3rem;
   text-transform: uppercase;
   transition: filter 150ms ease, transform 150ms ease;
@@ -293,6 +309,7 @@
   transform: translateY(1px);
 }
 
+/* ---- Responsive ---- */
 @media (max-width: 340px) {
   .dashboard-container {
     padding-left: 0.375rem;

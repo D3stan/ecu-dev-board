@@ -5,7 +5,7 @@
 #include <mutex>
 
 #include "esp_chip_info.h"
-#include "esp_efuse.h"
+#include "esp_mac.h"
 #include "esp_flash.h"
 #include "esp_log.h"
 #include "sdkconfig.h"
@@ -40,7 +40,8 @@ DeviceIdentity get_device_identity() {
 
     // HWID from eFuse MAC
     uint8_t mac[6] = {};
-    const esp_err_t mac_err = esp_efuse_mac_get_default(mac);
+    // esp_efuse_mac_get_default() was removed in IDF v5; use esp_read_mac().
+    const esp_err_t mac_err = esp_read_mac(mac, ESP_MAC_WIFI_STA);
     if (mac_err == ESP_OK) {
         std::snprintf(cached.hwid, sizeof(cached.hwid),
                       "esp32s3-%02x%02x%02x%02x%02x%02x",

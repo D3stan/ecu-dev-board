@@ -8,7 +8,7 @@ idf_component_register(
         "src/device_identity.cpp"
         "src/retransmit_buffer.cpp"
     INCLUDE_DIRS "include"
-    REQUIRES telemetry sensors esp_event esp_http_server esp_netif esp_timer esp_wifi nvs_flash spiffs esp_efuse esp_flash json
+    REQUIRES telemetry sensors esp_event esp_http_server esp_netif esp_timer esp_wifi nvs_flash spiffs efuse spi_flash json
 )
 
 target_compile_features(${COMPONENT_LIB} PUBLIC cxx_std_17)
