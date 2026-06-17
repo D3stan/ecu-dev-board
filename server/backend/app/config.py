@@ -22,6 +22,11 @@ class Settings(BaseSettings):
         return v
     redis_url: str = "redis://localhost:6379/0"
     log_level: str = "info"
+    cors_origins: str = "*"
+
+    @property
+    def cors_origin_list(self) -> list[str]:
+        return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
 
     # Bounded queue for the telemetry writer task.
     # When full, the WebSocket handler blocks (backpressure).

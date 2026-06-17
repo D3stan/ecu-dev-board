@@ -197,6 +197,7 @@ class IngestEnvelope(BaseModel):
     hwid: Optional[str] = None
     ecu_run_id: Optional[str] = None
     stream_generation: int = 0
+    single_batch: bool = False
     chunk: list[ChunkEntry]
 
     # Backward compat: if old clients send a single `batch` field,
@@ -206,7 +207,8 @@ class IngestEnvelope(BaseModel):
     def compat_single_batch(cls, data):
         if isinstance(data, dict) and "batch" in data and "chunk" not in data:
             batch = data.pop("batch")
-            data["chunk"] = [{"batch_seq": 0, "frame": batch}]
+            data["chunk"] = [{"batch_seq": 1, "frame": batch}]
+            data["single_batch"] = True
         return data
 
 

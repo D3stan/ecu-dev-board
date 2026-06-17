@@ -151,41 +151,33 @@ async def test_full_run_flow() -> None:
     """
     await _wait_for_health(BACKEND_URL)
 
-    serial = f"SN-TEST-{uuid.uuid4().hex[:8].upper()}"
+    hwid = f"esp32s3-{uuid.uuid4().hex[:12]}"
 
     async with httpx.AsyncClient(base_url=BACKEND_URL) as client:
 
         # ------------------------------------------------------------------
-        # Step 1: Register mock ECU
-        # ------------------------------------------------------------------
-        resp = await client.post(
-            "/api/ecus",
-            json={"serial_number": serial, "hardware_revision": "HW-REV-1"},
-        )
-        assert resp.status_code == 201, f"ECU registration failed: {resp.text}"
-        ecu = resp.json()
-        ecu_id = ecu["id"]
-        assert ecu["serial_number"] == serial
-
-        # ------------------------------------------------------------------
-        # Step 2: Start a run
+        # Step 1: Start a run by HWID. The server owns digital-twin creation.
         # ------------------------------------------------------------------
         resp = await client.post(
             "/api/runs/start",
             json={
-                "ecu_id": ecu_id,
+                "hwid": hwid,
+                "hardware_revision": "ESP32-S3FH4R2",
                 "firmware_version": "fw-1.0.0",
                 "map_version": "map-2.0.0",
             },
         )
         assert resp.status_code == 201, f"Run start failed: {resp.text}"
-        run_id = resp.json()["run_id"]
+        started = resp.json()
+        run_id = started["run_id"]
+        ecu_id = started["ecu_id"]
+        assert started["hwid"] == hwid
 
         # ------------------------------------------------------------------
         # Step 3: Connect WebSocket and send a TelemetryBatch
         # ------------------------------------------------------------------
         batch_payload = _make_telemetry_batch(t_us=123_456_789, gen=42)
-        envelope = {"run_id": run_id, "batch": batch_payload}
+        envelope = {"run_id": run_id, "hwid": hwid, "batch": batch_payload}
 
         async with websockets.connect(BACKEND_WS_URL) as ws:
             await ws.send(json.dumps(envelope))
@@ -232,6 +224,28 @@ async def test_full_run_flow() -> None:
 
 
 @pytest.mark.asyncio
+async def test_repeated_hwid_run_start_reuses_existing_ecu() -> None:
+    """Starting runs by the same HWID must not create duplicate ECU rows."""
+    await _wait_for_health(BACKEND_URL)
+    hwid = f"esp32s3-{uuid.uuid4().hex[:12]}"
+    async with httpx.AsyncClient(base_url=BACKEND_URL) as client:
+        first = await client.post(
+            "/api/runs/start",
+            json={"hwid": hwid, "hardware_revision": "ESP32-S3FH4R2"},
+        )
+        assert first.status_code == 201, first.text
+        second = await client.post(
+            "/api/runs/start",
+            json={"hwid": hwid, "hardware_revision": "ESP32-S3FH4R2"},
+        )
+        assert second.status_code == 201, second.text
+        assert second.json()["ecu_id"] == first.json()["ecu_id"]
+
+        await client.post(f"/api/runs/{first.json()['run_id']}/end")
+        await client.post(f"/api/runs/{second.json()['run_id']}/end")
+
+
+@pytest.mark.asyncio
 async def test_duplicate_serial_rejected() -> None:
     """Registering the same serial twice must return 409."""
     await _wait_for_health(BACKEND_URL)
@@ -260,6 +274,34 @@ async def test_unknown_run_rejected_by_ws() -> None:
         raw = await asyncio.wait_for(ws.recv(), timeout=5.0)
         resp = json.loads(raw)
         assert resp["status"] == "error"
+
+
+@pytest.mark.asyncio
+async def test_hwid_mismatch_rejected_by_ws() -> None:
+    """A run started for one HWID must reject telemetry from another HWID."""
+    await _wait_for_health(BACKEND_URL)
+    hwid = f"esp32s3-{uuid.uuid4().hex[:12]}"
+    async with httpx.AsyncClient(base_url=BACKEND_URL) as client:
+        start = await client.post(
+            "/api/runs/start",
+            json={"hwid": hwid, "hardware_revision": "ESP32-S3FH4R2"},
+        )
+        assert start.status_code == 201, start.text
+        run_id = start.json()["run_id"]
+
+        envelope = {
+            "run_id": run_id,
+            "hwid": f"esp32s3-{uuid.uuid4().hex[:12]}",
+            "batch": _make_telemetry_batch(),
+        }
+        async with websockets.connect(BACKEND_WS_URL) as ws:
+            await ws.send(json.dumps(envelope))
+            raw = await asyncio.wait_for(ws.recv(), timeout=5.0)
+            resp = json.loads(raw)
+            assert resp["status"] == "error"
+            assert resp["detail"] == "hwid_mismatch"
+
+        await client.post(f"/api/runs/{run_id}/end")
 
 
 @pytest.mark.asyncio

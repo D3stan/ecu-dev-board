@@ -137,12 +137,20 @@ async def telemetry_ws_handler(websocket: WebSocket, run_manager: RunManager) ->
                 continue
 
             # Send ack only after successful DB commit
-            await websocket.send_json({
-                "status": "persisted",
-                "run_id": str(run_id),
-                "stream_generation": envelope.stream_generation,
-                "committed_through_sequence": committed_seq,
-            })
+            if envelope.single_batch:
+                await websocket.send_json({
+                    "status": "persisted",
+                    "run_id": str(run_id),
+                    "batch_seq": committed_seq,
+                    "t_us": envelope.chunk[0].frame.t_us,
+                })
+            else:
+                await websocket.send_json({
+                    "status": "persisted",
+                    "run_id": str(run_id),
+                    "stream_generation": envelope.stream_generation,
+                    "committed_through_sequence": committed_seq,
+                })
 
     except WebSocketDisconnect:
         # Client disconnected — do NOT end the run. It may reconnect.
