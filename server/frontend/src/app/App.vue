@@ -36,7 +36,7 @@ onUnmounted(() => {
     <!-- Sidebar Navigation -->
     <aside class="sidebar">
       <div class="brand">
-        <span class="brand-icon">🏎️</span>
+        <span class="brand-icon"></span>
         <h1 class="brand-title glow-text">ECU Twin</h1>
       </div>
       
