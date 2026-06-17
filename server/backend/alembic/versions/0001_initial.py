@@ -148,9 +148,6 @@ def upgrade() -> None:
         sa.Column("batch_seq", sa.BigInteger, nullable=False, server_default="0"),
     )
     op.create_index("ix_telemetry_states_run_id", "telemetry_states", ["run_id"])
-    op.execute(
-        "SELECT create_hypertable('telemetry_states', 'server_received_at');"
-    )
 
     # ------------------------------------------------------------------
     # telemetry_events  →  TimescaleDB hypertable
@@ -166,9 +163,11 @@ def upgrade() -> None:
         sa.Column("payload_json", JSONB, nullable=False),
     )
     op.create_index("ix_telemetry_events_run_id", "telemetry_events", ["run_id"])
-    op.execute(
-        "SELECT create_hypertable('telemetry_events', 'server_received_at');"
-    )
+
+    # Convert tables to hypertables outside of the transaction block
+    with op.get_context().autocommit_block():
+        op.execute("SELECT create_hypertable('telemetry_states', 'server_received_at');")
+        op.execute("SELECT create_hypertable('telemetry_events', 'server_received_at');")
 
 
 def downgrade() -> None:
