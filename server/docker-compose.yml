@@ -1,0 +1,70 @@
+version: "3.9"
+
+# Production stack — Traefik (via Dokploy) routes directly to the backend.
+# No Nginx container is included.
+
+services:
+  db:
+    image: timescale/timescaledb:latest-pg15
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-ecu}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ecu_password}
+      POSTGRES_DB: ${POSTGRES_DB:-ecudb}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-ecu} -d ${POSTGRES_DB:-ecudb}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  migrations:
+    build:
+      context: ./backend
+    command: alembic upgrade head
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-ecu}:${POSTGRES_PASSWORD:-ecu_password}@db:5432/${POSTGRES_DB:-ecudb}
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  backend:
+    build:
+      context: ./backend
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-ecu}:${POSTGRES_PASSWORD:-ecu_password}@db:5432/${POSTGRES_DB:-ecudb}
+      REDIS_URL: redis://redis:6379/0
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    # Traefik labels — customize BACKEND_HOST via .env
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.ecu-backend.rule=Host(`${BACKEND_HOST:-localhost}`)"
+      - "traefik.http.services.ecu-backend.loadbalancer.server.port=8000"
+      # WebSocket passthrough headers
+      - "traefik.http.middlewares.ecu-ws.headers.customRequestHeaders.Upgrade=websocket"
+      - "traefik.http.middlewares.ecu-ws.headers.customRequestHeaders.Connection=Upgrade"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrations:
+        condition: service_completed_successfully
+
+volumes:
+  db_data:
+  redis_data:

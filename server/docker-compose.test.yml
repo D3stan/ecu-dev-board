@@ -1,0 +1,69 @@
+version: "3.9"
+
+# Integration-test stack. Run with:
+#   docker-compose -f docker-compose.test.yml up --build --exit-code-from test-runner
+
+services:
+  db:
+    image: timescale/timescaledb:latest-pg15
+    environment:
+      POSTGRES_USER: test_user
+      POSTGRES_PASSWORD: test_password
+      POSTGRES_DB: test_db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U test_user -d test_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  migrations:
+    build:
+      context: ./backend
+    command: alembic upgrade head
+    environment:
+      DATABASE_URL: postgresql+asyncpg://test_user:test_password@db:5432/test_db
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  backend:
+    build:
+      context: ./backend
+    environment:
+      DATABASE_URL: postgresql+asyncpg://test_user:test_password@db:5432/test_db
+      REDIS_URL: redis://redis:6379/0
+      LOG_LEVEL: debug
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrations:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
+  # Headless integration test runner
+  test-runner:
+    build:
+      context: ./integration-tests
+      dockerfile: Dockerfile.test
+    environment:
+      BACKEND_URL: http://backend:8000
+      BACKEND_WS_URL: ws://backend:8000/ws/v1/telemetry
+    depends_on:
+      backend:
+        condition: service_healthy
