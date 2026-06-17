@@ -3,6 +3,7 @@
 #include <cstring>
 #include <cstdio>
 #include <array>
+#include <cstdlib>
 #include <mutex>
 #include <new>
 #include <string>
@@ -10,6 +11,7 @@
 
 #include "esp_check.h"
 #include "esp_event.h"
+#include "esp_heap_caps.h"
 #include "esp_http_server.h"
 #include "esp_log.h"
 #include "esp_netif.h"
@@ -44,6 +46,29 @@ void copy_wifi_field(std::uint8_t (&destination)[N], const char *source) {
     }
     std::strncpy(reinterpret_cast<char *>(destination), source, N - 1);
 }
+
+class RuntimeDiagnostics {
+public:
+    explicit RuntimeDiagnostics(bool heap_checks) : heap_checks_(heap_checks) {}
+
+    static unsigned stack_free_bytes() {
+        return static_cast<unsigned>(uxTaskGetStackHighWaterMark2(nullptr));
+    }
+
+    void check_heap(const char *location) const {
+        if (!heap_checks_) {
+            return;
+        }
+
+        if (!heap_caps_check_integrity_all(true)) {
+            ESP_LOGE(kTag, "heap corruption detected near %s", location);
+            std::abort();
+        }
+    }
+
+private:
+    bool heap_checks_{false};
+};
 
 class WifiStation {
 public:
@@ -195,8 +220,13 @@ public:
 
 class StaticFileHandler {
 public:
-    StaticFileHandler(const char *base_path, const IStaticFileCatalog &catalog)
-        : resolver_(base_path != nullptr ? base_path : "/www", catalog) {}
+    StaticFileHandler(const char *base_path,
+                      const IStaticFileCatalog &catalog,
+                      const RuntimeDiagnostics &diagnostics,
+                      bool close_connection)
+        : resolver_(base_path != nullptr ? base_path : "/www", catalog),
+          diagnostics_(diagnostics),
+          close_connection_(close_connection) {}
 
     esp_err_t register_handlers(httpd_handle_t server) {
         httpd_uri_t static_uri{};
@@ -214,16 +244,24 @@ private:
     }
 
     esp_err_t serve(httpd_req_t &req) {
+        diagnostics_.check_heap("before static request");
+        ESP_LOGI(kTag, "static request uri=%s stack_free=%u", req.uri, RuntimeDiagnostics::stack_free_bytes());
+
         const auto resolved = resolver_.resolve(req.uri);
         if (resolved.status == StaticFileResolveStatus::BadRequest) {
+            set_connection_close(req);
+            ESP_LOGW(kTag, "static bad request uri=%s", req.uri);
             return httpd_resp_send_err(&req, HTTPD_400_BAD_REQUEST, "Bad static file path");
         }
         if (resolved.status == StaticFileResolveStatus::NotFound) {
+            set_connection_close(req);
+            ESP_LOGW(kTag, "static not found uri=%s", req.uri);
             return httpd_resp_send_err(&req, HTTPD_404_NOT_FOUND, "Static file not found");
         }
 
         FILE *file = std::fopen(resolved.filesystem_path.c_str(), "rb");
         if (file == nullptr) {
+            set_connection_close(req);
             ESP_LOGE(kTag, "failed to open static file %s", resolved.filesystem_path.c_str());
             return httpd_resp_send_err(&req, HTTPD_404_NOT_FOUND, "Static file not found");
         }
@@ -236,6 +274,13 @@ private:
                                  "Cache-Control",
                                  resolved.no_store ? "no-store, max-age=0"
                                                    : "public, max-age=31536000, immutable");
+        set_connection_close(req);
+
+        ESP_LOGI(kTag, "static serving uri=%s file=%s gzip=%d stack_free=%u",
+                 req.uri,
+                 resolved.filesystem_path.c_str(),
+                 resolved.gzip_encoded ? 1 : 0,
+                 RuntimeDiagnostics::stack_free_bytes());
 
         while (true) {
             const std::size_t read = std::fread(scratch_.data(), 1, scratch_.size(), file);
@@ -246,6 +291,7 @@ private:
                     ESP_LOGE(kTag, "failed to send static file %s: %s",
                              resolved.filesystem_path.c_str(),
                              esp_err_to_name(send_err));
+                    (void)httpd_resp_send_chunk(&req, nullptr, 0);
                     return send_err;
                 }
             }
@@ -261,10 +307,24 @@ private:
         }
 
         std::fclose(file);
-        return httpd_resp_send_chunk(&req, nullptr, 0);
+        const esp_err_t final_err = httpd_resp_send_chunk(&req, nullptr, 0);
+        diagnostics_.check_heap("after static request");
+        ESP_LOGI(kTag, "static done uri=%s err=%s stack_free=%u",
+                 req.uri,
+                 esp_err_to_name(final_err),
+                 RuntimeDiagnostics::stack_free_bytes());
+        return final_err;
+    }
+
+    void set_connection_close(httpd_req_t &req) const {
+        if (close_connection_) {
+            (void)httpd_resp_set_hdr(&req, "Connection", "close");
+        }
     }
 
     StaticFileResolver resolver_;
+    const RuntimeDiagnostics &diagnostics_;
+    bool close_connection_{true};
     std::array<char, 2048> scratch_{};
 };
 
@@ -309,6 +369,11 @@ public:
                                                        &EspWebSocketTransport::send_complete,
                                                        pending);
         if (err != ESP_OK) {
+            ESP_LOGW(kTag,
+                     "WebSocket async send queue failed fd=%d bytes=%u err=%s",
+                     pending->socket,
+                     static_cast<unsigned>(pending->payload.size()),
+                     esp_err_to_name(err));
             finish_send(pending->socket, err);
             delete pending;
             return false;
@@ -367,6 +432,7 @@ private:
         if (err == ESP_OK) {
             ++counters_.sent_frames;
         } else {
+            ESP_LOGW(kTag, "WebSocket send failed fd=%d err=%s", socket, esp_err_to_name(err));
             ++counters_.send_errors;
             if (active_ && socket_ == socket) {
                 active_ = false;
@@ -419,7 +485,19 @@ private:
     esp_err_t start_http_server() {
         httpd_config_t http_config = HTTPD_DEFAULT_CONFIG();
         http_config.server_port = config_.http_port;
+        http_config.stack_size = config_.http_task_stack_bytes;
+        http_config.max_open_sockets = config_.http_max_open_sockets;
+        http_config.lru_purge_enable = config_.http_lru_purge_enable;
         http_config.uri_match_fn = httpd_uri_match_wildcard;
+
+        ESP_LOGI(kTag,
+                 "starting HTTP server port=%u stack=%u sockets=%u lru=%d static_close=%d heap_checks=%d",
+                 static_cast<unsigned>(http_config.server_port),
+                 static_cast<unsigned>(http_config.stack_size),
+                 static_cast<unsigned>(http_config.max_open_sockets),
+                 http_config.lru_purge_enable ? 1 : 0,
+                 config_.static_close_connection ? 1 : 0,
+                 config_.diagnostics_heap_checks ? 1 : 0);
 
         ESP_RETURN_ON_ERROR(httpd_start(&server_, &http_config), kTag, "failed to start HTTP server");
 
@@ -451,11 +529,19 @@ private:
     static esp_err_t websocket_handler(httpd_req_t *req) {
         auto *self = static_cast<TelemetryServerApplication *>(req->user_ctx);
         const int socket = httpd_req_to_sockfd(req);
+        self->diagnostics_.check_heap("before websocket request");
+
+        ESP_LOGI(kTag,
+                 "ws request method=%d fd=%d stack_free=%u",
+                 static_cast<int>(req->method),
+                 socket,
+                 RuntimeDiagnostics::stack_free_bytes());
 
         if (req->method == HTTP_GET) {
             self->transport_.accept(req->handle, socket);
             const auto capabilities = self->serializer_.serialize_capabilities();
             (void)self->transport_.send_text(capabilities);
+            self->diagnostics_.check_heap("after websocket accept");
             return ESP_OK;
         }
 
@@ -463,6 +549,7 @@ private:
         esp_err_t err = httpd_ws_recv_frame(req, &frame, 0);
         if (err != ESP_OK) {
             self->transport_.close(socket);
+            self->diagnostics_.check_heap("after websocket recv header failed");
             return err;
         }
 
@@ -472,21 +559,27 @@ private:
             err = httpd_ws_recv_frame(req, &frame, frame.len);
             if (err != ESP_OK) {
                 self->transport_.close(socket);
+                self->diagnostics_.check_heap("after websocket recv payload failed");
                 return err;
             }
         }
 
         if (frame.type == HTTPD_WS_TYPE_PING) {
             frame.type = HTTPD_WS_TYPE_PONG;
-            return httpd_ws_send_frame(req, &frame);
+            err = httpd_ws_send_frame(req, &frame);
+            self->diagnostics_.check_heap("after websocket pong");
+            return err;
         }
 
         if (frame.type == HTTPD_WS_TYPE_CLOSE) {
             self->transport_.close(socket);
             frame.len = 0;
             frame.payload = nullptr;
-            return httpd_ws_send_frame(req, &frame);
+            err = httpd_ws_send_frame(req, &frame);
+            self->diagnostics_.check_heap("after websocket close");
+            return err;
         }
+        self->diagnostics_.check_heap("after websocket request");
         return ESP_OK;
     }
 
@@ -498,7 +591,9 @@ private:
         while (true) {
             vTaskDelayUntil(&last_wake, period_ticks);
             const auto now = static_cast<ecu::sensors::TimestampUs>(esp_timer_get_time());
+            self->diagnostics_.check_heap("before telemetry pump tick");
             (void)self->pump_.tick(now);
+            self->diagnostics_.check_heap("after telemetry pump tick");
         }
     }
 
@@ -506,7 +601,11 @@ private:
     WifiStation wifi_{};
     StaticFileSystemMount static_filesystem_{};
     PosixStaticFileCatalog static_catalog_{};
-    StaticFileHandler static_handler_{config_.static_base_path, static_catalog_};
+    RuntimeDiagnostics diagnostics_{config_.diagnostics_heap_checks};
+    StaticFileHandler static_handler_{config_.static_base_path,
+                                      static_catalog_,
+                                      diagnostics_,
+                                      config_.static_close_connection};
     SensorTelemetryBatchSource source_;
     TelemetryJsonSerializer serializer_;
     EspWebSocketTransport transport_{};
