@@ -10,7 +10,7 @@ import uuid
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_session
@@ -26,13 +26,23 @@ router = APIRouter(prefix="/api/runs", tags=["runs"])
 # ---------------------------------------------------------------------------
 
 class StartRunRequest(BaseModel):
-    ecu_id: uuid.UUID
+    ecu_id: uuid.UUID | None = None
+    hwid: str | None = None
+    hardware_revision: str | None = None
     firmware_version: str | None = None
     map_version: str | None = None
+
+    @model_validator(mode="after")
+    def check_identity(self) -> "StartRunRequest":
+        if self.ecu_id is None and self.hwid is None:
+            raise ValueError("Either ecu_id or hwid must be provided")
+        return self
 
 
 class StartRunResponse(BaseModel):
     run_id: uuid.UUID
+    hwid: str | None = None
+    ecu_id: uuid.UUID | None = None
 
 
 class RunDetailResponse(BaseModel):
@@ -102,21 +112,58 @@ async def list_runs(
     ]
 
 
+@router.get("/active")
+async def get_active_run_by_hwid(
+    hwid: str,
+    db: PostgreSQLService = Depends(_db_service),
+    run_manager: RunManager = Depends(_run_manager),
+) -> dict:
+    """
+    Returns the active run for a given HWID, or 404 if none.
+    Used by the browser bridge to resume after reconnect.
+    """
+    ecu = await db.get_ecu_by_serial(hwid)
+    if ecu is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="ecu_not_found")
+
+    # Find an active run for this ECU in the in-process cache
+    active_run = next(
+        (r for r in run_manager._active_runs.values() if r.ecu_id == ecu.id),
+        None,
+    )
+    if active_run is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="no_active_run")
+
+    last_seq = await db.get_run_last_committed_seq(active_run.run_id)
+    return {
+        "run_id": str(active_run.run_id),
+        "ecu_id": str(active_run.ecu_id),
+        "hwid": hwid,
+        "last_committed_sequence": last_seq or 0,
+    }
+
+
 @router.post("/start", status_code=status.HTTP_201_CREATED, response_model=StartRunResponse)
 async def start_run(
     body: StartRunRequest,
     registry: EcuRegistry = Depends(_registry),
     run_manager: RunManager = Depends(_run_manager),
 ) -> StartRunResponse:
-    # Validate ECU exists and get serial for Redis keying
-    ecu = await registry.get_ecu(body.ecu_id)
+    # Resolve ECU by HWID (auto-create) or by UUID
+    if body.hwid:
+        ecu = await registry.resolve_or_create_by_hwid(
+            body.hwid, body.hardware_revision
+        )
+    else:
+        ecu = await registry.get_ecu(body.ecu_id)
+
     run_id = await run_manager.start_run(
         ecu_id=ecu.id,
         ecu_serial=ecu.serial_number,
         firmware_version=body.firmware_version,
         map_version=body.map_version,
     )
-    return StartRunResponse(run_id=run_id)
+    return StartRunResponse(run_id=run_id, hwid=ecu.serial_number, ecu_id=ecu.id)
 
 
 @router.post("/{run_id}/end", status_code=status.HTTP_200_OK)

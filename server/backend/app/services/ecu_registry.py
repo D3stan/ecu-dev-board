@@ -43,3 +43,24 @@ class EcuRegistry:
                 detail=f"ECU with serial '{serial_number}' not found.",
             )
         return ecu
+
+    async def get_ecu_by_serial_number(self, serial_number: str) -> Ecu | None:
+        """Silent version — returns None instead of raising 404. Used by bridge-resume endpoint."""
+        return await self._db.get_ecu_by_serial(serial_number)
+
+    async def resolve_or_create_by_hwid(
+        self,
+        hwid: str,
+        hardware_revision: str | None = None,
+    ) -> Ecu:
+        """
+        Look up an ECU by its HWID (serial_number). Creates it if not found.
+        Idempotent — repeated calls with the same HWID return the same row.
+        """
+        ecu = await self._db.get_ecu_by_serial(hwid)
+        if ecu is not None:
+            return ecu
+        return await self._db.save_ecu(
+            serial_number=hwid,
+            hardware_revision=hardware_revision or "unknown",
+        )

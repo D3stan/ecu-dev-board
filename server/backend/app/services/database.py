@@ -10,7 +10,8 @@ import uuid
 from abc import ABC, abstractmethod
 from datetime import datetime, timezone
 
-from sqlalchemy import select, update
+from sqlalchemy import func, select, update
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models import EcuModel, RunModel, TelemetryEventModel, TelemetryStateModel
@@ -68,6 +69,18 @@ class DatabaseService(ABC):
         end: datetime | None = None,
         limit: int = 1000,
     ) -> list[TelemetryStateModel]: ...
+
+    @abstractmethod
+    async def insert_telemetry_chunk(
+        self,
+        run_id: uuid.UUID,
+        ecu_run_id: str | None,
+        chunk: list,  # list of ChunkEntry-like objects with .batch_seq and .frame
+        received_at: datetime,
+    ) -> None: ...
+
+    @abstractmethod
+    async def get_run_last_committed_seq(self, run_id: uuid.UUID) -> int | None: ...
 
 
 class PostgreSQLService(DatabaseService):
@@ -226,6 +239,71 @@ class PostgreSQLService(DatabaseService):
         query = query.order_by(TelemetryStateModel.ecu_collected_at_us).limit(limit)
         result = await self._session.execute(query)
         return list(result.scalars().all())
+
+    async def insert_telemetry_chunk(
+        self,
+        run_id: uuid.UUID,
+        ecu_run_id: str | None,
+        chunk: list,  # list of ChunkEntry-like objects with .batch_seq and .frame
+        received_at: datetime,
+    ) -> None:
+        """
+        Bulk insert all batches in a chunk within one transaction.
+        Duplicate (run_id, ecu_run_id, batch_seq) combinations are silently ignored
+        via ON CONFLICT DO NOTHING on the partial unique index.
+        """
+        for entry in chunk:
+            batch = entry.frame  # EcuTelemetryBatch
+
+            # Insert state row — conflict on partial unique index is silently ignored
+            stmt = (
+                pg_insert(TelemetryStateModel)
+                .values(
+                    run_id=run_id,
+                    ecu_run_id=ecu_run_id,
+                    server_received_at=received_at,
+                    ecu_collected_at_us=batch.t_us,
+                    snapshot_generation=batch.gen,
+                    state_json=batch.state.model_dump(),
+                    overflow_json=batch.overflow.model_dump(),
+                    batch_seq=entry.batch_seq,
+                )
+                .on_conflict_do_nothing()
+            )
+            await self._session.execute(stmt)
+
+            # Insert event rows
+            for event in (batch.events or []):
+                event_record = TelemetryEventModel(
+                    run_id=run_id,
+                    server_received_at=received_at,
+                    occurred_at_us=event.at_us,
+                    kind=event.kind,
+                    payload_json=event.model_dump(),
+                )
+                self._session.add(event_record)
+
+        # Update run heartbeat and counters using the max batch_seq in the chunk
+        max_seq = max(entry.batch_seq for entry in chunk)
+        await self._session.execute(
+            update(RunModel)
+            .where(RunModel.id == run_id)
+            .values(
+                heartbeat=received_at,
+                batch_count=RunModel.batch_count + len(chunk),
+                last_committed_sequence=max_seq,
+            )
+        )
+
+        await self._session.commit()
+
+    async def get_run_last_committed_seq(self, run_id: uuid.UUID) -> int | None:
+        """Returns the highest batch_seq committed for a run, or None."""
+        result = await self._session.execute(
+            select(func.max(TelemetryStateModel.batch_seq))
+            .where(TelemetryStateModel.run_id == run_id)
+        )
+        return result.scalar()
 
 
 # ---------------------------------------------------------------------------

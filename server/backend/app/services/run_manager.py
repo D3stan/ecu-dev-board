@@ -23,14 +23,17 @@ from typing import Any
 from app.config import settings
 from app.db.session import AsyncSessionLocal
 from app.domain.run import ActiveRun
-from app.domain.telemetry import EcuTelemetryBatch
+from app.domain.telemetry import ChunkEntry, EcuTelemetryBatch
 from app.services.cache import CacheService
 from app.services.database import PostgreSQLService
 
 logger = logging.getLogger(__name__)
 
-# Queue item: (run_id, batch, server_received_at, batch_seq, ack_future)
+# Queue item for a single legacy batch: (run_id, batch, server_received_at, batch_seq, ack_future)
 _QueueItem = tuple[uuid.UUID, EcuTelemetryBatch, datetime, int, "asyncio.Future[dict]"]
+
+# Queue item for a chunk: (run_id, chunk, ecu_run_id, server_received_at, stream_generation, ack_future)
+_ChunkQueueItem = tuple[uuid.UUID, list[ChunkEntry], str | None, datetime, int, "asyncio.Future[int]"]
 
 
 class RunManager:
@@ -149,6 +152,38 @@ class RunManager:
         # Await writer confirmation (after DB commit)
         return await ack_future
 
+    async def process_chunk(
+        self,
+        run_id: uuid.UUID,
+        chunk: list[ChunkEntry],
+        ecu_run_id: str | None,
+        stream_generation: int,
+        received_at: datetime,
+    ) -> int:
+        """
+        Process an entire upload chunk atomically.
+        Returns committed_through_sequence (max batch_seq in chunk).
+
+        Blocks if the queue is full — natural backpressure.
+        """
+        run = self._active_runs.get(run_id)
+        if run is None:
+            raise ValueError(f"No active run with id={run_id}.")
+
+        max_seq = max(entry.batch_seq for entry in chunk)
+
+        loop = asyncio.get_running_loop()
+        ack_future: asyncio.Future[int] = loop.create_future()
+
+        # Sentinel marker distinguishes chunk items from legacy batch items in the queue
+        await self._queue.put((
+            run_id, chunk, ecu_run_id, received_at, stream_generation, ack_future  # type: ignore[arg-type]
+        ))
+
+        committed_seq: int = await ack_future
+        run.last_committed_sequence = committed_seq
+        return committed_seq
+
     # ------------------------------------------------------------------
     # Background writer loop
     # ------------------------------------------------------------------
@@ -157,48 +192,80 @@ class RunManager:
         logger.info("Telemetry writer task started.")
         while True:
             try:
-                run_id, batch, received_at, batch_seq, ack_future = await self._queue.get()
+                item = await self._queue.get()
             except asyncio.CancelledError:
                 logger.info("Telemetry writer task stopping.")
                 break
 
             try:
-                async with AsyncSessionLocal() as session:
-                    db = PostgreSQLService(session)
-                    await db.insert_telemetry_batch(run_id, batch, received_at, batch_seq)
+                # Detect item type by length: chunk items have 6 elements, legacy have 5
+                if len(item) == 6:
+                    # Chunk path
+                    run_id, chunk, ecu_run_id, received_at, stream_generation, ack_future = item  # type: ignore[misc]
+                    async with AsyncSessionLocal() as session:
+                        db = PostgreSQLService(session)
+                        await db.insert_telemetry_chunk(run_id, ecu_run_id, chunk, received_at)
 
-                # Best-effort Redis update (non-fatal on failure)
-                run = self._active_runs.get(run_id)
-                if run is not None:
-                    state_payload: dict[str, Any] = {
-                        "state": batch.state.model_dump(),
-                        "ecu_collected_at_us": batch.t_us,
-                        "server_received_at": received_at.isoformat(),
-                        "run_id": str(run_id),
-                    }
-                    try:
-                        await self._cache.set_latest_state(
-                            run.ecu_serial, state_payload, settings.state_cache_ttl
-                        )
-                    except Exception as cache_exc:
-                        logger.warning("Redis update failed (non-fatal): %s", cache_exc)
+                    max_seq = max(entry.batch_seq for entry in chunk)  # type: ignore[union-attr]
 
-                ack_future.set_result(
-                    {
-                        "status": "persisted",
-                        "run_id": str(run_id),
-                        "batch_seq": batch_seq,
-                        "t_us": batch.t_us,
-                    }
-                )
+                    # Best-effort Redis update using last frame in chunk
+                    run = self._active_runs.get(run_id)
+                    if run is not None and chunk:  # type: ignore[union-attr]
+                        last_frame = chunk[-1].frame  # type: ignore[index]
+                        state_payload: dict[str, Any] = {
+                            "state": last_frame.state.model_dump(),
+                            "ecu_collected_at_us": last_frame.t_us,
+                            "server_received_at": received_at.isoformat(),
+                            "run_id": str(run_id),
+                        }
+                        try:
+                            await self._cache.set_latest_state(
+                                run.ecu_serial, state_payload, settings.state_cache_ttl
+                            )
+                        except Exception as cache_exc:
+                            logger.warning("Redis update failed (non-fatal): %s", cache_exc)
+
+                    ack_future.set_result(max_seq)  # type: ignore[union-attr]
+
+                else:
+                    # Legacy single-batch path
+                    run_id, batch, received_at, batch_seq, ack_future = item  # type: ignore[misc]
+                    async with AsyncSessionLocal() as session:
+                        db = PostgreSQLService(session)
+                        await db.insert_telemetry_batch(run_id, batch, received_at, batch_seq)
+
+                    run = self._active_runs.get(run_id)
+                    if run is not None:
+                        state_payload = {
+                            "state": batch.state.model_dump(),  # type: ignore[union-attr]
+                            "ecu_collected_at_us": batch.t_us,  # type: ignore[union-attr]
+                            "server_received_at": received_at.isoformat(),
+                            "run_id": str(run_id),
+                        }
+                        try:
+                            await self._cache.set_latest_state(
+                                run.ecu_serial, state_payload, settings.state_cache_ttl
+                            )
+                        except Exception as cache_exc:
+                            logger.warning("Redis update failed (non-fatal): %s", cache_exc)
+
+                    ack_future.set_result(  # type: ignore[union-attr]
+                        {
+                            "status": "persisted",
+                            "run_id": str(run_id),
+                            "batch_seq": batch_seq,  # type: ignore[union-attr]
+                            "t_us": batch.t_us,  # type: ignore[union-attr]
+                        }
+                    )
+
             except asyncio.CancelledError:
-                if not ack_future.done():
-                    ack_future.cancel()
+                if not ack_future.done():  # type: ignore[union-attr]
+                    ack_future.cancel()  # type: ignore[union-attr]
                 logger.info("Telemetry writer task stopping during batch.")
                 break
             except Exception as exc:
-                logger.exception("Failed to persist telemetry batch seq=%d: %s", batch_seq, exc)
-                if not ack_future.done():
-                    ack_future.set_exception(exc)
+                logger.exception("Writer failed for queue item: %s", exc)
+                if not ack_future.done():  # type: ignore[union-attr]
+                    ack_future.set_exception(exc)  # type: ignore[union-attr]
             finally:
                 self._queue.task_done()

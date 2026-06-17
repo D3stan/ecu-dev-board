@@ -11,7 +11,7 @@ from __future__ import annotations
 from typing import Annotated, List, Literal, Optional, Union
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
 # ---------------------------------------------------------------------------
@@ -180,7 +180,39 @@ class EcuTelemetryBatch(BaseModel):
 # Server-side WebSocket envelope (added by the client bridge)
 # ---------------------------------------------------------------------------
 
+class ChunkEntry(BaseModel):
+    """A single ECU telemetry batch within an upload chunk."""
+    batch_seq: int
+    frame: EcuTelemetryBatch
+
+
 class IngestEnvelope(BaseModel):
-    """Message sent by the client bridge to /ws/v1/telemetry."""
+    """
+    Envelope sent by the browser bridge over WS /ws/v1/telemetry.
+
+    Supports both chunked uploads (chunk: list[ChunkEntry]) and the legacy
+    single-batch format (batch: EcuTelemetryBatch) for backward compatibility.
+    """
     run_id: UUID
-    batch: EcuTelemetryBatch
+    hwid: Optional[str] = None
+    ecu_run_id: Optional[str] = None
+    stream_generation: int = 0
+    chunk: list[ChunkEntry]
+
+    # Backward compat: if old clients send a single `batch` field,
+    # wrap it in a chunk automatically
+    @model_validator(mode="before")
+    @classmethod
+    def compat_single_batch(cls, data):
+        if isinstance(data, dict) and "batch" in data and "chunk" not in data:
+            batch = data.pop("batch")
+            data["chunk"] = [{"batch_seq": 0, "frame": batch}]
+        return data
+
+
+class IngestAck(BaseModel):
+    status: str  # "persisted" | "error"
+    run_id: str
+    stream_generation: int
+    committed_through_sequence: int
+    detail: Optional[str] = None

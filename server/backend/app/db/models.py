@@ -185,8 +185,11 @@ class TelemetryStateModel(Base):
     state_json: Mapped[dict] = mapped_column(JSONB, nullable=False)
     overflow_json: Mapped[dict] = mapped_column(JSONB, nullable=False, server_default=text("'{}'"))
     batch_seq: Mapped[int] = mapped_column(BigInteger, nullable=False, server_default="0")
+    # Added by migration 001_ecu_run_dedup — used for deduplication of chunk retransmits
+    ecu_run_id: Mapped[str | None] = mapped_column(String(16), nullable=True)
 
     run: Mapped[RunModel] = relationship("RunModel", back_populates="telemetry_states")
+
 
 
 class TelemetryEventModel(Base):
