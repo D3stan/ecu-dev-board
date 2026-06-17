@@ -467,7 +467,8 @@ public:
           store_ref_(store),
           source_(store, make_collector_config(config)),
           serializer_(make_serializer_config(config)),
-          pump_(source_, serializer_, transport_) {}
+          retransmit_buffer_(CONFIG_DIGITAL_TWIN_RETRANSMIT_FRAMES),
+          pump_(source_, serializer_, transport_, &retransmit_buffer_) {}
 
     esp_err_t start() {
         load_recording_config_from_nvs();
@@ -802,12 +803,13 @@ private:
     SensorTelemetryBatchSource source_;
     TelemetryJsonSerializer serializer_;
     EspWebSocketTransport transport_{};
+    // retransmit_buffer_ must be declared before pump_ (member init order)
+    RetransmitBuffer retransmit_buffer_{CONFIG_DIGITAL_TWIN_RETRANSMIT_FRAMES};
     TelemetryPump pump_;
     httpd_handle_t server_{nullptr};
     TaskHandle_t task_{nullptr};
 
     // Digital-twin recording members
-    RetransmitBuffer retransmit_buffer_{CONFIG_DIGITAL_TWIN_RETRANSMIT_FRAMES};
     QueueHandle_t    cmd_queue_{nullptr};
     mutable std::mutex recording_mutex_{};
     RecordingConfig  recording_config_{

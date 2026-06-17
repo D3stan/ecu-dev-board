@@ -315,4 +315,7 @@ async function _completeStop() {
 /** Called by index.js to trigger a flush cycle after a frame is enqueued. */
 export function tryFlush() { _tryFlush(); }
 
+/** True when the active run was started by the user (not auto-record). */
+export function isManualRun() { return _manualOverride; }
+
 // ENABLED is exported as `export const` at the top of this module.

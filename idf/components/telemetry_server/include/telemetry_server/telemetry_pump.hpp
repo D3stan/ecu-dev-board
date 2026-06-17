@@ -4,6 +4,7 @@
 
 #include "sensors/domain/types.hpp"
 #include "telemetry/sensor_telemetry_collector.hpp"
+#include "telemetry_server/retransmit_buffer.hpp"
 #include "telemetry_server/telemetry_json_serializer.hpp"
 #include "telemetry_server/telemetry_transport.hpp"
 
@@ -20,7 +21,8 @@ class TelemetryPump {
 public:
     TelemetryPump(ITelemetryBatchSource &source,
                   const TelemetryJsonSerializer &serializer,
-                  ITelemetryTransport &transport);
+                  ITelemetryTransport &transport,
+                  RetransmitBuffer *retransmit = nullptr);
 
     bool tick(ecu::sensors::TimestampUs now);
 
@@ -28,6 +30,7 @@ private:
     ITelemetryBatchSource &source_;
     const TelemetryJsonSerializer &serializer_;
     ITelemetryTransport &transport_;
+    RetransmitBuffer *retransmit_;
     uint32_t next_batch_seq_{1};
 };
 

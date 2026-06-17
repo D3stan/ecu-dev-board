@@ -92,53 +92,38 @@ export const Spool = {
    */
   async deleteThrough(runId, throughSeq) {
     const db = await _getDb();
-    const index = db.transaction(STORE_NAME, "readwrite").objectStore(STORE_NAME).index("by_run");
     return new Promise((resolve, reject) => {
-      const toDelete = [];
-      const range = IDBKeyRange.only(runId);
-      const req = index.openCursor(range);
+      const tx = db.transaction(STORE_NAME, "readwrite");
+      const index = tx.objectStore(STORE_NAME).index("by_run");
+      const req = index.openCursor(IDBKeyRange.only(runId));
       req.onsuccess = (e) => {
         const cursor = e.target.result;
-        if (!cursor) {
-          // Delete collected records
-          const tx = db.transaction(STORE_NAME, "readwrite");
-          const st = tx.objectStore(STORE_NAME);
-          toDelete.forEach(id => st.delete(id));
-          tx.oncomplete = resolve;
-          tx.onerror = () => reject(tx.error);
-          return;
-        }
-        if (cursor.value.batch_seq <= throughSeq) {
-          toDelete.push(cursor.value.id);
-        }
+        if (!cursor) return; // tx.oncomplete fires when cursor exhausted
+        if (cursor.value.batch_seq <= throughSeq) cursor.delete();
         cursor.continue();
       };
-      req.onerror = () => reject(req.error);
+      req.onerror  = () => reject(req.error);
+      tx.oncomplete = resolve;
+      tx.onerror    = () => reject(tx.error);
     });
   },
 
   /** Delete ALL records for a run (on clean stop/end). */
   async clearRun(runId) {
     const db = await _getDb();
-    const index = db.transaction(STORE_NAME, "readwrite").objectStore(STORE_NAME).index("by_run");
     return new Promise((resolve, reject) => {
-      const toDelete = [];
-      const range = IDBKeyRange.only(runId);
-      const req = index.openCursor(range);
+      const tx = db.transaction(STORE_NAME, "readwrite");
+      const index = tx.objectStore(STORE_NAME).index("by_run");
+      const req = index.openCursor(IDBKeyRange.only(runId));
       req.onsuccess = (e) => {
         const cursor = e.target.result;
-        if (!cursor) {
-          const tx = db.transaction(STORE_NAME, "readwrite");
-          const st = tx.objectStore(STORE_NAME);
-          toDelete.forEach(id => st.delete(id));
-          tx.oncomplete = resolve;
-          tx.onerror = () => reject(tx.error);
-          return;
-        }
-        toDelete.push(cursor.value.id);
+        if (!cursor) return; // tx.oncomplete fires when cursor exhausted
+        cursor.delete();
         cursor.continue();
       };
-      req.onerror = () => reject(req.error);
+      req.onerror  = () => reject(req.error);
+      tx.oncomplete = resolve;
+      tx.onerror    = () => reject(tx.error);
     });
   },
 
