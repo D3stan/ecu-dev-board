@@ -153,7 +153,7 @@ def upgrade() -> None:
         sa.Column("ecu_collected_at_us", sa.BigInteger, nullable=False),
         sa.Column("snapshot_generation", sa.Integer, nullable=False),
         sa.Column("state_json", JSONB, nullable=False),
-        sa.Column("overflow_json", JSONB, nullable=False, server_default="'{}'"),
+        sa.Column("overflow_json", JSONB, nullable=False, server_default=sa.text("'{}'")),
         sa.Column("batch_seq", sa.BigInteger, nullable=False, server_default="0"),
     )
     op.create_index("ix_telemetry_states_run_id", "telemetry_states", ["run_id"])

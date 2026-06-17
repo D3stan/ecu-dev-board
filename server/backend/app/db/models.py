@@ -24,6 +24,7 @@ from sqlalchemy import (
     String,
     Text,
     func,
+    text,
 )
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
@@ -182,7 +183,7 @@ class TelemetryStateModel(Base):
     ecu_collected_at_us: Mapped[int] = mapped_column(BigInteger, nullable=False)
     snapshot_generation: Mapped[int] = mapped_column(Integer, nullable=False)
     state_json: Mapped[dict] = mapped_column(JSONB, nullable=False)
-    overflow_json: Mapped[dict] = mapped_column(JSONB, nullable=False, server_default="{}")
+    overflow_json: Mapped[dict] = mapped_column(JSONB, nullable=False, server_default=text("'{}'"))
     batch_seq: Mapped[int] = mapped_column(BigInteger, nullable=False, server_default="0")
 
     run: Mapped[RunModel] = relationship("RunModel", back_populates="telemetry_states")
