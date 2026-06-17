@@ -15,7 +15,7 @@ from typing import Sequence, Union
 
 import sqlalchemy as sa
 from alembic import op
-from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy.dialects.postgresql import ENUM, JSONB, UUID
 
 revision: str = "0001"
 down_revision: Union[str, None] = None
@@ -46,7 +46,7 @@ def upgrade() -> None:
         END
         $$;
     """)
-    run_status = sa.Enum("active", "ended", "interrupted", name="run_status", create_type=False)
+    run_status = ENUM("active", "ended", "interrupted", name="run_status", create_type=False)
 
     # ------------------------------------------------------------------
     # ecus
