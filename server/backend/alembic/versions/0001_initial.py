@@ -24,6 +24,15 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
+    # Drop existing tables if they exist (to recover from dirty partial commits)
+    op.execute("DROP TABLE IF EXISTS telemetry_events CASCADE;")
+    op.execute("DROP TABLE IF EXISTS telemetry_states CASCADE;")
+    op.execute("DROP TABLE IF EXISTS runs CASCADE;")
+    op.execute("DROP TABLE IF EXISTS configurations CASCADE;")
+    op.execute("DROP TABLE IF EXISTS engine_maps CASCADE;")
+    op.execute("DROP TABLE IF EXISTS firmware_revisions CASCADE;")
+    op.execute("DROP TABLE IF EXISTS ecus CASCADE;")
+
     # Enable TimescaleDB extension (idempotent)
     op.execute("CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;")
 
@@ -164,10 +173,9 @@ def upgrade() -> None:
     )
     op.create_index("ix_telemetry_events_run_id", "telemetry_events", ["run_id"])
 
-    # Convert tables to hypertables outside of the transaction block
-    with op.get_context().autocommit_block():
-        op.execute("SELECT create_hypertable('telemetry_states', 'server_received_at');")
-        op.execute("SELECT create_hypertable('telemetry_events', 'server_received_at');")
+    # Convert tables to hypertables (since tables are empty, this runs cleanly inside the migration transaction)
+    op.execute("SELECT create_hypertable('telemetry_states', 'server_received_at');")
+    op.execute("SELECT create_hypertable('telemetry_events', 'server_received_at');")
 
 
 def downgrade() -> None:
