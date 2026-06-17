@@ -28,8 +28,16 @@ def upgrade() -> None:
     op.execute("CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;")
 
     # run_status enum
-    run_status = sa.Enum("active", "ended", "interrupted", name="run_status")
-    run_status.create(op.get_bind(), checkfirst=True)
+    op.execute("""
+        DO $$
+        BEGIN
+            IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'run_status') THEN
+                CREATE TYPE run_status AS ENUM ('active', 'ended', 'interrupted');
+            END IF;
+        END
+        $$;
+    """)
+    run_status = sa.Enum("active", "ended", "interrupted", name="run_status", create_type=False)
 
     # ------------------------------------------------------------------
     # ecus
@@ -128,21 +136,20 @@ def upgrade() -> None:
     # ------------------------------------------------------------------
     op.create_table(
         "telemetry_states",
-        sa.Column("id", UUID(as_uuid=True), nullable=False),
+        sa.Column("id", UUID(as_uuid=True), primary_key=True, nullable=False),
         sa.Column("run_id", UUID(as_uuid=True), sa.ForeignKey("runs.id"), nullable=False),
         # Partition key: wall-clock UTC timestamp added by the server.
-        sa.Column("server_received_at", sa.DateTime(timezone=True), nullable=False),
+        sa.Column("server_received_at", sa.DateTime(timezone=True), primary_key=True, nullable=False),
         # ECU monotonic µs — authoritative for ordering, replay, revolution association.
         sa.Column("ecu_collected_at_us", sa.BigInteger, nullable=False),
         sa.Column("snapshot_generation", sa.Integer, nullable=False),
         sa.Column("state_json", JSONB, nullable=False),
         sa.Column("overflow_json", JSONB, nullable=False, server_default="'{}'"),
         sa.Column("batch_seq", sa.BigInteger, nullable=False, server_default="0"),
-        sa.PrimaryKeyConstraint("id", "server_received_at"),
     )
     op.create_index("ix_telemetry_states_run_id", "telemetry_states", ["run_id"])
     op.execute(
-        "SELECT create_hypertable('telemetry_states', 'server_received_at', if_not_exists => TRUE);"
+        "SELECT create_hypertable('telemetry_states', 'server_received_at');"
     )
 
     # ------------------------------------------------------------------
@@ -150,18 +157,17 @@ def upgrade() -> None:
     # ------------------------------------------------------------------
     op.create_table(
         "telemetry_events",
-        sa.Column("id", UUID(as_uuid=True), nullable=False),
+        sa.Column("id", UUID(as_uuid=True), primary_key=True, nullable=False),
         sa.Column("run_id", UUID(as_uuid=True), sa.ForeignKey("runs.id"), nullable=False),
-        sa.Column("server_received_at", sa.DateTime(timezone=True), nullable=False),
+        sa.Column("server_received_at", sa.DateTime(timezone=True), primary_key=True, nullable=False),
         # ECU monotonic µs of the event (authoritative for ordering).
         sa.Column("occurred_at_us", sa.BigInteger, nullable=False),
         sa.Column("kind", sa.String(64), nullable=False),
         sa.Column("payload_json", JSONB, nullable=False),
-        sa.PrimaryKeyConstraint("id", "server_received_at"),
     )
     op.create_index("ix_telemetry_events_run_id", "telemetry_events", ["run_id"])
     op.execute(
-        "SELECT create_hypertable('telemetry_events', 'server_received_at', if_not_exists => TRUE);"
+        "SELECT create_hypertable('telemetry_events', 'server_received_at');"
     )
 
 
