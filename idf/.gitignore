@@ -12,6 +12,7 @@
 *.swo
 *.bak
 *.tmp
+docs/examples/
 
 # Log files
 *.log

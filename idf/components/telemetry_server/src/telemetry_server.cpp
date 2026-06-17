@@ -1,6 +1,8 @@
 #include "telemetry_server/telemetry_server.hpp"
 
 #include <cstring>
+#include <cstdio>
+#include <array>
 #include <mutex>
 #include <new>
 #include <string>
@@ -11,14 +13,18 @@
 #include "esp_http_server.h"
 #include "esp_log.h"
 #include "esp_netif.h"
+#include "esp_spiffs.h"
 #include "esp_timer.h"
 #include "esp_wifi.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "nvs_flash.h"
 #include "sdkconfig.h"
+#include "telemetry_server/static_file_resolver.hpp"
 #include "telemetry_server/telemetry_json_serializer.hpp"
 #include "telemetry_server/telemetry_pump.hpp"
+
+#include <sys/stat.h>
 
 #ifndef PRO_CPU_NUM
 #define PRO_CPU_NUM 0
@@ -129,6 +135,137 @@ private:
     esp_netif_t *sta_netif_{nullptr};
     esp_event_handler_instance_t wifi_event_handler_{nullptr};
     esp_event_handler_instance_t ip_event_handler_{nullptr};
+};
+
+class StaticFileSystemMount {
+public:
+    esp_err_t mount(const TelemetryServerConfig &config) {
+        esp_vfs_spiffs_conf_t spiffs_config{};
+        spiffs_config.base_path = config.static_base_path;
+        spiffs_config.partition_label = config.static_partition_label;
+        spiffs_config.max_files = config.static_max_open_files;
+        spiffs_config.format_if_mount_failed = false;
+
+        const esp_err_t err = esp_vfs_spiffs_register(&spiffs_config);
+        if (err != ESP_OK) {
+            if (err == ESP_ERR_NOT_FOUND) {
+                ESP_LOGE(kTag, "SPIFFS partition '%s' not found", config.static_partition_label);
+            } else if (err == ESP_FAIL) {
+                ESP_LOGE(kTag, "failed to mount SPIFFS partition '%s'", config.static_partition_label);
+            } else {
+                ESP_LOGE(kTag, "failed to initialize SPIFFS '%s': %s",
+                         config.static_partition_label,
+                         esp_err_to_name(err));
+            }
+            return err;
+        }
+
+        mounted_ = true;
+        size_t total = 0;
+        size_t used = 0;
+        const esp_err_t info_err = esp_spiffs_info(config.static_partition_label, &total, &used);
+        if (info_err == ESP_OK) {
+            ESP_LOGI(kTag, "SPIFFS '%s' mounted at %s, used=%u total=%u",
+                     config.static_partition_label,
+                     config.static_base_path,
+                     static_cast<unsigned>(used),
+                     static_cast<unsigned>(total));
+        } else {
+            ESP_LOGW(kTag, "SPIFFS '%s' mounted, info failed: %s",
+                     config.static_partition_label,
+                     esp_err_to_name(info_err));
+        }
+        return ESP_OK;
+    }
+
+    bool mounted() const { return mounted_; }
+
+private:
+    bool mounted_{false};
+};
+
+class PosixStaticFileCatalog final : public IStaticFileCatalog {
+public:
+    bool exists(std::string_view path) const override {
+        std::string path_string(path);
+        struct stat file_stat {};
+        return stat(path_string.c_str(), &file_stat) == 0 && S_ISREG(file_stat.st_mode);
+    }
+};
+
+class StaticFileHandler {
+public:
+    StaticFileHandler(const char *base_path, const IStaticFileCatalog &catalog)
+        : resolver_(base_path != nullptr ? base_path : "/www", catalog) {}
+
+    esp_err_t register_handlers(httpd_handle_t server) {
+        httpd_uri_t static_uri{};
+        static_uri.uri = "/*";
+        static_uri.method = HTTP_GET;
+        static_uri.handler = &StaticFileHandler::handle_request;
+        static_uri.user_ctx = this;
+        return httpd_register_uri_handler(server, &static_uri);
+    }
+
+private:
+    static esp_err_t handle_request(httpd_req_t *req) {
+        auto *self = static_cast<StaticFileHandler *>(req->user_ctx);
+        return self->serve(*req);
+    }
+
+    esp_err_t serve(httpd_req_t &req) {
+        const auto resolved = resolver_.resolve(req.uri);
+        if (resolved.status == StaticFileResolveStatus::BadRequest) {
+            return httpd_resp_send_err(&req, HTTPD_400_BAD_REQUEST, "Bad static file path");
+        }
+        if (resolved.status == StaticFileResolveStatus::NotFound) {
+            return httpd_resp_send_err(&req, HTTPD_404_NOT_FOUND, "Static file not found");
+        }
+
+        FILE *file = std::fopen(resolved.filesystem_path.c_str(), "rb");
+        if (file == nullptr) {
+            ESP_LOGE(kTag, "failed to open static file %s", resolved.filesystem_path.c_str());
+            return httpd_resp_send_err(&req, HTTPD_404_NOT_FOUND, "Static file not found");
+        }
+
+        (void)httpd_resp_set_type(&req, resolved.content_type.c_str());
+        if (resolved.gzip_encoded) {
+            (void)httpd_resp_set_hdr(&req, "Content-Encoding", "gzip");
+        }
+        (void)httpd_resp_set_hdr(&req,
+                                 "Cache-Control",
+                                 resolved.no_store ? "no-store, max-age=0"
+                                                   : "public, max-age=31536000, immutable");
+
+        while (true) {
+            const std::size_t read = std::fread(scratch_.data(), 1, scratch_.size(), file);
+            if (read > 0) {
+                const esp_err_t send_err = httpd_resp_send_chunk(&req, scratch_.data(), read);
+                if (send_err != ESP_OK) {
+                    std::fclose(file);
+                    ESP_LOGE(kTag, "failed to send static file %s: %s",
+                             resolved.filesystem_path.c_str(),
+                             esp_err_to_name(send_err));
+                    return send_err;
+                }
+            }
+
+            if (read < scratch_.size()) {
+                if (std::ferror(file) != 0) {
+                    std::fclose(file);
+                    ESP_LOGE(kTag, "failed to read static file %s", resolved.filesystem_path.c_str());
+                    return httpd_resp_send_err(&req, HTTPD_500_INTERNAL_SERVER_ERROR, "Static file read failed");
+                }
+                break;
+            }
+        }
+
+        std::fclose(file);
+        return httpd_resp_send_chunk(&req, nullptr, 0);
+    }
+
+    StaticFileResolver resolver_;
+    std::array<char, 2048> scratch_{};
 };
 
 class EspWebSocketTransport final : public ITelemetryTransport {
@@ -259,6 +396,7 @@ public:
 
     esp_err_t start() {
         ESP_RETURN_ON_ERROR(wifi_.start(config_), kTag, "failed to start WiFi station");
+        ESP_RETURN_ON_ERROR(static_filesystem_.mount(config_), kTag, "failed to mount static file system");
         ESP_RETURN_ON_ERROR(start_http_server(), kTag, "failed to start HTTP server");
         ESP_RETURN_ON_ERROR(start_pump_task(), kTag, "failed to start telemetry pump task");
         return ESP_OK;
@@ -281,6 +419,7 @@ private:
     esp_err_t start_http_server() {
         httpd_config_t http_config = HTTPD_DEFAULT_CONFIG();
         http_config.server_port = config_.http_port;
+        http_config.uri_match_fn = httpd_uri_match_wildcard;
 
         ESP_RETURN_ON_ERROR(httpd_start(&server_, &http_config), kTag, "failed to start HTTP server");
 
@@ -292,7 +431,10 @@ private:
         ws_uri.is_websocket = true;
         ws_uri.handle_ws_control_frames = true;
 
-        return httpd_register_uri_handler(server_, &ws_uri);
+        ESP_RETURN_ON_ERROR(httpd_register_uri_handler(server_, &ws_uri),
+                            kTag,
+                            "failed to register WebSocket handler");
+        return static_handler_.register_handlers(server_);
     }
 
     esp_err_t start_pump_task() {
@@ -362,6 +504,9 @@ private:
 
     TelemetryServerConfig config_{};
     WifiStation wifi_{};
+    StaticFileSystemMount static_filesystem_{};
+    PosixStaticFileCatalog static_catalog_{};
+    StaticFileHandler static_handler_{config_.static_base_path, static_catalog_};
     SensorTelemetryBatchSource source_;
     TelemetryJsonSerializer serializer_;
     EspWebSocketTransport transport_{};
