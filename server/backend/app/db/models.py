@@ -174,7 +174,10 @@ class TelemetryStateModel(Base):
         UUID(as_uuid=True), ForeignKey("runs.id"), nullable=False
     )
     # Wall-clock UTC timestamp added by the server — used as TimescaleDB partition key.
-    server_received_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    # Must be part of composite primary key to allow TimescaleDB hypertable partitioning.
+    server_received_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), primary_key=True, nullable=False
+    )
     # ECU monotonic µs (esp_timer_get_time()) — authoritative for ordering and replay.
     ecu_collected_at_us: Mapped[int] = mapped_column(BigInteger, nullable=False)
     snapshot_generation: Mapped[int] = mapped_column(Integer, nullable=False)
@@ -199,7 +202,10 @@ class TelemetryEventModel(Base):
     run_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("runs.id"), nullable=False
     )
-    server_received_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    # Must be part of composite primary key to allow TimescaleDB hypertable partitioning.
+    server_received_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), primary_key=True, nullable=False
+    )
     occurred_at_us: Mapped[int] = mapped_column(BigInteger, nullable=False)
     kind: Mapped[str] = mapped_column(String(64), nullable=False)
     payload_json: Mapped[dict] = mapped_column(JSONB, nullable=False)

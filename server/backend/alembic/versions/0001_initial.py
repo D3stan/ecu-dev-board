@@ -128,7 +128,7 @@ def upgrade() -> None:
     # ------------------------------------------------------------------
     op.create_table(
         "telemetry_states",
-        sa.Column("id", UUID(as_uuid=True), primary_key=True),
+        sa.Column("id", UUID(as_uuid=True), nullable=False),
         sa.Column("run_id", UUID(as_uuid=True), sa.ForeignKey("runs.id"), nullable=False),
         # Partition key: wall-clock UTC timestamp added by the server.
         sa.Column("server_received_at", sa.DateTime(timezone=True), nullable=False),
@@ -138,6 +138,7 @@ def upgrade() -> None:
         sa.Column("state_json", JSONB, nullable=False),
         sa.Column("overflow_json", JSONB, nullable=False, server_default="'{}'"),
         sa.Column("batch_seq", sa.BigInteger, nullable=False, server_default="0"),
+        sa.PrimaryKeyConstraint("id", "server_received_at"),
     )
     op.create_index("ix_telemetry_states_run_id", "telemetry_states", ["run_id"])
     op.execute(
@@ -149,13 +150,14 @@ def upgrade() -> None:
     # ------------------------------------------------------------------
     op.create_table(
         "telemetry_events",
-        sa.Column("id", UUID(as_uuid=True), primary_key=True),
+        sa.Column("id", UUID(as_uuid=True), nullable=False),
         sa.Column("run_id", UUID(as_uuid=True), sa.ForeignKey("runs.id"), nullable=False),
         sa.Column("server_received_at", sa.DateTime(timezone=True), nullable=False),
         # ECU monotonic µs of the event (authoritative for ordering).
         sa.Column("occurred_at_us", sa.BigInteger, nullable=False),
         sa.Column("kind", sa.String(64), nullable=False),
         sa.Column("payload_json", JSONB, nullable=False),
+        sa.PrimaryKeyConstraint("id", "server_received_at"),
     )
     op.create_index("ix_telemetry_events_run_id", "telemetry_events", ["run_id"])
     op.execute(
