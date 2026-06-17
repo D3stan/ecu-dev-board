@@ -40,7 +40,9 @@ export const Paths = {
   CONNECTION: {
     SCHEMA_VERSION: "connection.schema_version",
     STATE_HZ: "connection.state_hz",
-    EVENTS_PER_BATCH: "connection.events_per_batch"
+    EVENTS_PER_BATCH: "connection.events_per_batch",
+    DEVICE: "connection.device",
+    RECORDING_CONFIG: "connection.recording_config",
   },
   OVERRIDES: {
     TPS: {
@@ -61,5 +63,15 @@ export const Paths = {
   },
   SOCKET: {
     STATE: "socket.state"
-  }
+  },
+  DIGITAL_TWIN: {
+    STATUS:             "digitalTwin.status",
+    RUN_ID:             "digitalTwin.runId",
+    ECU_RUN_ID:         "digitalTwin.ecuRunId",
+    HWID:               "digitalTwin.hwid",
+    SPOOL_SIZE:         "digitalTwin.spoolSize",
+    IN_FLIGHT:          "digitalTwin.inFlight",
+    LAST_COMMITTED_SEQ: "digitalTwin.lastCommittedSeq",
+    ERROR:              "digitalTwin.error",
+  },
 };

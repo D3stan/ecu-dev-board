@@ -7,23 +7,18 @@ namespace ecu::telemetry_server {
 
 namespace {
 
+// ---- All existing helpers below — UNCHANGED -----------------------------------
+
 const char *health_name(ecu::sensors::SensorHealthState value) {
     using ecu::sensors::SensorHealthState;
     switch (value) {
-    case SensorHealthState::Uninitialized:
-        return "Uninitialized";
-    case SensorHealthState::Stabilizing:
-        return "Stabilizing";
-    case SensorHealthState::Valid:
-        return "Valid";
-    case SensorHealthState::Degraded:
-        return "Degraded";
-    case SensorHealthState::Stale:
-        return "Stale";
-    case SensorHealthState::Failed:
-        return "Failed";
-    case SensorHealthState::Disabled:
-        return "Disabled";
+    case SensorHealthState::Uninitialized: return "Uninitialized";
+    case SensorHealthState::Stabilizing:   return "Stabilizing";
+    case SensorHealthState::Valid:         return "Valid";
+    case SensorHealthState::Degraded:      return "Degraded";
+    case SensorHealthState::Stale:         return "Stale";
+    case SensorHealthState::Failed:        return "Failed";
+    case SensorHealthState::Disabled:      return "Disabled";
     }
     return "Unknown";
 }
@@ -31,14 +26,10 @@ const char *health_name(ecu::sensors::SensorHealthState value) {
 const char *quality_name(ecu::sensors::SensorQuality value) {
     using ecu::sensors::SensorQuality;
     switch (value) {
-    case SensorQuality::Unknown:
-        return "Unknown";
-    case SensorQuality::Good:
-        return "Good";
-    case SensorQuality::Suspect:
-        return "Suspect";
-    case SensorQuality::Bad:
-        return "Bad";
+    case SensorQuality::Unknown: return "Unknown";
+    case SensorQuality::Good:    return "Good";
+    case SensorQuality::Suspect: return "Suspect";
+    case SensorQuality::Bad:     return "Bad";
     }
     return "Unknown";
 }
@@ -46,18 +37,12 @@ const char *quality_name(ecu::sensors::SensorQuality value) {
 const char *thermal_state_name(ecu::sensors::ThermalState value) {
     using ecu::sensors::ThermalState;
     switch (value) {
-    case ThermalState::Cold:
-        return "Cold";
-    case ThermalState::Warming:
-        return "Warming";
-    case ThermalState::Normal:
-        return "Normal";
-    case ThermalState::High:
-        return "High";
-    case ThermalState::Critical:
-        return "Critical";
-    case ThermalState::SensorInvalid:
-        return "SensorInvalid";
+    case ThermalState::Cold:          return "Cold";
+    case ThermalState::Warming:       return "Warming";
+    case ThermalState::Normal:        return "Normal";
+    case ThermalState::High:          return "High";
+    case ThermalState::Critical:      return "Critical";
+    case ThermalState::SensorInvalid: return "SensorInvalid";
     }
     return "SensorInvalid";
 }
@@ -65,16 +50,11 @@ const char *thermal_state_name(ecu::sensors::ThermalState value) {
 const char *thermal_request_name(ecu::sensors::ThermalRequestLevel value) {
     using ecu::sensors::ThermalRequestLevel;
     switch (value) {
-    case ThermalRequestLevel::Normal:
-        return "Normal";
-    case ThermalRequestLevel::Warning:
-        return "Warning";
-    case ThermalRequestLevel::DeratingRequested:
-        return "DeratingRequested";
-    case ThermalRequestLevel::CriticalProtectionRequested:
-        return "CriticalProtectionRequested";
-    case ThermalRequestLevel::SensorInvalid:
-        return "SensorInvalid";
+    case ThermalRequestLevel::Normal:                       return "Normal";
+    case ThermalRequestLevel::Warning:                      return "Warning";
+    case ThermalRequestLevel::DeratingRequested:            return "DeratingRequested";
+    case ThermalRequestLevel::CriticalProtectionRequested:  return "CriticalProtectionRequested";
+    case ThermalRequestLevel::SensorInvalid:                return "SensorInvalid";
     }
     return "SensorInvalid";
 }
@@ -82,10 +62,8 @@ const char *thermal_request_name(ecu::sensors::ThermalRequestLevel value) {
 const char *map_request_name(ecu::sensors::PhysicalMapRequest value) {
     using ecu::sensors::PhysicalMapRequest;
     switch (value) {
-    case PhysicalMapRequest::Primary:
-        return "Primary";
-    case PhysicalMapRequest::Secondary:
-        return "Secondary";
+    case PhysicalMapRequest::Primary:   return "Primary";
+    case PhysicalMapRequest::Secondary: return "Secondary";
     }
     return "Primary";
 }
@@ -93,48 +71,27 @@ const char *map_request_name(ecu::sensors::PhysicalMapRequest value) {
 const char *fault_name(ecu::sensors::SensorFault value) {
     using ecu::sensors::SensorFault;
     switch (value) {
-    case SensorFault::Stale:
-        return "Stale";
-    case SensorFault::InvalidConfiguration:
-        return "InvalidConfiguration";
-    case SensorFault::RangeLow:
-        return "RangeLow";
-    case SensorFault::RangeHigh:
-        return "RangeHigh";
-    case SensorFault::OpenCircuit:
-        return "OpenCircuit";
-    case SensorFault::ShortToGround:
-        return "ShortToGround";
-    case SensorFault::ShortToSupply:
-        return "ShortToSupply";
-    case SensorFault::Communication:
-        return "Communication";
-    case SensorFault::Frozen:
-        return "Frozen";
-    case SensorFault::Rate:
-        return "Rate";
-    case SensorFault::Noise:
-        return "Noise";
-    case SensorFault::Stuck:
-        return "Stuck";
-    case SensorFault::StartupActive:
-        return "StartupActive";
-    case SensorFault::Debounce:
-        return "Debounce";
-    case SensorFault::Duplicate:
-        return "Duplicate";
-    case SensorFault::Plausibility:
-        return "Plausibility";
-    case SensorFault::Overflow:
-        return "Overflow";
-    case SensorFault::Missing:
-        return "Missing";
-    case SensorFault::Saturation:
-        return "Saturation";
-    case SensorFault::WindowTiming:
-        return "WindowTiming";
-    case SensorFault::DeviceFault:
-        return "DeviceFault";
+    case SensorFault::Stale:                return "Stale";
+    case SensorFault::InvalidConfiguration: return "InvalidConfiguration";
+    case SensorFault::RangeLow:             return "RangeLow";
+    case SensorFault::RangeHigh:            return "RangeHigh";
+    case SensorFault::OpenCircuit:          return "OpenCircuit";
+    case SensorFault::ShortToGround:        return "ShortToGround";
+    case SensorFault::ShortToSupply:        return "ShortToSupply";
+    case SensorFault::Communication:        return "Communication";
+    case SensorFault::Frozen:               return "Frozen";
+    case SensorFault::Rate:                 return "Rate";
+    case SensorFault::Noise:                return "Noise";
+    case SensorFault::Stuck:                return "Stuck";
+    case SensorFault::StartupActive:        return "StartupActive";
+    case SensorFault::Debounce:             return "Debounce";
+    case SensorFault::Duplicate:            return "Duplicate";
+    case SensorFault::Plausibility:         return "Plausibility";
+    case SensorFault::Overflow:             return "Overflow";
+    case SensorFault::Missing:              return "Missing";
+    case SensorFault::Saturation:           return "Saturation";
+    case SensorFault::WindowTiming:         return "WindowTiming";
+    case SensorFault::DeviceFault:          return "DeviceFault";
     }
     return "DeviceFault";
 }
@@ -143,24 +100,12 @@ void write_string(std::ostream &out, const char *value) {
     out << '"';
     for (const char *it = value; it != nullptr && *it != '\0'; ++it) {
         switch (*it) {
-        case '"':
-            out << "\\\"";
-            break;
-        case '\\':
-            out << "\\\\";
-            break;
-        case '\n':
-            out << "\\n";
-            break;
-        case '\r':
-            out << "\\r";
-            break;
-        case '\t':
-            out << "\\t";
-            break;
-        default:
-            out << *it;
-            break;
+        case '"':  out << "\\\""; break;
+        case '\\': out << "\\\\"; break;
+        case '\n': out << "\\n";  break;
+        case '\r': out << "\\r";  break;
+        case '\t': out << "\\t";  break;
+        default:   out << *it;    break;
         }
     }
     out << '"';
@@ -244,7 +189,6 @@ void write_knock(std::ostream &out, const std::optional<ecu::telemetry::KnockTel
         out << "null";
         return;
     }
-
     out << "{\"revolution_id\":" << state->revolution_id
         << ",\"pickup_edge_at_us\":" << state->pickup_edge_at
         << ",\"window_opened_at_us\":" << state->window_opened_at
@@ -317,7 +261,8 @@ void write_event(std::ostream &out, const ecu::telemetry::TelemetryEventFrame &f
 
 } // namespace
 
-TelemetryJsonSerializer::TelemetryJsonSerializer(TelemetryJsonSerializerConfig config) : config_(config) {}
+TelemetryJsonSerializer::TelemetryJsonSerializer(TelemetryJsonSerializerConfig config)
+    : config_(config) {}
 
 std::string TelemetryJsonSerializer::serialize_capabilities() const {
     std::ostringstream out;
@@ -327,17 +272,36 @@ std::string TelemetryJsonSerializer::serialize_capabilities() const {
         << ",\"paths\":[\"state\",\"event\"]"
         << ",\"state_hz\":" << config_.state_hz
         << ",\"events_per_batch\":" << config_.events_per_batch
+        // device object
+        << ",\"device\":{\"hwid\":";
+    write_string(out, config_.device.hwid);
+    out << ",\"hardware_revision\":";
+    write_string(out, config_.device.hardware_revision ? config_.device.hardware_revision : "");
+    out << ",\"chip_model\":";
+    write_string(out, config_.device.chip_model ? config_.device.chip_model : "");
+    out << ",\"flash_size_bytes\":" << config_.device.flash_size_bytes
         << '}';
+    // recording object
+    out << ",\"recording\":{\"auto_enabled\":";
+    write_bool(out, config_.recording.auto_enabled);
+    out << ",\"rpm_threshold\":" << config_.recording.rpm_threshold
+        << ",\"start_debounce_ms\":" << config_.recording.start_debounce_ms
+        << ",\"stop_debounce_ms\":" << config_.recording.stop_debounce_ms
+        << '}';
+    out << '}';
     return out.str();
 }
 
-std::string TelemetryJsonSerializer::serialize_batch(const ecu::telemetry::TelemetryBatch &batch,
-                                                     const TelemetryTransportCounters &transport) const {
+std::string TelemetryJsonSerializer::serialize_batch(
+        const ecu::telemetry::TelemetryBatch &batch,
+        const TelemetryTransportCounters &transport,
+        uint32_t batch_seq) const {
     std::ostringstream out;
     out << "{\"type\":\"telemetry\",\"schema\":";
     write_string(out, config_.schema);
     out << ",\"t_us\":" << batch.collected_at
         << ",\"gen\":" << batch.state.snapshot_generation
+        << ",\"batch_seq\":" << batch_seq
         << ",\"state\":{\"tps\":";
     write_tps(out, batch.state.tps);
     out << ",\"rpm\":";
@@ -354,9 +318,7 @@ std::string TelemetryJsonSerializer::serialize_batch(const ecu::telemetry::Telem
     write_knock(out, batch.state.latest_knock);
     out << "},\"events\":[";
     for (std::size_t index = 0; index < batch.events.size(); ++index) {
-        if (index != 0) {
-            out << ',';
-        }
+        if (index != 0) out << ',';
         write_event(out, batch.events[index]);
     }
     out << "],\"overflow\":{\"quick_shift_events\":" << batch.overflow.quick_shift_events
@@ -367,6 +329,38 @@ std::string TelemetryJsonSerializer::serialize_batch(const ecu::telemetry::Telem
         << ",\"dropped_frames\":" << transport.dropped_frames
         << ",\"send_errors\":" << transport.send_errors
         << "}}";
+    return out.str();
+}
+
+std::string TelemetryJsonSerializer::serialize_recording_config(
+        const RecordingConfig &cfg) const {
+    std::ostringstream out;
+    out << "{\"type\":\"recording_config\",\"auto_enabled\":";
+    write_bool(out, cfg.auto_enabled);
+    out << ",\"rpm_threshold\":" << cfg.rpm_threshold
+        << ",\"start_debounce_ms\":" << cfg.start_debounce_ms
+        << ",\"stop_debounce_ms\":" << cfg.stop_debounce_ms
+        << '}';
+    return out.str();
+}
+
+std::string TelemetryJsonSerializer::serialize_run_started(
+        uint32_t ecu_run_id, uint64_t started_at_us) const {
+    std::ostringstream out;
+    char hex[9];
+    std::snprintf(hex, sizeof(hex), "%08lx", static_cast<unsigned long>(ecu_run_id));
+    out << "{\"type\":\"run_started\",\"ecu_run_id\":\"" << hex
+        << "\",\"started_at_us\":" << started_at_us << '}';
+    return out.str();
+}
+
+std::string TelemetryJsonSerializer::serialize_run_ended(
+        uint32_t ecu_run_id, uint64_t ended_at_us) const {
+    std::ostringstream out;
+    char hex[9];
+    std::snprintf(hex, sizeof(hex), "%08lx", static_cast<unsigned long>(ecu_run_id));
+    out << "{\"type\":\"run_ended\",\"ecu_run_id\":\"" << hex
+        << "\",\"ended_at_us\":" << ended_at_us << '}';
     return out.str();
 }
 

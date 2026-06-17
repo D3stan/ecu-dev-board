@@ -3,6 +3,14 @@ import { Paths } from "../utils/paths.js";
 
 const MAX_EVENTS_LOG = 100;
 
+let _rawTelemetryHook = null;
+let _runStartedHook = null;
+let _runEndedHook = null;
+
+export function setRawTelemetryHook(fn) { _rawTelemetryHook = fn; }
+export function setRunStartedHook(fn)   { _runStartedHook   = fn; }
+export function setRunEndedHook(fn)     { _runEndedHook     = fn; }
+
 /**
  * Parses and dispatches incoming WebSocket JSON frames from the ECU.
  * V1 frames are "capabilities" and "telemetry"; unknown types are ignored.
@@ -30,6 +38,15 @@ export function dispatchMessage(raw) {
     case "telemetry":
       handleTelemetry(payload);
       break;
+    case "recording_config":
+      handleRecordingConfig(payload);
+      break;
+    case "run_started":
+      if (_runStartedHook) _runStartedHook(payload);
+      break;
+    case "run_ended":
+      if (_runEndedHook) _runEndedHook(payload);
+      break;
     default:
       break;
   }
@@ -46,9 +63,28 @@ function handleCapabilities(capabilities) {
   Store.set(Paths.CONNECTION.SCHEMA_VERSION, capabilities.schema_version ?? 1);
   Store.set(Paths.CONNECTION.STATE_HZ, capabilities.state_hz ?? 10);
   Store.set(Paths.CONNECTION.EVENTS_PER_BATCH, capabilities.events_per_batch ?? 8);
+
+  if (capabilities.device && typeof capabilities.device === "object") {
+    Store.set(Paths.CONNECTION.DEVICE, {
+      hwid: capabilities.device.hwid ?? null,
+      hardware_revision: capabilities.device.hardware_revision ?? null,
+      chip_model: capabilities.device.chip_model ?? null,
+      flash_size_bytes: capabilities.device.flash_size_bytes ?? null,
+    });
+  }
+  if (capabilities.recording && typeof capabilities.recording === "object") {
+    Store.set(Paths.CONNECTION.RECORDING_CONFIG, {
+      auto_enabled: !!capabilities.recording.auto_enabled,
+      rpm_threshold: capabilities.recording.rpm_threshold ?? 300,
+      start_debounce_ms: capabilities.recording.start_debounce_ms ?? 1000,
+      stop_debounce_ms: capabilities.recording.stop_debounce_ms ?? 3000,
+    });
+  }
 }
 
 function handleTelemetry(frame) {
+  if (_rawTelemetryHook) _rawTelemetryHook(frame);
+
   Store.set(Paths.TELEMETRY.TIMESTAMP, frame.t_us ?? 0);
   Store.set(Paths.TELEMETRY.GEN, frame.gen ?? 0);
 
@@ -132,6 +168,15 @@ function normalizeMeta(meta) {
     quality: meta.quality ?? "Unknown",
     faultBits: meta.fault_bits ?? 0,
   };
+}
+
+function handleRecordingConfig(payload) {
+  Store.set(Paths.CONNECTION.RECORDING_CONFIG, {
+    auto_enabled: !!payload.auto_enabled,
+    rpm_threshold: payload.rpm_threshold ?? 300,
+    start_debounce_ms: payload.start_debounce_ms ?? 1000,
+    stop_debounce_ms: payload.stop_debounce_ms ?? 3000,
+  });
 }
 
 export function setBootstrapProcessedNotifier(_fn) {}

@@ -7,21 +7,29 @@
 #include <mutex>
 #include <new>
 #include <string>
+#include <string_view>
 #include <vector>
 
+#include "cJSON.h"
 #include "esp_check.h"
 #include "esp_event.h"
 #include "esp_heap_caps.h"
 #include "esp_http_server.h"
 #include "esp_log.h"
 #include "esp_netif.h"
+#include "esp_random.h"
 #include "esp_spiffs.h"
 #include "esp_timer.h"
 #include "esp_wifi.h"
 #include "freertos/FreeRTOS.h"
+#include "freertos/queue.h"
 #include "freertos/task.h"
 #include "nvs_flash.h"
+#include "nvs.h"
 #include "sdkconfig.h"
+#include "telemetry_server/device_identity.hpp"
+#include "telemetry_server/recording_state.hpp"
+#include "telemetry_server/retransmit_buffer.hpp"
 #include "telemetry_server/static_file_resolver.hpp"
 #include "telemetry_server/telemetry_json_serializer.hpp"
 #include "telemetry_server/telemetry_pump.hpp"
@@ -456,15 +464,23 @@ class TelemetryServerApplication {
 public:
     TelemetryServerApplication(ecu::sensors::SensorDataStore &store, TelemetryServerConfig config)
         : config_(config),
+          store_ref_(store),
           source_(store, make_collector_config(config)),
           serializer_(make_serializer_config(config)),
           pump_(source_, serializer_, transport_) {}
 
     esp_err_t start() {
+        load_recording_config_from_nvs();
+        cmd_queue_ = xQueueCreate(8, sizeof(RecordingCommand));
+        if (cmd_queue_ == nullptr) {
+            ESP_LOGE(kTag, "failed to create recording command queue");
+            return ESP_ERR_NO_MEM;
+        }
         ESP_RETURN_ON_ERROR(wifi_.start(config_), kTag, "failed to start WiFi station");
         ESP_RETURN_ON_ERROR(static_filesystem_.mount(config_), kTag, "failed to mount static file system");
         ESP_RETURN_ON_ERROR(start_http_server(), kTag, "failed to start HTTP server");
         ESP_RETURN_ON_ERROR(start_pump_task(), kTag, "failed to start telemetry pump task");
+        ESP_RETURN_ON_ERROR(start_recording_task(), kTag, "failed to start recording task");
         return ESP_OK;
     }
 
@@ -477,8 +493,14 @@ private:
 
     static TelemetryJsonSerializerConfig make_serializer_config(const TelemetryServerConfig &config) {
         TelemetryJsonSerializerConfig serializer_config{};
-        serializer_config.state_hz = config.state_hz;
-        serializer_config.events_per_batch = config.max_events_per_batch;
+        serializer_config.state_hz         = config.state_hz;
+        serializer_config.events_per_batch  = config.max_events_per_batch;
+        serializer_config.device            = get_device_identity();
+        // recording thresholds come from Kconfig defaults; auto_enabled is
+        // updated from NVS after construction via load_recording_config_from_nvs()
+        serializer_config.recording.rpm_threshold      = CONFIG_DIGITAL_TWIN_AUTO_RPM_THRESHOLD;
+        serializer_config.recording.start_debounce_ms  = CONFIG_DIGITAL_TWIN_AUTO_START_MS;
+        serializer_config.recording.stop_debounce_ms   = CONFIG_DIGITAL_TWIN_AUTO_STOP_MS;
         return serializer_config;
     }
 
@@ -523,6 +545,18 @@ private:
                                                            tskIDLE_PRIORITY + config_.task_priority_offset,
                                                            &task_,
                                                            PRO_CPU_NUM);
+        return created == pdPASS ? ESP_OK : ESP_ERR_NO_MEM;
+    }
+
+    esp_err_t start_recording_task() {
+        const BaseType_t created = xTaskCreatePinnedToCore(
+            &TelemetryServerApplication::recording_task,
+            "recording_eval",
+            4096,
+            this,
+            tskIDLE_PRIORITY + 1,
+            &recording_task_,
+            PRO_CPU_NUM);
         return created == pdPASS ? ESP_OK : ESP_ERR_NO_MEM;
     }
 
@@ -579,6 +613,30 @@ private:
             self->diagnostics_.check_heap("after websocket close");
             return err;
         }
+
+        // Handle incoming text frames (control messages from bridge client)
+        if (frame.type == HTTPD_WS_TYPE_TEXT && frame.len > 0) {
+            cJSON *root = cJSON_ParseWithLength(
+                reinterpret_cast<const char *>(frame.payload), frame.len);
+            if (root) {
+                const cJSON *type_j = cJSON_GetObjectItemCaseSensitive(root, "type");
+                if (cJSON_IsString(type_j) &&
+                    std::string_view(type_j->valuestring) == "recording_config_set") {
+                    const cJSON *ae_j = cJSON_GetObjectItemCaseSensitive(root, "auto_enabled");
+                    if (cJSON_IsBool(ae_j)) {
+                        const RecordingCommand cmd{RecordingCommandType::SetAutoEnabled,
+                                                   cJSON_IsTrue(ae_j)};
+                        if (self->cmd_queue_ != nullptr) {
+                            xQueueSend(self->cmd_queue_, &cmd, 0);
+                        }
+                    } else {
+                        ESP_LOGW(kTag, "recording_config_set: auto_enabled missing or not bool");
+                    }
+                }
+                cJSON_Delete(root);
+            }
+        }
+
         self->diagnostics_.check_heap("after websocket request");
         return ESP_OK;
     }
@@ -597,7 +655,142 @@ private:
         }
     }
 
+    // ---- NVS helpers -----------------------------------------------------------
+
+    void load_recording_config_from_nvs() {
+        nvs_handle_t handle;
+        if (nvs_open("dt_config", NVS_READONLY, &handle) != ESP_OK) return;
+        uint8_t auto_en = 0;
+        nvs_get_u8(handle, "auto_en", &auto_en);
+        nvs_close(handle);
+        std::lock_guard<std::mutex> lock(recording_mutex_);
+        recording_config_.auto_enabled = (auto_en != 0);
+    }
+
+    void save_auto_enabled_to_nvs(bool v) {
+        nvs_handle_t handle;
+        if (nvs_open("dt_config", NVS_READWRITE, &handle) != ESP_OK) return;
+        nvs_set_u8(handle, "auto_en", v ? 1 : 0);
+        nvs_commit(handle);
+        nvs_close(handle);
+    }
+
+    uint32_t load_and_increment_run_seq() {
+        nvs_handle_t handle;
+        uint32_t seq = static_cast<uint32_t>(esp_random());
+        if (nvs_open("dt_config", NVS_READWRITE, &handle) == ESP_OK) {
+            nvs_get_u32(handle, "run_seq", &seq);
+            ++seq;
+            nvs_set_u32(handle, "run_seq", seq);
+            nvs_commit(handle);
+            nvs_close(handle);
+        }
+        return seq;
+    }
+
+    // ---- Recording evaluation task --------------------------------------------
+
+    static void recording_task(void *arg) {
+        auto *self = static_cast<TelemetryServerApplication *>(arg);
+        constexpr TickType_t kPeriodTicks = pdMS_TO_TICKS(100);
+        TickType_t last_wake = xTaskGetTickCount();
+
+        // Debounce state
+        bool above_threshold      = false;  // is engine currently above RPM threshold?
+        TickType_t condition_since = 0;     // tick when condition last flipped
+        bool run_active            = false;  // is a recording run currently open?
+        uint32_t current_run_id    = 0;
+
+        while (true) {
+            vTaskDelayUntil(&last_wake, kPeriodTicks);
+
+            // ---- Drain command queue (non-blocking) --------------------------
+            RecordingCommand cmd{};
+            while (xQueueReceive(self->cmd_queue_, &cmd, 0) == pdTRUE) {
+                if (cmd.type == RecordingCommandType::SetAutoEnabled) {
+                    {
+                        std::lock_guard<std::mutex> lock(self->recording_mutex_);
+                        self->recording_config_.auto_enabled = cmd.auto_enabled;
+                    }
+                    self->save_auto_enabled_to_nvs(cmd.auto_enabled);
+                    const auto cfg_frame = self->serializer_.serialize_recording_config(
+                        [&]() {
+                            std::lock_guard<std::mutex> lock(self->recording_mutex_);
+                            return self->recording_config_;
+                        }());
+                    (void)self->transport_.send_text(cfg_frame);
+                    ESP_LOGI(kTag, "recording: auto_enabled=%d saved to NVS",
+                             cmd.auto_enabled ? 1 : 0);
+                }
+            }
+
+            // ---- Auto-record evaluation -------------------------------------
+            bool auto_enabled;
+            uint32_t rpm_threshold;
+            uint32_t start_debounce_ms;
+            uint32_t stop_debounce_ms;
+            {
+                std::lock_guard<std::mutex> lock(self->recording_mutex_);
+                auto_enabled       = self->recording_config_.auto_enabled;
+                rpm_threshold      = self->recording_config_.rpm_threshold;
+                start_debounce_ms  = self->recording_config_.start_debounce_ms;
+                stop_debounce_ms   = self->recording_config_.stop_debounce_ms;
+            }
+
+            if (!auto_enabled) {
+                // Auto mode off: if a run is open, close it
+                if (run_active) {
+                    const uint64_t now_us = static_cast<uint64_t>(esp_timer_get_time());
+                    const auto frame = self->serializer_.serialize_run_ended(current_run_id, now_us);
+                    (void)self->transport_.send_text(frame);
+                    ESP_LOGI(kTag, "recording: run_ended id=%08lx (auto disabled)",
+                             static_cast<unsigned long>(current_run_id));
+                    run_active = false;
+                }
+                above_threshold = false;
+                continue;
+            }
+
+            // Sample current engine state
+            const ecu::sensors::EngineInputSnapshot snap = self->store_ref_.snapshot();
+            const float current_rpm   = snap.engine_speed.value.rpm;
+            const bool  synchronized  = snap.engine_speed.value.synchronized;
+            const bool  cond_met      = synchronized && (current_rpm >= static_cast<float>(rpm_threshold));
+
+            const TickType_t now_ticks = xTaskGetTickCount();
+
+            if (cond_met != above_threshold) {
+                // Condition flipped — reset debounce timer
+                above_threshold = cond_met;
+                condition_since = now_ticks;
+            }
+
+            const uint32_t held_ms =
+                static_cast<uint32_t>((now_ticks - condition_since) * portTICK_PERIOD_MS);
+
+            if (!run_active && above_threshold && held_ms >= start_debounce_ms) {
+                // Start a new run
+                current_run_id = self->load_and_increment_run_seq();
+                run_active = true;
+                const uint64_t now_us = static_cast<uint64_t>(esp_timer_get_time());
+                const auto frame = self->serializer_.serialize_run_started(current_run_id, now_us);
+                (void)self->transport_.send_text(frame);
+                ESP_LOGI(kTag, "recording: run_started id=%08lx rpm=%.1f",
+                         static_cast<unsigned long>(current_run_id), static_cast<double>(current_rpm));
+            } else if (run_active && !above_threshold && held_ms >= stop_debounce_ms) {
+                // End the current run
+                const uint64_t now_us = static_cast<uint64_t>(esp_timer_get_time());
+                const auto frame = self->serializer_.serialize_run_ended(current_run_id, now_us);
+                (void)self->transport_.send_text(frame);
+                ESP_LOGI(kTag, "recording: run_ended id=%08lx",
+                         static_cast<unsigned long>(current_run_id));
+                run_active = false;
+            }
+        }
+    }
+
     TelemetryServerConfig config_{};
+    ecu::sensors::SensorDataStore &store_ref_;
     WifiStation wifi_{};
     StaticFileSystemMount static_filesystem_{};
     PosixStaticFileCatalog static_catalog_{};
@@ -612,6 +805,18 @@ private:
     TelemetryPump pump_;
     httpd_handle_t server_{nullptr};
     TaskHandle_t task_{nullptr};
+
+    // Digital-twin recording members
+    RetransmitBuffer retransmit_buffer_{CONFIG_DIGITAL_TWIN_RETRANSMIT_FRAMES};
+    QueueHandle_t    cmd_queue_{nullptr};
+    mutable std::mutex recording_mutex_{};
+    RecordingConfig  recording_config_{
+        false,
+        CONFIG_DIGITAL_TWIN_AUTO_RPM_THRESHOLD,
+        CONFIG_DIGITAL_TWIN_AUTO_START_MS,
+        CONFIG_DIGITAL_TWIN_AUTO_STOP_MS
+    };
+    TaskHandle_t recording_task_{nullptr};
 };
 
 TelemetryServerConfig with_kconfig_defaults(TelemetryServerConfig config) {

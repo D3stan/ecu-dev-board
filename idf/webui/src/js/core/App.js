@@ -29,6 +29,7 @@ import { ModalManager } from '../managers/modalManager.js';
 import { SidebarManager } from '../managers/sidebarManager.js';
 import { CommandManager } from '../managers/commandManager.js';
 import { TelemetryHistoryManager } from '../managers/TelemetryHistoryManager.js';
+import { initDigitalTwin } from '../digitalTwin/index.js';
 
 // UI Components
 import { TopBar } from '../components/TopBar/TopBar.js';
@@ -91,6 +92,9 @@ export class App {
 
       TelemetryHistoryManager.init({ Store });
       this.managers.telemetryHistory = TelemetryHistoryManager;
+
+      // Initialize Digital-Twin bridge (no-op if VITE_DIGITAL_TWIN_SERVER_URL is empty)
+      await initDigitalTwin();
 
       // 2. Load mock data & start emulator if offline/dev mode
       if (this.config.useMockData) {

@@ -54,7 +54,10 @@ export class DashboardPage extends Page {
         mapMeta: Paths.TELEMETRY.MAP_META,
         knock: Paths.TELEMETRY.KNOCK,
         transport: Paths.TELEMETRY.TRANSPORT,
-        overflow: Paths.TELEMETRY.OVERFLOW
+        overflow: Paths.TELEMETRY.OVERFLOW,
+        dtStatus:    Paths.DIGITAL_TWIN.STATUS,
+        dtSpoolSize: Paths.DIGITAL_TWIN.SPOOL_SIZE,
+        dtInFlight:  Paths.DIGITAL_TWIN.IN_FLIGHT,
       },
       ...options
     });
@@ -129,6 +132,8 @@ export class DashboardPage extends Page {
   renderContent() {
     return `
       <div class="dashboard-container ecu-cockpit">
+        <div id="dt-status-row" style="display:none;align-items:center;padding:4px 8px;cursor:pointer;border-radius:6px;background:rgba(255,255,255,0.05);margin-bottom:8px;"></div>
+
         <section class="telemetry-status-strip" aria-label="Telemetry status">
           <span class="status-pill" id="status-socket">WS --</span>
           <span class="status-pill">schema v<span id="status-schema">--</span></span>
@@ -183,6 +188,7 @@ export class DashboardPage extends Page {
     this._updateStatusStrip();
     this._updateRpmHero();
     this._updateSensorCards();
+    this._renderDtStatusRow();
   }
 
   _renderMetricCard(signal, title, valueId, unit, badgeId, footerId, extraClass = "") {
@@ -290,6 +296,41 @@ export class DashboardPage extends Page {
     );
     setCardFault(this.$('[data-signal="knock"]'), knockMeta);
   }
+
+  _renderDtStatusRow() {
+    const row = this.$("#dt-status-row");
+    if (!row) return;
+
+    const status = this.data.dtStatus || "disabled";
+    if (status === "disabled") {
+      row.style.display = "none";
+      return;
+    }
+    row.style.display = "flex";
+
+    const dotColor = {
+      running:      "#22c55e",
+      reconnecting: "#f59e0b",
+      starting:     "#f59e0b",
+      draining:     "#f59e0b",
+      stopping:     "#f59e0b",
+      error:        "#ef4444",
+      interrupted:  "#ef4444",
+    }[status] || "#6b7280";
+
+    row.innerHTML = `
+      <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${dotColor};margin-right:6px;"></span>
+      <span style="font-size:12px;opacity:0.8;">${escapeHtml(status)}</span>
+      <span style="margin-left:8px;font-size:11px;opacity:0.5;">${this.data.dtSpoolSize ?? 0}q ${this.data.dtInFlight ?? 0}f</span>
+    `;
+
+    row.onclick = null;
+    row.addEventListener("click", () => {
+      import("../managers/navigatorManager.js").then(({ NavigatorManager }) => {
+        NavigatorManager.navigateTo("telemetryDiagnosticsPage");
+      });
+    }, { once: true });
+  }
 }
 
 function setText(element, value) {
@@ -312,4 +353,13 @@ function setCardFault(element, meta) {
   if (!element) return;
   element.classList.toggle("fault-active", Boolean(meta?.faultBits));
   element.classList.toggle("invalid", Boolean(meta && !meta.valid));
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
 }

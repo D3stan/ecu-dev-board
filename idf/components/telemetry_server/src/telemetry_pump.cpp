@@ -22,8 +22,12 @@ bool TelemetryPump::tick(ecu::sensors::TimestampUs now) {
         return false;
     }
 
-    const auto payload = serializer_.serialize_batch(*batch, transport_.counters());
-    return transport_.send_text(payload);
+    const auto payload = serializer_.serialize_batch(*batch, transport_.counters(), next_batch_seq_);
+    const bool sent = transport_.send_text(payload);
+    if (sent) {
+        ++next_batch_seq_;
+    }
+    return sent;
 }
 
 } // namespace ecu::telemetry_server

@@ -28,6 +28,7 @@ private:
     ITelemetryBatchSource &source_;
     const TelemetryJsonSerializer &serializer_;
     ITelemetryTransport &transport_;
+    uint32_t next_batch_seq_{1};
 };
 
 class SensorTelemetryBatchSource final : public ITelemetryBatchSource {

@@ -44,4 +44,43 @@ menu "ECU telemetry server"
         range 1 10
         depends on TELEMETRY_SERVER_ENABLED
 
+    menu "Digital-twin recording"
+        depends on TELEMETRY_SERVER_ENABLED
+
+        config DIGITAL_TWIN_AUTO_RPM_THRESHOLD
+            int "Auto-record RPM threshold"
+            default 300
+            range 0 20000
+            help
+                Engine speed above which auto-recording starts (RPM).
+
+        config DIGITAL_TWIN_AUTO_START_MS
+            int "Auto-record start debounce (ms)"
+            default 1000
+            range 100 30000
+            help
+                Time the RPM condition must hold before emitting run_started.
+
+        config DIGITAL_TWIN_AUTO_STOP_MS
+            int "Auto-record stop debounce (ms)"
+            default 3000
+            range 100 60000
+            help
+                Time below RPM threshold before emitting run_ended.
+
+        config DIGITAL_TWIN_HARDWARE_REVISION
+            string "Hardware revision string"
+            default "ESP32-S3FH4R2"
+            help
+                Reported in capabilities frame as hardware_revision.
+
+        config DIGITAL_TWIN_RETRANSMIT_FRAMES
+            int "Retransmission ring-buffer depth (frames)"
+            default 600
+            range 60 3600
+            help
+                Number of recent serialized telemetry frames kept for
+                retransmission to a reconnecting bridge client.
+    endmenu
+
 endmenu

@@ -2,6 +2,9 @@ import { Page } from "../core/Page.js";
 import { PageTopBar } from "../components/PageTopBar/PageTopBar.js";
 import { Paths } from "../utils/paths.js";
 import { formatDurationMs, summarizeEvent } from "../utils/telemetryFormat.js";
+import { Store } from "../core/store.js";
+import { Socket } from "../core/socket.js";
+import { ENABLED, startRun, stopRun } from "../digitalTwin/DigitalTwinClient.js";
 
 export class TelemetryDiagnosticsPage extends Page {
   constructor(options = {}) {
@@ -18,7 +21,16 @@ export class TelemetryDiagnosticsPage extends Page {
         gen: Paths.TELEMETRY.GEN,
         overflow: Paths.TELEMETRY.OVERFLOW,
         transport: Paths.TELEMETRY.TRANSPORT,
-        events: Paths.TELEMETRY.EVENTS
+        events: Paths.TELEMETRY.EVENTS,
+        dtStatus:       Paths.DIGITAL_TWIN.STATUS,
+        dtRunId:        Paths.DIGITAL_TWIN.RUN_ID,
+        dtEcuRunId:     Paths.DIGITAL_TWIN.ECU_RUN_ID,
+        dtSpoolSize:    Paths.DIGITAL_TWIN.SPOOL_SIZE,
+        dtInFlight:     Paths.DIGITAL_TWIN.IN_FLIGHT,
+        dtLastSeq:      Paths.DIGITAL_TWIN.LAST_COMMITTED_SEQ,
+        dtError:        Paths.DIGITAL_TWIN.ERROR,
+        device:         Paths.CONNECTION.DEVICE,
+        recordingConfig: Paths.CONNECTION.RECORDING_CONFIG,
       },
       ...options
     });
@@ -60,6 +72,12 @@ export class TelemetryDiagnosticsPage extends Page {
           <h3>Event Log</h3>
           <div class="event-log" id="diagnostics-events"></div>
         </section>
+
+        <section class="telemetry-panel" id="dt-recording-panel">
+          <h3>Digital Twin Recording</h3>
+          <div class="stat-grid" id="dt-status-grid"></div>
+          <div class="dt-controls" id="dt-controls" style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;"></div>
+        </section>
       </div>
     `;
   }
@@ -92,6 +110,7 @@ export class TelemetryDiagnosticsPage extends Page {
     ]);
 
     this._renderEvents();
+    this._renderDigitalTwin();
   }
 
   _renderEvents() {
@@ -120,6 +139,61 @@ export class TelemetryDiagnosticsPage extends Page {
         </div>
       `;
     }).join("");
+  }
+
+  _renderDigitalTwin() {
+    const panel = this.$("#dt-recording-panel");
+    if (!panel) return;
+
+    const serverUrl = typeof import.meta !== "undefined"
+      ? (import.meta.env?.VITE_DIGITAL_TWIN_SERVER_URL || "")
+      : "";
+    const enabled = ENABLED;
+    const status  = this.data.dtStatus || "disabled";
+    const device  = this.data.device || {};
+    const cfg     = this.data.recordingConfig || {};
+
+    renderStats(this.$("#dt-status-grid"), [
+      ["server",      enabled ? escapeHtml(serverUrl) : "disabled"],
+      ["status",      escapeHtml(status)],
+      ["hwid",        escapeHtml(device.hwid || "--")],
+      ["hw_rev",      escapeHtml(device.hardware_revision || "--")],
+      ["run_id",      escapeHtml((this.data.dtRunId || "--").slice(0, 8) + "...")],
+      ["ecu_run_id",  escapeHtml(this.data.dtEcuRunId || "--")],
+      ["spool",       `${this.data.dtSpoolSize ?? 0} frames`],
+      ["in_flight",   `${this.data.dtInFlight ?? 0} chunks`],
+      ["committed_seq", this.data.dtLastSeq ?? 0],
+      ["auto_enabled", cfg.auto_enabled ? "yes" : "no"],
+      ["rpm_threshold", cfg.rpm_threshold ?? "--"],
+    ]);
+
+    const controls = this.$("#dt-controls");
+    if (!controls) return;
+
+    const canStart = enabled && (status === "idle" || status === "ended");
+    const canStop  = enabled && (status === "running");
+    const isAuto   = cfg.auto_enabled;
+
+    controls.innerHTML = `
+      <button id="dt-start-btn" ${!canStart ? "disabled" : ""}
+              style="padding:6px 14px;cursor:pointer;">▶ Start</button>
+      <button id="dt-stop-btn" ${!canStop ? "disabled" : ""}
+              style="padding:6px 14px;cursor:pointer;">■ Stop</button>
+      <button id="dt-auto-btn" ${!enabled ? "disabled" : ""}
+              style="padding:6px 14px;cursor:pointer;">
+        Auto: ${isAuto ? "ON" : "OFF"}
+      </button>
+    `;
+
+    this.$("#dt-start-btn")?.addEventListener("click", () => {
+      const d = Store.get(Paths.CONNECTION.DEVICE);
+      startRun(d?.hwid, d?.hardware_revision, null, true);
+    });
+    this.$("#dt-stop-btn")?.addEventListener("click", () => stopRun());
+    this.$("#dt-auto-btn")?.addEventListener("click", () => {
+      const newVal = !cfg.auto_enabled;
+      Socket.send(JSON.stringify({ type: "recording_config_set", auto_enabled: newVal }));
+    });
   }
 }
 

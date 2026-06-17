@@ -46,7 +46,19 @@ function createInitialState() {
     connection: {
       schema_version: 0,
       state_hz: 0,
-      events_per_batch: 0
+      events_per_batch: 0,
+      device: {
+        hwid: null,
+        hardware_revision: null,
+        chip_model: null,
+        flash_size_bytes: null
+      },
+      recording_config: {
+        auto_enabled: false,
+        rpm_threshold: 300,
+        start_debounce_ms: 1000,
+        stop_debounce_ms: 3000
+      }
     },
     overrides: {
       tps: { active: false, value: 0.0 },
@@ -56,6 +68,16 @@ function createInitialState() {
     },
     socket: {
       state: SocketState.DISCONNECTED
+    },
+    digitalTwin: {
+      status: "disabled",
+      runId: null,
+      ecuRunId: null,
+      hwid: null,
+      spoolSize: 0,
+      inFlight: 0,
+      lastCommittedSeq: 0,
+      error: null
     }
   };
 }
