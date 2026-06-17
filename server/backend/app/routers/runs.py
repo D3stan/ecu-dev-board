@@ -35,6 +35,19 @@ class StartRunResponse(BaseModel):
     run_id: uuid.UUID
 
 
+class RunDetailResponse(BaseModel):
+    id: uuid.UUID
+    ecu_id: uuid.UUID
+    status: str
+    started_at: datetime
+    ended_at: datetime | None = None
+    firmware_version: str | None = None
+    map_version: str | None = None
+    heartbeat: datetime | None = None
+    last_committed_sequence: int
+    batch_count: int
+
+
 class TelemetryStateEntry(BaseModel):
     id: uuid.UUID
     run_id: uuid.UUID
@@ -65,6 +78,29 @@ def _run_manager(request: Request) -> RunManager:
 # ---------------------------------------------------------------------------
 # Endpoints
 # ---------------------------------------------------------------------------
+
+@router.get("", response_model=list[RunDetailResponse])
+async def list_runs(
+    ecu_id: uuid.UUID | None = None,
+    db: PostgreSQLService = Depends(_db_service),
+) -> list[RunDetailResponse]:
+    runs = await db.get_all_runs(ecu_id=ecu_id)
+    return [
+        RunDetailResponse(
+            id=r.id,
+            ecu_id=r.ecu_id,
+            status=r.status,
+            started_at=r.started_at,
+            ended_at=r.ended_at,
+            firmware_version=r.firmware_version,
+            map_version=r.map_version,
+            heartbeat=r.heartbeat,
+            last_committed_sequence=r.last_committed_sequence,
+            batch_count=r.batch_count,
+        )
+        for r in runs
+    ]
+
 
 @router.post("/start", status_code=status.HTTP_201_CREATED, response_model=StartRunResponse)
 async def start_run(

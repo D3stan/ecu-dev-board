@@ -29,6 +29,12 @@ class DatabaseService(ABC):
     async def get_ecu_by_serial(self, serial_number: str) -> Ecu | None: ...
 
     @abstractmethod
+    async def get_all_ecus(self) -> list[Ecu]: ...
+
+    @abstractmethod
+    async def get_all_runs(self, ecu_id: uuid.UUID | None = None) -> list[RunModel]: ...
+
+    @abstractmethod
     async def create_run(
         self,
         ecu_id: uuid.UUID,
@@ -92,6 +98,20 @@ class PostgreSQLService(DatabaseService):
         )
         model = result.scalar_one_or_none()
         return _ecu_from_model(model) if model else None
+
+    async def get_all_ecus(self) -> list[Ecu]:
+        result = await self._session.execute(
+            select(EcuModel).order_by(EcuModel.created_at.desc())
+        )
+        models = result.scalars().all()
+        return [_ecu_from_model(m) for m in models]
+
+    async def get_all_runs(self, ecu_id: uuid.UUID | None = None) -> list[RunModel]:
+        query = select(RunModel).order_by(RunModel.started_at.desc())
+        if ecu_id:
+            query = query.where(RunModel.ecu_id == ecu_id)
+        result = await self._session.execute(query)
+        return list(result.scalars().all())
 
     # ------------------------------------------------------------------
     # Runs

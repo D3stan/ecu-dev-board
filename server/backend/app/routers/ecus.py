@@ -76,6 +76,22 @@ async def register_ecu(
     )
 
 
+@router.get("", response_model=list[EcuResponse])
+async def list_ecus(
+    db: PostgreSQLService = Depends(_db_service),
+) -> list[EcuResponse]:
+    ecus = await db.get_all_ecus()
+    return [
+        EcuResponse(
+            id=ecu.id,
+            serial_number=ecu.serial_number,
+            hardware_revision=ecu.hardware_revision,
+            created_at=ecu.created_at,
+        )
+        for ecu in ecus
+    ]
+
+
 @router.get("/{ecu_id}", response_model=EcuResponse)
 async def get_ecu(
     ecu_id: uuid.UUID,

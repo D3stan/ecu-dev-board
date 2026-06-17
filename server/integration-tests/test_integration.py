@@ -271,3 +271,48 @@ async def test_invalid_envelope_rejected() -> None:
         raw = await asyncio.wait_for(ws.recv(), timeout=5.0)
         resp = json.loads(raw)
         assert resp["status"] == "error"
+
+
+@pytest.mark.asyncio
+async def test_list_ecus_and_runs() -> None:
+    """Verify listing ECUs and runs (and filtering runs by ECU ID)."""
+    await _wait_for_health(BACKEND_URL)
+    async with httpx.AsyncClient(base_url=BACKEND_URL) as client:
+        # Register a unique ECU
+        serial = f"SN-LIST-{uuid.uuid4().hex[:8].upper()}"
+        r1 = await client.post(
+            "/api/ecus", json={"serial_number": serial, "hardware_revision": "HW-LIST-1"}
+        )
+        assert r1.status_code == 201
+        ecu_id = r1.json()["id"]
+
+        # Fetch ECU list and verify our new ECU is there
+        r_ecus = await client.get("/api/ecus")
+        assert r_ecus.status_code == 200
+        ecus = r_ecus.json()
+        assert any(e["serial_number"] == serial for e in ecus)
+
+        # Start a run for this ECU
+        r_start = await client.post(
+            "/api/runs/start",
+            json={"ecu_id": ecu_id, "firmware_version": "1.0.0-list", "map_version": "v1-list"}
+        )
+        assert r_start.status_code == 201
+        run_id = r_start.json()["run_id"]
+
+        # Fetch Runs list and verify our new run is there
+        r_runs = await client.get("/api/runs")
+        assert r_runs.status_code == 200
+        runs = r_runs.json()
+        assert any(r["id"] == run_id for r in runs)
+
+        # Fetch Runs list filtered by ECU and verify
+        r_runs_filtered = await client.get(f"/api/runs?ecu_id={ecu_id}")
+        assert r_runs_filtered.status_code == 200
+        runs_filtered = r_runs_filtered.json()
+        assert len(runs_filtered) >= 1
+        assert runs_filtered[0]["id"] == run_id
+
+        # End the run
+        r_end = await client.post(f"/api/runs/{run_id}/end")
+        assert r_end.status_code == 200
