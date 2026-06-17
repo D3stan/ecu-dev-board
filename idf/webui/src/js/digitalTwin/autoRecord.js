@@ -10,7 +10,7 @@
 
 import { Store } from "../core/store.js";
 import { Paths } from "../utils/paths.js";
-import { startRun, stopRun, ENABLED } from "./DigitalTwinClient.js";
+import { startRun, stopRun, ENABLED, isManualRun } from "./DigitalTwinClient.js";
 import { setRunStartedHook, setRunEndedHook } from "../core/adapter.js";
 
 let _running = false;
@@ -54,8 +54,9 @@ async function _onRunEnded(payload) {
   const status = Store.get(Paths.DIGITAL_TWIN.STATUS);
   if (status !== "running") return;
 
-  // Only auto-stop if not manually overridden
-  // (Manual runs are stopped only by user pressing Stop)
+  // Manual runs are stopped only by the user pressing Stop.
+  if (isManualRun()) return;
+
   try {
     await stopRun();
   } catch (err) {
