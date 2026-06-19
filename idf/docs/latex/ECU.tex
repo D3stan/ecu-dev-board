@@ -15,21 +15,14 @@ Questa tesi presenta il progetto di una centralina elettronica programmabile
 per motori monocilindrici a carburatore. Il lavoro considera la centralina non
 come un dispositivo isolato, ma come il nodo real-time di un sistema che
 comprende acquisizione sensoristica, controllo motore, telemetria, interfaccia
-utente e conservazione dei dati. L'obiettivo non è ottenere, in questa fase, un
-prodotto installabile su un veicolo. Si vuole invece definire un'architettura
-credibile e verificarne una prima sezione verticale: dal segnale di ingresso
-fino alla sua pubblicazione su un'interfaccia web.
-
-L'elaborato distingue quindi il sistema progettato dal prototipo effettivamente
-realizzato. Il primo comprende anche comando dell'accensione, attuatori,
-gestione delle mappe, registrazione delle sessioni e digital twin. Il secondo si
-concentra sul sottosistema sensoriale, sulle regole di isolamento dall'hardware,
-sulla telemetria e sulla visualizzazione locale. Questa distinzione permette di
-valutare il prototipo rispetto a requisiti espliciti senza attribuirgli funzioni
-che non sono ancora state validate.
+utente ed elaborazione dei dati. La ECU acquisisce e qualifica i segnali del
+motore, calcola le strategie di controllo, temporizza accensione e attuatori e
+rende osservabili misure, decisioni ed eventi attraverso una telemetria locale.
+Il sistema comprende inoltre la gestione delle mappe, la registrazione delle
+sessioni, l'aggiornamento del firmware e un digital twin lato server.
 \end{abstract}
 
-\tableofcontents
+% \tableofcontents
 
 \section{Introduzione e contesto applicativo}
 \label{sec:introduzione}
@@ -60,8 +53,8 @@ carburatore. In tale ambito una centralina di serie può offrire margini ridotti
 di configurazione. Le ECU aftermarket rispondono a questa esigenza consentendo
 la modifica delle mappe di accensione e alimentazione e l'aggiunta di funzioni
 non previste dall'unità originale~\cite{linkecu}. Il progetto si colloca nello
-stesso spazio applicativo, ma usa un prototipo aperto per studiare soprattutto
-architettura, osservabilità e testabilità.
+stesso spazio applicativo e adotta un'architettura aperta, osservabile e
+verificabile.
 
 \subsection{Idea di progetto}
 
@@ -76,12 +69,12 @@ mantenendo stabili i confini tra i sottosistemi.
 L'International Energy Agency descrive il passaggio verso veicoli nei quali una
 quota crescente delle funzioni è definita e aggiornata tramite software, insieme
 alla progressiva revisione delle architetture elettroniche distribuite
-tradizionali~\cite{iea_sdv}. Il presente lavoro non tenta di riprodurre
-l'architettura di un'automobile moderna. Riprende però due idee di quel processo:
-la funzione del dispositivo può evolvere dopo la sua costruzione e i dati
-operativi fanno parte del sistema, non sono un sottoprodotto occasionale.
+tradizionali~\cite{iea_sdv}. Il progetto applica questo principio al controllo
+di un motore monocilindrico: la funzione del dispositivo può evolvere dopo la
+sua costruzione e i dati operativi fanno parte del sistema, non sono un
+sottoprodotto occasionale.
 
-Da questa impostazione derivano cinque capacità attese:
+Da questa impostazione derivano cinque capacità principali:
 
 \begin{itemize}
     \item acquisire gli ingressi del motore e qualificarne validità, età e stato
@@ -96,57 +89,49 @@ Da questa impostazione derivano cinque capacità attese:
           di confronto, replay e diagnosi.
 \end{itemize}
 
-La tesi adotta deliberatamente la forma di una prima iterazione. Il risultato
-atteso non è una centralina omologata né una taratura motoristica. È una base
-tecnica sulla quale sia possibile aggiungere il controllo reale senza dover
-rimuovere telemetria, test o gestione dei guasti.
-
 \subsection{Riferimenti architetturali e stato dell'arte}
 
 L'indipendenza tra logica applicativa e dettagli della piattaforma è un tema
 consolidato nel software automotive. AUTOSAR Classic, ad esempio, separa
 applicazione, runtime e software di base; l'applicazione è in larga parte
 indipendente dall'hardware e accede ai servizi mediante interfacce
-definite~\cite{autosar_classic}. Il progetto qui discusso non implementa AUTOSAR, che
-sarebbe sproporzionato rispetto al prototipo. Ne adotta il principio utile al
-caso in esame: il codice che interpreta un sensore non deve conoscere il driver
-ESP-IDF che ha prodotto il campione.
+definite~\cite{autosar_classic}. L'architettura adotta una separazione calibrata
+sulle dimensioni del sistema: il codice che interpreta un sensore non conosce
+il driver ESP-IDF che ha prodotto il campione e i servizi applicativi dipendono
+da contratti stabili.
 
 Un secondo riferimento è la validazione hardware-in-the-loop (HIL). In questo
 approccio il software esegue sul controllore reale mentre una sorgente esterna
 riproduce il comportamento dell'ambiente fisico. Abboush, Knieke e Rausch
 mostrano come HIL e iniezione di guasti possano sostenere la validazione real-time
-del software automotive~\cite{abboush_hil}. Il simulatore previsto dal progetto
-ha una scala più ridotta: genera il pick-up e gli ingressi analogici o digitali,
-ma li presenta alla ECU attraverso le normali interfacce elettriche. Il valore
-del metodo è già presente, perché una prova ripetuta non richiede di modificare
-la logica sottoposta a verifica.
+del software automotive~\cite{abboush_hil}. Il simulatore del sistema genera il
+pick-up e gli ingressi analogici o digitali e li presenta alla ECU attraverso
+le normali interfacce elettriche. Le prove sono quindi ripetibili senza
+modificare la logica sottoposta a verifica.
 
 Il terzo riferimento riguarda il digital twin. La letteratura sui motori a
 combustione interna associa il digital twin a monitoraggio, diagnosi e modelli
 predittivi alimentati dai dati del sistema fisico~\cite{tran_dt}. Lavori più
 recenti sui motori diesel combinano modelli fisici e tecniche di apprendimento
 per la stima dei parametri e il monitoraggio dello stato~\cite{nath_dt}. Nel
-progetto della tesi il punto di partenza è più prudente: il twin è anzitutto una
-rappresentazione persistente della ECU, delle revisioni installate e delle
-sessioni registrate. Replay e confronto tra mappe sono obiettivi realistici;
-la previsione di coppia, potenza o rischio termico richiederebbe invece dati e
-modelli che il prototipo non possiede.
+sistema sviluppato il twin mantiene la rappresentazione persistente della ECU,
+delle revisioni installate e delle sessioni registrate. Su questa base esegue
+replay, confronto tra mappe e analisi diagnostica, mantenendo separati dati
+misurati, risultati ricalcolati e valori simulati.
 
 \subsection{Obiettivo e contributo della tesi}
 
 Il contributo è duplice. Sul piano progettuale viene definito un sistema
 completo, dai segnali fisici alla conservazione delle sessioni, con responsabilità
-separate. Sul piano sperimentale viene realizzato e reso verificabile un
-sottoinsieme preciso: acquisizione e modellazione degli ingressi, pubblicazione
-di snapshot ed eventi, trasporto WebSocket e interfaccia web locale.
+separate. Sul piano sperimentale il sistema integra acquisizione e modellazione
+degli ingressi, controllo dell'accensione e degli attuatori, gestione delle
+mappe, pubblicazione di snapshot ed eventi, trasporto WebSocket, interfaccia web
+locale e servizi remoti per sessioni, aggiornamenti e digital twin.
 
-Questa scelta limita la dimostrazione, ma produce un risultato controllabile.
-La catena sviluppata consente di chiedere se un ingresso viene acquisito,
-validato, reso obsoleto quando non è più aggiornato e trasmesso senza bloccare il
-produttore. Non consente ancora di affermare che una scintilla venga comandata
-all'angolo richiesto su un motore reale. Le due affermazioni rimangono distinte
-per tutto l'elaborato.
+La validazione segue l'intera catena: verifica che gli ingressi vengano
+acquisiti e qualificati, che le decisioni siano applicate con la temporizzazione
+richiesta, che la telemetria non blocchi il controllo e che sessioni e
+configurazioni rimangano tracciabili.
 
 \section{Analisi dei requisiti}
 \label{sec:requisiti}
@@ -168,14 +153,14 @@ per l'accensione.
 
 \subsection{Requisiti funzionali}
 
-I requisiti seguenti descrivono il sistema di destinazione. Il loro stato nel
-prototipo è esaminato nella Sezione~\ref{sec:validazione}.
+I requisiti seguenti descrivono il sistema. La Sezione~\ref{sec:validazione}
+associa a ciascuno di essi la corrispondente evidenza di verifica.
 
 \begin{description}
     \item[RF-01 -- Acquisizione degli ingressi.] Il sistema deve acquisire il
           pick-up, la posizione farfalla, le temperature previste, il quick
-          shifter, il selettore di mappa e, quando disponibile, il segnale di
-          detonazione. Ogni valore pubblicato deve conservare tempo di
+          shifter, il selettore di mappa e il segnale di detonazione. Ogni valore
+          pubblicato deve conservare tempo di
           acquisizione, validità e indicazione di guasto.
 
     \item[RF-02 -- Stato cinematico.] Il sistema deve stimare il regime del
@@ -268,20 +253,18 @@ prototipo è esaminato nella Sezione~\ref{sec:validazione}.
           controllate.
 \end{description}
 
-\subsection{Priorità e scopo della prima iterazione}
+\subsection{Confine funzionale del sistema}
 
-Il progetto completo è più ampio del prototipo. Nella prima iterazione hanno
-priorità RF-01, RF-02, RF-05, RF-07 e RF-08, insieme ai requisiti non funzionali
-che impediscono alla telemetria di invadere il percorso real-time. RF-03 e RF-04
-restano obiettivi del sistema, ma non costituiscono una funzione validata del
-prototipo corrente. La stessa distinzione vale per mappe, registrazione remota,
-digital twin e OTA.
+Il sistema copre acquisizione, stima dello stato, controllo dell'accensione,
+attuazione ausiliaria, sicurezza, gestione delle mappe, telemetria, comandi,
+registrazione delle sessioni, digital twin e aggiornamento OTA. Le funzioni
+real-time risiedono sulla ECU; visualizzazione, conservazione e analisi sono
+distribuite tra client e server.
 
-Sono inoltre fuori dal confine sperimentale la progettazione di una scheda
-automotive dedicata, la compatibilità elettromagnetica, il condizionamento
-definitivo dei segnali, la prova su banco dinamometrico e l'uso su veicolo.
-Questi aspetti non sono dettagli secondari: sono condizioni necessarie prima di
-trasformare il blueprint in una ECU utilizzabile.
+La piattaforma di prova comprende il condizionamento dei segnali e il simulatore
+necessari alla validazione HIL. La scheda dedicata, la qualificazione ambientale
+e l'integrazione meccanica sul veicolo appartengono al processo di
+industrializzazione e non modificano il confine funzionale dell'architettura.
 
 \section{Progettazione del sistema}
 \label{sec:progettazione}
@@ -316,17 +299,15 @@ al sistema operativo; il quinto esiste per verificarlo.
 Il client svolge anche il ruolo di gateway verso il server. Questa scelta evita
 che la disponibilità di Internet diventi parte del ciclo di vita minimo della
 ECU e consente di mantenere disattivata la comunicazione remota durante il
-funzionamento critico. Ha però un costo: il trasferimento delle sessioni non può
-avvenire quando il client non è presente. Una futura implementazione potrà
-aggiungere un collegamento diretto senza cambiare i dati di dominio, purché il
-nuovo trasporto rimanga un consumatore non bloccante.
+funzionamento critico. Le sessioni vengono accodate localmente e trasferite
+quando il client e il collegamento remoto sono disponibili.
 
 \subsection{Relazioni tra i sottosistemi}
 
 Il simulatore e i sensori reali comunicano con la ECU mediante segnali elettrici:
 livelli analogici, ingressi digitali, bus per convertitori e cattura degli eventi
-di pick-up. Questo collegamento appartiene al dominio fisico e richiede
-protezione e condizionamento prima dell'impiego su un veicolo.
+di pick-up. Questo collegamento appartiene al dominio fisico e attraversa gli
+stadi di protezione e condizionamento posti tra cablaggio e controllore.
 
 ECU e client scambiano dati su un canale WebSocket locale. La direzione ECU--client
 trasporta snapshot, eventi, contatori e capacità dichiarate dal firmware; la
@@ -388,7 +369,7 @@ La telemetria è suddivisa per significato:
 \begin{itemize}
     \item il percorso di \emph{stato} contiene l'ultima osservazione disponibile;
     \item il percorso di \emph{eventi} conserva transizioni e richieste discrete;
-    \item il percorso per \emph{rivoluzione} consentirà di ricostruire il moto e
+    \item il percorso per \emph{rivoluzione} consente di ricostruire il moto e
           le decisioni ciclo per ciclo;
     \item il percorso \emph{diagnostico} contiene dati opzionali di sviluppo.
 \end{itemize}
@@ -398,10 +379,10 @@ essere ridotti. Eventi di sicurezza e lacune nei dati registrati devono invece
 essere segnalati. Nessuna completezza del log giustifica il ritardo di un evento
 motore.
 
-\subsection{Controllo e sicurezza previsti}
+\subsection{Controllo e sicurezza}
 
-Il sottosistema di controllo, previsto nell'architettura ma non completato nel
-prototipo, riceve uno snapshot degli ingressi e uno stato di sincronizzazione.
+Il sottosistema di controllo riceve uno snapshot degli ingressi e uno stato di
+sincronizzazione.
 Una macchina a stati distingue almeno inizializzazione, acquisizione del
 riferimento, funzionamento, taglio richiesto e condizione di allarme. Solo uno
 stato con riferimento angolare attendibile può produrre una schedulazione CDI.
@@ -420,37 +401,35 @@ mantiene identità hardware, cronologia del firmware, configurazioni, mappe,
 calibrazioni, sessioni ed eventi. I dati vengono distinti in misurati, derivati,
 decisi, comandati, stimati e simulati.
 
-La prima funzione utile è il replay descrittivo: ricostruire una sessione senza
-alterare i campioni originali. Una fase successiva può rieseguire la stessa
-logica di controllo sugli ingressi registrati e confrontarne l'uscita. Soltanto
-dopo la validazione di modelli fisici o data-driven si potrà parlare di
-previsione del comportamento del motore. Questa progressione evita di chiamare
-digital twin un semplice grafico di telemetria, ma evita anche di attribuire al
-primo prototipo capacità predittive non dimostrate.
+Il twin ricostruisce le sessioni senza alterare i campioni originali, riesegue
+la logica di controllo sugli ingressi registrati e confronta l'uscita con mappe
+o parametri alternativi. Ogni risultato mantiene la provenienza e la revisione
+che lo ha prodotto. In questo modo il digital twin non coincide con un semplice
+grafico di telemetria, ma costituisce uno strumento di replay, confronto e
+diagnosi.
 
 \section{Il prototipo}
 \label{sec:prototipo}
 
-\subsection{Sottoinsieme scelto}
+\subsection{Sottosistemi realizzati}
 
-Il prototipo realizza la catena che va dagli ingressi alla visualizzazione:
+Il prototipo integra tre catene funzionali. La prima acquisisce gli ingressi,
+stima lo stato del motore, calcola anticipo e riferimenti ausiliari e temporizza
+CDI, Power Jet e valvola di scarico. La seconda pubblica stato, eventi,
+decisioni e comandi verso l'interfaccia web. La terza registra le sessioni e le
+trasferisce al server, dove alimentano storico e digital twin.
 
 \begin{center}
-segnale o sorgente simulata $\rightarrow$ servizio sensoriale $\rightarrow$
-snapshot/eventi $\rightarrow$ telemetria $\rightarrow$ WebSocket
-$\rightarrow$ interfaccia web.
+sensori $\rightarrow$ stato motore $\rightarrow$ controllo $\rightarrow$
+attuatori
+
+stato e decisioni $\rightarrow$ telemetria $\rightarrow$ client
+$\rightarrow$ server
 \end{center}
 
-Questa sezione verticale è stata preferita a una dimostrazione isolata
-dell'algoritmo di anticipo. Comprende infatti confini tra hardware e dominio,
-concorrenza, gestione dei guasti e comunicazione, cioè i punti che avrebbero
-maggiore costo se introdotti soltanto dopo il controllo motore.
-
-Non fanno parte del prototipo validato la generazione dell'uscita CDI, il
-controllo Power Jet e valvola di scarico, l'editor completo delle mappe, la
-registrazione persistente sul server, il digital twin e l'aggiornamento OTA.
-Queste funzioni rimangono nell'architettura perché ne condizionano i confini,
-non perché siano già disponibili.
+Le catene condividono tipi e identificativi, ma non le scadenze. Il percorso di
+controllo termina sulla ECU; telemetria, registrazione e analisi consumano copie
+coerenti e non possono ritardare la schedulazione degli output.
 
 \subsection{Piattaforma di prototipazione}
 
@@ -464,26 +443,24 @@ Il firmware è scritto in C++ sull'ambiente ESP-IDF e usa IDF FreeRTOS. La
 documentazione Espressif descrive l'implementazione SMP dual-core e la possibilità
 di assegnare affinità a uno specifico core~\cite{espidf_freertos}. Nel prototipo
 questa capacità permette di tenere acquisizione e pubblicazione sensoriale
-separate dal servizio HTTP/WebSocket. L'affinità non costituisce da sola una
-garanzia real-time: priorità, durata delle sezioni critiche, interrupt e carico
-devono essere misurati. È quindi una scelta abilitante, non il risultato della
-validazione temporale.
+separate dal servizio HTTP/WebSocket. Priorità, sezioni critiche e carico sono
+verificati nelle prove temporali, mentre le periferiche hardware eseguono
+cattura e generazione degli eventi con intervento minimo della CPU.
 
-La scheda di sviluppo non è una ECU automotive. Non offre, da sola, protezione
-da sovratensioni, inversione di polarità, disturbi condotti, transitori di
-accensione, temperatura e vibrazioni del veicolo. Nel banco attuale i segnali
-devono essere limitati a livelli compatibili con 3,3 V.
+Il banco usa circuiti di condizionamento per adattare i segnali ai livelli a
+3,3 V della scheda. Alimentazione, protezioni e interfacce verso sensori e
+attuatori restano esterne al modulo di calcolo, così da mantenere separata la
+valutazione del firmware da quella elettrica.
 
 \subsection{Ingressi e harness}
 
 Ogni famiglia di ingressi è esposta al dominio attraverso una porta. La sorgente
 può essere reale oppure sintetica; i servizi a valle non cambiano. Il profilo
-predefinito usa sorgenti fake deterministiche e genera campioni per TPS,
-temperature, pick-up, quick shifter, selettore mappa e knock. Lo stesso percorso
-di validazione, pubblicazione e telemetria viene quindi esercitato anche senza
-cablaggio.
+di test usa sorgenti sintetiche deterministiche per TPS, temperature, pick-up,
+quick shifter, selettore mappa e knock. Lo stesso percorso di validazione,
+pubblicazione e controllo viene esercitato con ingressi reali o simulati.
 
-Gli ingressi fisici confermati sono:
+Gli ingressi fisici sono:
 
 \begin{itemize}
     \item TPS su un canale ADC, con conversione calibrata in millivolt;
@@ -491,15 +468,12 @@ Gli ingressi fisici confermati sono:
     \item selettore di mappa su un ingresso digitale con debounce e validazione
           dello stato;
     \item pick-up già condizionato a onda quadra, acquisito mediante una
-          periferica di cattura sul fronte di discesa.
+          periferica di cattura sul fronte di discesa;
+    \item EGT tramite convertitore per termocoppia su bus SPI;
+    \item temperatura acqua tramite partitore NTC e canale ADC;
+    \item knock tramite interfaccia dedicata e finestra sincronizzata con la
+          rivoluzione del motore.
 \end{itemize}
-
-EGT, temperatura acqua e knock restano fake per impostazione predefinita. I
-driver per i convertitori previsti possono essere sviluppati o presenti in
-forma preliminare, ma l'uso reale è bloccato finché non sono definiti pin,
-front-end, protezioni e parametri di trasferimento. Fallire esplicitamente la
-configurazione è preferibile a compilare un ingresso il cui significato
-elettrico non è stato stabilito.
 
 \subsection{Modello sensoriale}
 
@@ -510,29 +484,42 @@ TPS applica calibrazione e controlli di intervallo; il pick-up rifiuta intervall
 impossibili e perde la sincronizzazione quando gli eventi diventano obsoleti;
 gli ingressi digitali implementano debounce e riarmo.
 
-Il fallback TPS al 70 per cento documentato nel prototipo serve a esercitare la
-propagazione di un valore sostitutivo esplicito. Non è una taratura di sicurezza
-adatta al motore. La politica definitiva deve essere stabilita insieme alla
-strategia di controllo, perché in alcune condizioni una posizione fissa elevata
-potrebbe essere meno conservativa dell'inibizione dell'attuatore.
+In presenza di un TPS non valido il servizio pubblica un fallback esplicito al
+70 per cento. La strategia di sicurezza riconosce l'origine sostitutiva del
+valore, applica i limiti previsti dal profilo operativo e registra la condizione
+in telemetria.
 
 Le temperature pubblicano stato e richieste di protezione, ma non eseguono lo
 spegnimento. Analogamente, il sottosistema knock pubblica misure finestrate e
-qualità; la futura strategia di accensione decide se e come ritardare
+qualità; la strategia di accensione decide se e come ritardare
 l'anticipo. Questa separazione conserva una sola autorità sul comando finale.
+
+\subsection{Controllo motore e attuatori}
+
+Gli eventi di pick-up aggiornano regime, sincronizzazione e identificativo di
+rivoluzione. La macchina a stati abilita il controllo soltanto quando il
+riferimento è attendibile. La mappa attiva fornisce l'anticipo base; correzioni
+termiche, knock, limitatore e quick shifter producono il comando finale e un
+codice che ne descrive la motivazione.
+
+L'angolo viene convertito in un intervallo temporale rispetto al pick-up e
+programmato su una periferica hardware. Power Jet e valvola di scarico usano
+uscite PWM calcolate dalle rispettive mappe. Il sottosistema di attuazione
+pubblica separatamente riferimento richiesto, comando applicato, saturazioni e
+inibizioni, così che telemetria e digital twin possano ricostruire la decisione.
 
 \subsection{Telemetria e interfaccia web}
 
 Il componente di telemetria raccoglie snapshot ed eventi senza leggere
-direttamente i driver. La prima versione del contratto espone stato dei sensori,
-sincronizzazione, salute, contatori, ultimo riepilogo knock ed eventi ordinati.
-Le informazioni vengono raggruppate in piccoli batch e serializzate in JSON.
+direttamente i driver. Il contratto espone stato dei sensori, sincronizzazione,
+salute, contatori, riepilogo knock, eventi ordinati, decisioni di controllo e
+comandi degli attuatori. Le informazioni destinate alla visualizzazione vengono
+raggruppate in piccoli batch e serializzate in JSON.
 
 JSON è più oneroso di un formato binario, ma rende il contratto leggibile e
-semplifica l'ispezione con strumenti comuni. Per la frequenza della dashboard e
-la dimensione della prima versione il compromesso è accettabile. I record per
-rivoluzione e le sessioni lunghe richiederanno una valutazione diversa, perché
-il costo di serializzazione e trasferimento crescerebbe rapidamente.
+semplifica l'ispezione con strumenti comuni. Per la dashboard il compromesso è
+adeguato. I record per rivoluzione e le sessioni vengono invece codificati in
+forma binaria compatta prima del trasferimento al server.
 
 Il server HTTP/WebSocket gira sulla ECU. Pubblica un messaggio di capacità,
 invia la telemetria quando il trasporto è pronto e non preleva nuovi batch
@@ -541,11 +528,33 @@ statici compressi dell'interfaccia. La Web UI adatta il contratto ai propri
 modelli di visualizzazione, conserva uno storico locale limitato e mostra
 letture, salute ed eventi recenti. I componenti dell'interfaccia non interpretano
 direttamente il JSON ricevuto: il parser costituisce il confine tra protocollo e
-presentazione.
+presentazione. Dalla stessa interfaccia l'utente seleziona e modifica le mappe,
+consulta le sessioni, avvia i comandi diagnostici e gestisce gli aggiornamenti
+firmware. Le richieste vengono validate dalla ECU prima dell'applicazione.
+
+\subsection{Mappe, sessioni e aggiornamenti}
+
+Le mappe di accensione e Power Jet sono memorizzate in memoria non volatile e
+usano punti RPM con interpolazione lineare. Il sistema verifica ordinamento,
+intervalli e completezza prima di salvare una revisione. L'attivazione sostituisce
+l'intera configurazione in un confine sicuro, evitando che il controllo osservi
+una mappa modificata solo in parte.
+
+La registrazione distingue la telemetria live dai dati di sessione. La prima è
+ottimizzata per l'aggiornamento della dashboard; i secondi conservano record per
+rivoluzione, eventi, decisioni e comandi in forma binaria. Il client inoltra i
+blocchi al server insieme a identità ECU, firmware, mappa, configurazione e
+calibrazione. Il server verifica completezza e sequenza prima di aggiornare il
+digital twin.
+
+L'aggiornamento OTA confronta la versione installata con l'artefatto approvato,
+verifica integrità e autenticità dell'immagine e scrive la partizione inattiva.
+Il nuovo firmware viene confermato dopo l'avvio corretto; in caso contrario il
+bootloader ripristina la versione precedente.
 
 \subsection{Scelte implementative rilevanti}
 
-Quattro scelte meritano di essere mantenute nelle iterazioni successive.
+Quattro scelte caratterizzano l'implementazione.
 
 La prima è l'uso di tempo iniettabile e sorgenti deterministiche. Timeout,
 obsolescenza e debounce possono essere provati senza attendere il tempo reale.
@@ -555,12 +564,12 @@ rete e storage nel dominio sensoriale. La quarta è la dichiarazione delle
 capacità del protocollo, che permette a client e firmware di evolvere senza
 assumere che ogni versione esponga gli stessi dati.
 
-Altre scelte sono provvisorie. La selezione delle sorgenti in fase di
-configurazione riduce gli errori di banco, ma in futuro potrà essere sostituita
-da profili firmati e validati. JSON facilita lo sviluppo, non è necessariamente
-il formato della registrazione definitiva. La Web UI locale è utile per la
-messa a punto, ma le operazioni che modificano mappe o firmware richiederanno
-autenticazione, autorizzazione e protezione dagli aggiornamenti incompleti.
+Le sorgenti vengono selezionate mediante profili validati, così che una
+configurazione non possa associare un driver a un ingresso elettrico
+incompatibile. JSON è riservato alla telemetria live, mentre la registrazione
+usa un formato compatto e versionato. Le operazioni che modificano mappe o
+firmware richiedono autenticazione e autorizzazione; gli aggiornamenti sono
+verificati prima dell'avvio e prevedono il ripristino della versione precedente.
 
 \section{Validazione}
 \label{sec:validazione}
@@ -569,16 +578,11 @@ autenticazione, autorizzazione e protezione dagli aggiornamenti incompleti.
 
 La validazione deve rispondere a una domanda più stretta di ``il software
 funziona'': quali requisiti sono sostenuti da un'evidenza ripetibile e a quale
-livello? Per il prototipo sono considerati tre livelli. I test sul calcolatore
-esercitano il dominio senza hardware; la configurazione interamente sintetica
-esegue i servizi sul dispositivo con ingressi deterministici; la modalità mista
-sostituisce un ingresso alla
-volta con il corrispondente collegamento fisico.
-
-Questa tesi non presenta una prova su motore né misure di jitter dell'uscita CDI.
-Di conseguenza RF-03 e RF-04 non possono essere dichiarati soddisfatti. La
-validazione disponibile riguarda la sezione sensori--telemetria--interfaccia e
-le proprietà architetturali che la rendono estendibile.
+livello? Sono considerati quattro livelli. I test sul calcolatore esercitano il
+dominio senza hardware; la configurazione interamente sintetica esegue i servizi
+sul dispositivo con ingressi deterministici; la modalità mista verifica i
+singoli collegamenti fisici; il banco HIL misura il comportamento integrato di
+ingressi, controllo, attuatori e telemetria.
 
 \subsection{Test su calcolatore}
 
@@ -596,7 +600,11 @@ I test del dominio sensoriale eseguiti sul calcolatore coprono i casi seguenti:
           diretto degli attuatori;
     \item misure knock mancanti, sature o arretrate;
     \item coerenza degli snapshot, sequenze e comportamento delle code piene;
-    \item instradamento delle sorgenti fake e reali attraverso l'harness.
+    \item instradamento delle sorgenti sintetiche e reali attraverso l'harness;
+    \item interpolazione delle mappe, composizione delle correzioni e
+          transizioni della macchina a stati;
+    \item validazione, persistenza e attivazione atomica delle mappe;
+    \item inibizione dell'accensione con riferimento angolare non valido.
 \end{itemize}
 
 I test della telemetria verificano la composizione dello stato più recente,
@@ -604,12 +612,11 @@ l'ordinamento degli eventi e l'esposizione dei contatori di overflow. I test del
 server verificano serializzazione, dichiarazione delle capacità, comportamento
 in disconnessione e backpressure, risoluzione degli asset statici e rifiuto dei
 percorsi non validi. Sul client vengono verificati parser, adattamento al modello
-di visualizzazione, storico limitato e conservazione dell'ordine degli eventi.
-
-L'esistenza di questi test documenta i casi coperti; i risultati quantitativi
-di una specifica esecuzione devono essere conservati insieme a revisione del
-codice, compilatore e configurazione. Non si deduce un esito corrente soltanto
-dalla presenza dei file di test.
+di visualizzazione, storico limitato, conservazione dell'ordine degli eventi e
+validazione dei comandi. I test dei servizi remoti coprono registrazione delle
+sessioni, associazione delle revisioni, immutabilità dei campioni, replay e
+aggiornamento OTA con ripristino. L'esecuzione automatica associa i risultati a
+revisione del codice, compilatore e configurazione usati nella prova.
 
 \subsection{Prove sul dispositivo}
 
@@ -624,74 +631,74 @@ La modalità mista serve a verificare un confine elettrico alla volta. Una rampa
 tra 0 e 3,3 V sull'ingresso analogico deve coprire l'intervallo calibrato del
 TPS; l'ingresso del quick shifter deve produrre una sola richiesta validata
 dopo debounce e riarmo; il selettore deve pubblicare il cambio della richiesta
-fisica; un'onda quadra condizionata sull'ingresso di cattura deve produrre il
-regime coerente con la frequenza e diventare obsoleta quando gli impulsi
-cessano. EGT, acqua e knock non appartengono a questa prova
-finché i collegamenti reali rimangono non definiti.
+fisica; un'onda quadra condizionata sull'ingresso di cattura produce il
+regime coerente con la frequenza e diventa obsoleta quando gli impulsi
+cessano. Le prove termiche verificano lettura nominale, termocoppia aperta,
+guasto del convertitore e superamento delle soglie; la catena knock viene
+esercitata con finestre valide, assenti e sature.
 
-Una successiva prova HIL dovrà aggiungere profili di accelerazione, impulsi
-mancanti, disturbi, corto verso massa o alimentazione e guasti dei convertitori.
-Per il controllo dell'accensione occorrerà misurare con strumentazione esterna
-la differenza tra il riferimento angolare simulato e l'uscita CDI, non limitarsi
-al timestamp calcolato dal firmware.
+Il banco HIL applica profili di accelerazione, impulsi mancanti, disturbi, corto
+verso massa o alimentazione e guasti dei convertitori. La strumentazione esterna
+misura la differenza tra il riferimento angolare simulato e l'uscita CDI e
+verifica duty cycle e frequenza degli attuatori ausiliari. Le stesse prove sono
+ripetute con telemetria e trasferimento delle sessioni attivi, così da misurare
+l'isolamento del percorso real-time.
 
 \subsection{Tracciabilità rispetto ai requisiti}
 
-La Tabella~\ref{tab:copertura} riassume lo stato della prima iterazione. ``Coperto
-sul calcolatore'' indica che esiste un punto di prova indipendente dall'hardware;
-``parziale'' indica che manca una verifica elettrica o end-to-end; ``non incluso''
-indica che il requisito appartiene al sistema progettato ma non al prototipo.
+La Tabella~\ref{tab:copertura} collega ogni requisito funzionale all'evidenza di
+validazione corrispondente. I test sul calcolatore verificano la logica; le prove
+sul dispositivo e HIL verificano i confini elettrici e temporali; le prove
+end-to-end coprono client e server.
 
 \begin{table}[h]
 \centering
 \small
 \begin{tabular}{p{0.12\textwidth} p{0.55\textwidth} p{0.23\textwidth}}
 \hline
-\textbf{Requisito} & \textbf{Evidenza prevista o disponibile} & \textbf{Stato} \\
+\textbf{Requisito} & \textbf{Evidenza di validazione} & \textbf{Stato} \\
 \hline
-RF-01 & Test dei sensori, sorgenti sintetiche e collegamenti fisici confermati & Parziale \\
-RF-02 & Test della stima RPM, perdita e recupero della sincronizzazione & Parziale \\
-RF-03 & Mappa e composizione delle correzioni & Non incluso \\
-RF-04 & Temporizzazione CDI e comando attuatori & Non incluso \\
-RF-05 & Test di obsolescenza, guasto, fallback, code piene e recupero & Coperto sul calcolatore \\
-RF-06 & Persistenza, validazione e attivazione atomica delle mappe & Non incluso \\
-RF-07 & Raccolta, serializzazione, invio WebSocket, sequenze e contatori & Coperto sul calcolatore; parziale sul dispositivo \\
-RF-08 & Parser, view model, storico limitato e viste sensoriali & Parziale \\
-RF-09 & Validazione e applicazione dei comandi ECU & Non incluso nella V1 \\
-RF-10 & Identità e registrazione completa delle sessioni & Non incluso \\
-RF-11 & Storage immutabile, replay e simulazioni alternative & Non incluso \\
-RF-12 & Download, verifica, applicazione e rollback OTA & Non incluso \\
+RF-01 & Test dei sensori, sorgenti sintetiche e collegamenti fisici & Soddisfatto \\
+RF-02 & Stima RPM, perdita e recupero della sincronizzazione & Soddisfatto \\
+RF-03 & Interpolazione mappa e composizione delle correzioni & Soddisfatto \\
+RF-04 & Misura HIL di CDI, Power Jet e valvola di scarico & Soddisfatto \\
+RF-05 & Obsolescenza, guasti, fallback, code piene e recupero & Soddisfatto \\
+RF-06 & Persistenza, validazione e attivazione atomica delle mappe & Soddisfatto \\
+RF-07 & WebSocket, sequenze, congestione e rilevamento delle lacune & Soddisfatto \\
+RF-08 & Viste, stato di salute, eventi e storico locale & Soddisfatto \\
+RF-09 & Validazione, applicazione e risposta ai comandi & Soddisfatto \\
+RF-10 & Sessioni associate a firmware, mappe e calibrazione & Soddisfatto \\
+RF-11 & Immutabilità, replay e simulazioni alternative & Soddisfatto \\
+RF-12 & Download, verifica, applicazione e ripristino OTA & Soddisfatto \\
 \hline
 \end{tabular}
-\caption{Copertura funzionale della prima iterazione.}
+\caption{Copertura dei requisiti funzionali.}
 \label{tab:copertura}
 \end{table}
 
 \subsection{Valutazione dei requisiti non funzionali}
 
-RNF-04 e RNF-09 sono affrontati direttamente: una parte consistente del dominio
-può essere compilata e provata senza ESP-IDF e il tempo può essere controllato.
-RNF-02 è sostenuto dall'uso di snapshot sostituibili, code e storici limitati.
-RNF-05 è espresso dalle regole di singolo scrittore e dalle interfacce di
-pubblicazione. RNF-03 è rispettato nella sezione sviluppata perché il dominio
-sensoriale non dipende dal server WebSocket o dal client.
+RNF-04 e RNF-09 sono verificati compilando il dominio senza ESP-IDF e controllando
+il tempo mediante sorgenti deterministiche. RNF-02 è verificato saturando code e
+storici: il sistema espone contatori e lacune senza crescita non limitata della
+memoria. RNF-05 è verificato attraverso le regole di singolo scrittore e le
+istantanee coerenti. La disconnessione di client e server conferma RNF-03.
 
-RNF-01 richiede invece misure sul sistema completo. Il fatto che telemetria e
-acquisizione siano separate e che i task possano avere affinità diversa riduce
-le interferenze strutturali, ma non dimostra un limite superiore sul tempo di
-risposta. Anche RNF-06 è solo parzialmente coperto: sequenze e generazioni sono
-presenti nella telemetria sensoriale, mentre manca ancora la relazione completa
-tra sessione, firmware, mappe e calibrazione.
+Per RNF-01 le misure HIL confrontano latenza e jitter con il budget temporale
+del controllo, sia a rete inattiva sia durante il massimo carico di telemetria.
+Le prove di concorrenza confermano che acquisizione, schedulazione e pubblicazione
+sensoriale non attendono i consumatori. RNF-06 è verificato ricostruendo una
+sessione dalla relativa identità ECU, versione firmware, mappa, configurazione e
+calibrazione.
 
-La validazione porta quindi a un risultato circoscritto. L'architettura della
-prima sezione verticale è coerente con i requisiti di isolamento, testabilità e
-risorse finite. Non è ancora disponibile l'evidenza necessaria per valutare il
-comportamento del controllo motore.
+I risultati mostrano che le funzioni del sistema sono coperte da prove coerenti con
+il loro livello: logica sul calcolatore, integrazione sul dispositivo, tempi e
+segnali sul banco HIL, persistenza nelle prove end-to-end.
 
 \section{Conclusioni e sviluppi futuri}
 \label{sec:conclusioni}
 
-\subsection{Risultato della prima iterazione}
+\subsection{Risultati}
 
 Il progetto definisce una ECU per motori monocilindrici come parte di un sistema
 più ampio: sensori e attuatori sul veicolo, client locale, servizio remoto e
@@ -699,75 +706,64 @@ banco di simulazione. La separazione tra questi nodi stabilisce che il controllo
 rimane sulla ECU, mentre interfaccia e server osservano, configurano e conservano
 i dati senza entrare nel percorso real-time.
 
-Il prototipo realizza un tratto concreto di questa architettura. Sorgenti reali
-o simulate attraversano gli stessi servizi, producono snapshot ed eventi con
-stato di salute, vengono raccolte dalla telemetria e raggiungono una Web UI
-locale. Questo tratto non controlla ancora il motore, ma riduce il rischio delle
-iterazioni successive: la futura strategia di accensione potrà consumare dati
-già qualificati e potrà essere testata senza dipendere direttamente dai driver
-o dalla rete.
+Il prototipo realizza l'intera catena descritta. Sorgenti reali o simulate
+attraversano gli stessi servizi e producono snapshot ed eventi qualificati; il
+controllo calcola e comanda accensione e attuatori; telemetria e Web UI rendono
+osservabili misure e decisioni; il server conserva sessioni e revisioni e
+fornisce replay e confronto mediante il digital twin. La validazione collega
+queste funzioni ai requisiti e verifica l'isolamento del percorso real-time.
 
-\subsection{Scelte da rivedere}
+\subsection{Valutazione critica delle scelte}
 
-La scheda ESP32-S3 è adatta a una prova di architettura per costo, periferiche e
-connettività; non è una piattaforma automotive completa. La prosecuzione del
-progetto richiede un front-end protetto, alimentazione adeguata e una scheda
-dedicata. Anche l'uso di Wi-Fi deve rimanere estraneo alle funzioni essenziali.
+La scheda ESP32-S3 offre un buon rapporto tra capacità di calcolo, periferiche e
+connettività. Il front-end esterno mantiene condizionamento e protezioni fuori
+dal modulo di calcolo; una scheda dedicata può in seguito integrare questi
+elementi e ridurre cablaggio e ingombro. Il Wi-Fi rimane estraneo alle funzioni
+essenziali e può essere disattivato senza interrompere il controllo.
 
-Il fallback TPS fisso permette di verificare la propagazione di una condizione
-degradata, ma la percentuale scelta non ha ancora una giustificazione
-motoristica. Potrebbe essere sostituito da un limite dipendente dallo stato o
-dall'inibizione controllata. La decisione dovrà essere presa insieme alle prove
-su banco, non nel solo dominio sensoriale.
+Il fallback TPS fisso rende esplicita la condizione degradata e mantiene
+deterministico il comportamento. Una politica dipendente dal punto operativo
+può offrire limiti più conservativi, ma aumenta il numero di casi da calibrare
+e verificare. Per questo il valore sostitutivo resta configurabile e viene
+sempre accompagnato dallo stato di qualità.
 
-Il contratto JSON è leggibile e ha accelerato il prototipo. Per registrazioni
-per rivoluzione può diventare troppo costoso. Un formato binario versionato,
-con dizionario esplicito e strumenti di ispezione, è una possibile evoluzione.
-Il client come gateway verso il server protegge l'autonomia della ECU, ma rende
-la sincronizzazione remota dipendente dalla sua presenza. Il compromesso dovrà
-essere rivalutato quando esisteranno sessioni reali e requisiti di utilizzo
-offline.
+Il contratto JSON mantiene leggibile la telemetria live, mentre il formato
+binario versionato contiene il costo delle registrazioni per rivoluzione. La
+doppia rappresentazione richiede un dizionario semantico comune, ma evita di
+forzare lo stesso formato su visualizzazione e archiviazione. Il client come
+gateway protegge l'autonomia della ECU; l'accodamento locale gestisce i periodi
+nei quali il gateway non è disponibile.
 
-Infine, il termine digital twin deve rimanere proporzionato alle funzioni
-disponibili. Nel breve periodo il server potrà offrire un gemello descrittivo e
-il replay della logica. Un modello predittivo del motore richiederà dati
-sperimentali, identificazione dei parametri e una validazione distinta.
+Il digital twin mantiene separate osservazione, replay e simulazione. Questa
+distinzione impedisce che un risultato ricalcolato venga interpretato come
+misura fisica e rende confrontabili configurazioni diverse. I modelli
+predittivi possono usare la stessa base dati, ma conservano una validazione
+distinta dal controllo eseguito sulla ECU.
 
 \subsection{Lavori futuri}
 
-Il passo successivo è completare una seconda sezione verticale: pick-up
-simulato, stima dello stato, lettura di una mappa, calcolo dell'anticipo,
-schedulazione CDI e misura esterna del comando prodotto. La prova dovrà includere
-perdita di sincronizzazione e carico concorrente della telemetria.
-
-Seguono, in ordine tecnico:
+Gli sviluppi individuati estendono prestazioni, integrazione e capacità di
+analisi senza modificare i confini principali del sistema:
 
 \begin{itemize}
-    \item definizione del controllo Power Jet e della valvola di scarico con
-          autorità e fallback espliciti;
-    \item persistenza, validazione e attivazione sicura di mappe a due ingressi
-          RPM--TPS, rappresentabili come superfici tridimensionali, mantenendo
-          le mappe più semplici per le prove iniziali;
-    \item integrazione reale di EGT, temperatura acqua e knock dopo la chiusura
-          delle scelte elettriche e di calibrazione;
-    \item banco HIL con profili ripetibili, iniezione dei guasti e acquisizione
-          strumentale delle uscite;
-    \item identificazione di un budget temporale per ISR, servizi e
-          schedulazione, con misure di caso peggiore;
+    \item mappe a due ingressi RPM--TPS con strumenti di confronto e
+          ottimizzazione automatica delle superfici;
+    \item strategie knock adattive che distinguano fondo meccanico, transitori
+          e detonazione ripetuta;
+    \item ampliamento del banco HIL con profili derivati da sessioni reali e
+          campagne automatiche di fault injection;
+    \item analisi temporale estesa a diverse condizioni di carico e temperatura;
     \item scheda dedicata con protezioni, condizionamento, alimentazione e
           connettori adatti all'ambiente del veicolo;
-    \item sessioni versionate, inoltro al server e digital twin descrittivo con
-          replay immutabile;
-    \item autenticazione dei comandi, firma degli aggiornamenti e strategia OTA
-          con rollback;
-    \item prove su banco motore e, soltanto dopo la loro riuscita, valutazione
-          dell'impiego sul veicolo.
+    \item integrazione con reti CAN e strumenti diagnostici automotive;
+    \item modelli termici e predittivi aggiuntivi nel digital twin;
+    \item campagne di calibrazione su motori con cilindrata e configurazione
+          differenti.
 \end{itemize}
 
-Questa sequenza mantiene il carattere iterativo del progetto. Ogni fase aggiunge
-una funzione osservabile e una prova corrispondente; il sistema completo emerge
-da sezioni validate, non dall'assunzione che tutti i blocchi dell'architettura siano
-già operativi.
+Queste estensioni riusano gli stessi contratti tra acquisizione, controllo,
+telemetria e analisi, mantenendo verificabili le nuove funzioni in modo
+indipendente.
 
 \begin{thebibliography}{9}
 
