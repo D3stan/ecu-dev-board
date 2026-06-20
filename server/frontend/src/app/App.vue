@@ -12,7 +12,7 @@ const checkHealth = async () => {
     const res = await fetch('/api/health');
     if (res.ok) {
       const data = await res.json();
-      isServerHealthy.value = data.status === 'healthy';
+      isServerHealthy.value = data.status === 'ok' || data.status === 'healthy';
     } else {
       isServerHealthy.value = false;
     }

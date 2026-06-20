@@ -5,9 +5,9 @@ This plan outlines the implementation of a basic version of the ECU Digital Twin
 ## Ingress Design & Frontend Deployment
 
 Since this stack will be deployed on **Dokploy**, which runs **Traefik** as the default edge router and reverse proxy:
-- **No internal Nginx container is needed**: Having Nginx run inside Docker Compose behind Traefik adds unnecessary complexity, extra CPU/RAM overhead, and dual-layer configuration.
-- **Frontend Deployment**: The WebUI is a separate deployment and shall not be included in the server repository's Docker Compose stack. Dokploy shall deploy and route the WebUI and backend independently through Traefik.
-- **Direct Service Routing**: We will expose the backend (implemented in Python using FastAPI) directly to Traefik using Dokploy's native configurations or standard Docker labels. Traefik will handle SSL termination, load balancing, and WebSocket headers (`Upgrade`, `Connection`) automatically. The server Compose stack therefore contains only the backend, PostgreSQL/TimescaleDB, Redis, migrations, and—in the test configuration—the integration-test runner.
+- **Single Public Route**: Dokploy owns the public hostname and routes it only to the frontend container. Compose does not declare Traefik routers, preventing conflicts with Dokploy-generated routing.
+- **Frontend Gateway**: The frontend Nginx server serves the dashboard and proxies `/api` and `/ws` to the private `ecu-dt-backend` service.
+- **Private Backend**: The backend is reachable only through the stack network. The production stack contains the frontend, backend, PostgreSQL/TimescaleDB, Redis, and migrations; the test configuration also includes the integration-test runner.
 
 ---
 

@@ -1,7 +1,5 @@
-version: "3.9"
-
-# Production stack — Traefik (via Dokploy) routes directly to the backend.
-# No Nginx container is included.
+# Production stack — Dokploy routes the public hostname to the frontend.
+# Nginx proxies API and WebSocket traffic to the private backend service.
 
 services:
   db:
@@ -41,7 +39,7 @@ services:
         condition: service_healthy
     restart: "no"
 
-  backend:
+  ecu-dt-backend:
     build:
       context: ./backend
     restart: unless-stopped
@@ -50,15 +48,6 @@ services:
       REDIS_URL: redis://redis:6379/0
       LOG_LEVEL: ${LOG_LEVEL:-info}
       CORS_ORIGINS: ${CORS_ORIGINS:-*}
-    # Traefik labels — route APIs/WS to backend, serve root from frontend
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.ecu-backend.rule=Host(`${BACKEND_HOST:-localhost}`) && (PathPrefix(`/api`) || PathPrefix(`/ws`) || PathPrefix(`/docs`) || PathPrefix(`/openapi.json`))"
-      - "traefik.http.routers.ecu-backend.priority=20"
-      - "traefik.http.services.ecu-backend.loadbalancer.server.port=8000"
-      # WebSocket passthrough headers
-      - "traefik.http.middlewares.ecu-ws.headers.customRequestHeaders.Upgrade=websocket"
-      - "traefik.http.middlewares.ecu-ws.headers.customRequestHeaders.Connection=Upgrade"
     depends_on:
       db:
         condition: service_healthy
@@ -73,13 +62,8 @@ services:
     restart: unless-stopped
     ports:
       - "${FRONTEND_PORT:-8082}:80"
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.ecu-frontend.rule=Host(`${BACKEND_HOST:-localhost}`)"
-      - "traefik.http.routers.ecu-frontend.priority=10"
-      - "traefik.http.services.ecu-frontend.loadbalancer.server.port=80"
     depends_on:
-      - backend
+      - ecu-dt-backend
 
 volumes:
   db_data:
