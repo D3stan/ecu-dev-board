@@ -1,5 +1,6 @@
 \documentclass{article}
 \usepackage{graphicx} % Required for inserting images
+\usepackage{parskip}
 \usepackage{url}
 
 \title{Tesi - Alessandro Porcheddu}
@@ -10,84 +11,44 @@
 
 \maketitle
 
-\begin{abstract}
-Questa tesi presenta il progetto di una centralina elettronica programmabile
-per motori monocilindrici a carburatore. Il lavoro considera la centralina non
-come un dispositivo isolato, ma come il nodo real-time di un sistema che
-comprende acquisizione sensoristica, controllo motore, telemetria, interfaccia
-utente ed elaborazione dei dati. La ECU acquisisce e qualifica i segnali del
-motore, calcola le strategie di controllo, temporizza accensione e attuatori e
-rende osservabili misure, decisioni ed eventi attraverso una telemetria locale.
-Il sistema comprende inoltre la gestione delle mappe, la registrazione delle
-sessioni, l'aggiornamento del firmware e un digital twin lato server.
-\end{abstract}
+% \begin{abstract}
+% Questa tesi presenta il progetto di una centralina elettronica programmabile
+% per motori monocilindrici a carburatore. Il lavoro considera la centralina non
+% come un dispositivo isolato, ma come il nodo real-time di un sistema che
+% comprende acquisizione sensoristica, controllo motore, telemetria, interfaccia
+% utente ed elaborazione dei dati. La ECU acquisisce e qualifica i segnali del
+% motore, calcola le strategie di controllo, temporizza accensione e attuatori e
+% rende osservabili misure, decisioni ed eventi attraverso una telemetria locale.
+% Il sistema comprende inoltre la gestione delle mappe, la registrazione delle
+% sessioni, l'aggiornamento del firmware e un digital twin lato server.
+% \end{abstract}
 
 % \tableofcontents
 
 \section{Introduzione e contesto applicativo}
 \label{sec:introduzione}
 
-\subsection{Il problema affrontato}
+\subsection{Dominio applicativo}
 
-Una Electronic Control Unit (ECU) per il controllo motore riceve segnali che
-descrivono lo stato del propulsore e li trasforma in decisioni temporizzate. In
-un motore monocilindrico il segnale di pick-up fornisce il riferimento per
-stimare velocità e posizione dell'albero; la posizione della farfalla esprime la
-richiesta del pilota; le temperature e il sensore di detonazione descrivono
-condizioni che possono richiedere correzioni o protezioni. Gli attuatori
-principali, nel sistema considerato, sono l'accensione CDI, il Power Jet e
-l'eventuale valvola di scarico.
+Le centraline elettroniche, comunemente indicate con il termine Electronic Control Unit (ECU), rappresentano uno degli elementi fondamentali dei moderni sistemi automotive. Una ECU è un sistema embedded dedicato al controllo di specifiche funzioni del veicolo e, nel caso del motore, ha il compito di acquisire informazioni dai sensori, elaborarle secondo opportune strategie di controllo e generare i comandi necessari agli attuatori.
 
-Il problema non consiste soltanto nel calcolare un valore di anticipo. La ECU
-deve produrre quel valore entro una finestra temporale compatibile con il moto
-del motore, mantenere distinguibili misure valide e guasti, e continuare a
-funzionare quando l'interfaccia utente o la rete non sono disponibili. Nello
-stesso tempo, chi esegue la messa a punto deve poter osservare lo stato del
-sistema e ricostruire le condizioni nelle quali è stata presa una decisione.
-Questi vincoli portano a separare il percorso di controllo dal percorso dei
-dati, pur facendo nascere entrambi dalle stesse osservazioni.
+Nel corso degli anni, le ECU si sono evolute da semplici dispositivi di controllo a piattaforme software sempre più sofisticate. Nelle applicazioni automotive moderne e nelle competizioni motociclistiche di alto livello, le centraline non si limitano a gestire l'accensione o l'iniezione, ma integrano funzionalità avanzate quali telemetria, diagnostica, registrazione dei dati, configurazione dei parametri operativi e sistemi di protezione del motore. Questi strumenti consentono di osservare il comportamento del sistema, adattarne il funzionamento alle esigenze dell'applicazione e intervenire tempestivamente in presenza di condizioni anomale.
 
-La classe di veicoli considerata è quella dei motocicli e delle applicazioni
-sportive leggere con motore monocilindrico, a due o quattro tempi e alimentato a
-carburatore. In tale ambito una centralina di serie può offrire margini ridotti
-di configurazione. Le ECU aftermarket rispondono a questa esigenza consentendo
-la modifica delle mappe di accensione e alimentazione e l'aggiunta di funzioni
-non previste dall'unità originale~\cite{linkecu}. Il progetto si colloca nello
-stesso spazio applicativo e adotta un'architettura aperta, osservabile e
-verificabile.
+Tale evoluzione non ha però interessato in modo uniforme tutti i settori. Nel contesto dei motori monocilindrici a due tempi, molte delle soluzioni attualmente disponibili si basano ancora su tecnologie e architetture sviluppate diversi decenni fa. Le centraline impiegate in questo ambito offrono generalmente funzionalità limitate: la telemetria è spesso assente, gli strumenti diagnostici sono ridotti o inesistenti e le possibilità di configurazione risultano molto ristrette. In molti casi non è possibile modificare facilmente la curva di anticipo, adattare la risposta all'acceleratore o personalizzare il comportamento della centralina in funzione delle caratteristiche del motore e delle esigenze dell'utilizzatore.
+
+Anche gli strumenti dedicati alla sicurezza e alla salvaguardia del propulsore risultano spesso limitati. L'assenza di meccanismi di monitoraggio e protezione rende più difficile individuare condizioni operative potenzialmente dannose e intervenire prima che possano causare guasti o degrado delle prestazioni. Di conseguenza, molte attività di calibrazione e verifica continuano a dipendere da prove empiriche e dall'esperienza dell'operatore.
 
 \subsection{Idea di progetto}
 
-L'idea è progettare una ECU \emph{software-defined} per la quale strategie,
-configurazioni e significato dei dati siano modificabili senza ridisegnare ogni
-volta il dispositivo. Il termine non implica che il software possa compensare
-qualsiasi limite elettrico o meccanico. Indica piuttosto che il comportamento
-applicativo non è fissato da collegamenti dedicati: la stessa piattaforma può
-acquisire sorgenti diverse, applicare strategie diverse e pubblicare nuovi dati
-mantenendo stabili i confini tra i sottosistemi.
+A partire dal contesto descritto, l'idea alla base del progetto è realizzare una ECU custom per motori monocilindrici a due tempi che non si limiti alla sola generazione dei segnali di controllo, ma che integri anche funzionalità normalmente associate a sistemi più evoluti. L'obiettivo è trasferire in questo ambito alcuni concetti ormai consolidati in altri settori automotive e motorsport, come la telemetria, la diagnostica, la configurazione dei parametri operativi e la protezione del motore.
 
-L'International Energy Agency descrive il passaggio verso veicoli nei quali una
-quota crescente delle funzioni è definita e aggiornata tramite software, insieme
-alla progressiva revisione delle architetture elettroniche distribuite
-tradizionali~\cite{iea_sdv}. Il progetto applica questo principio al controllo
-di un motore monocilindrico: la funzione del dispositivo può evolvere dopo la
-sua costruzione e i dati operativi fanno parte del sistema, non sono un
-sottoprodotto occasionale.
+La centralina viene quindi considerata come una piattaforma embedded completa, capace di acquisire informazioni dal motore, elaborarle in tempo reale e renderle disponibili per l'osservazione e la validazione del comportamento del sistema. Questa impostazione permette di superare il modello tradizionale della ECU come dispositivo chiuso e difficilmente ispezionabile, introducendo invece un'architettura più trasparente, configurabile ed estendibile.
 
-Da questa impostazione derivano cinque capacità principali:
+Dal punto di vista funzionale, il progetto prevede che la ECU sia in grado di gestire i segnali provenienti dai sensori, determinare lo stato operativo del motore e generare i comandi necessari agli attuatori rispettando i vincoli temporali imposti dal funzionamento del propulsore. Parallelamente, il sistema deve poter raccogliere e trasmettere dati di funzionamento, rilevare condizioni anomale, conservare configurazioni persistenti e fornire strumenti utili alla verifica delle strategie implementate.
 
-\begin{itemize}
-    \item acquisire gli ingressi del motore e qualificarne validità, età e stato
-          di salute;
-    \item eseguire il controllo di accensione e degli attuatori senza dipendere
-          dalla rete;
-    \item rendere osservabili stato, eventi, decisioni e guasti mediante
-          telemetria;
-    \item consentire a un tecnico di consultare e configurare la ECU tramite un
-          client comune, come il browser di un telefono o di un tablet;
-    \item conservare sessioni e revisioni sul server per successive operazioni
-          di confronto, replay e diagnosi.
-\end{itemize}
+Un aspetto centrale dell'idea progettuale è la separazione tra controllo del motore e funzionalità di supporto. Il controllo real-time deve mantenere la priorità assoluta, mentre telemetria, diagnostica, configurazione e registrazione dei dati devono essere progettate in modo da non compromettere l'affidabilità della centralina. Questa distinzione consente di introdurre funzionalità avanzate senza trasformarle in un rischio per il corretto funzionamento del motore.
+
+La ECU proposta non viene quindi intesa esclusivamente come un componente elettronico dedicato all'accensione o alla gestione di singoli attuatori, ma come il nucleo di un sistema più ampio. Attraverso l'integrazione con strumenti software esterni, essa può rendere il motore osservabile durante il funzionamento, permettere la modifica controllata dei parametri e supportare attività di analisi, calibrazione e validazione. In questo modo il progetto mira a costruire una base tecnica su cui sviluppare progressivamente funzionalità più avanzate, mantenendo una struttura coerente e adatta a un'applicazione embedded real-time.
 
 \subsection{Riferimenti architetturali e stato dell'arte}
 
