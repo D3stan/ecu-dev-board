@@ -98,10 +98,7 @@ const loadTelemetry = async () => {
   if (!runId.value || runId.value === 'latest') return;
   errorMsg.value = '';
   try {
-    const data = await RunsService.getTelemetry({
-      runId: runId.value,
-      limit: limit.value
-    });
+    const data = await RunsService.getTelemetry(runId.value, limit.value);
     // Sort by ECU collected monotonic time ascending
     telemetryData.value = data.sort((a, b) => a.ecu_collected_at_us - b.ecu_collected_at_us);
   } catch (err: any) {

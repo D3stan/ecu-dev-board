@@ -6,7 +6,7 @@ import type { RunDetailResponse } from '@/api/generated';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import Button from 'primevue/button';
-import { Activity, Play, StopCircle, RefreshCw, LineChart, FileJson } from 'lucide-vue-next';
+import { Activity, StopCircle, RefreshCw, LineChart } from 'lucide-vue-next';
 
 const route = useRoute();
 const router = useRouter();
@@ -64,7 +64,7 @@ const fetchEcuAndFilter = async (serial: string) => {
 const handleEndRun = async (runId: string) => {
   errorMsg.value = '';
   try {
-    await RunsService.endRun({ runId });
+    await RunsService.endRun(runId);
     await loadRuns();
   } catch (err: any) {
     errorMsg.value = err.body?.detail || err.message || 'Failed to end engine run';
@@ -140,7 +140,7 @@ onUnmounted(() => {
         <template #empty>
           <div class="empty-state">
             <Activity :size="48" class="text-muted" />
-            <p>No runs recorded. Connect an ECU client or start a manual run.</p>
+            <p>No runs recorded. Connect an ECU client to record telemetry.</p>
           </div>
         </template>
         <Column field="id" header="Run ID">

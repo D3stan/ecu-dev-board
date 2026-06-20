@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { EcusService, RunsService } from '@/api/generated';
+import { EcusService } from '@/api/generated';
 import type { EcuResponse } from '@/api/generated';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import Button from 'primevue/button';
 import Dialog from 'primevue/dialog';
 import InputText from 'primevue/inputtext';
-import { Cpu, Plus, Play, RefreshCw, Layers } from 'lucide-vue-next';
+import { Cpu, Plus, RefreshCw, Layers } from 'lucide-vue-next';
 
 const router = useRouter();
 const ecus = ref<EcuResponse[]>([]);
@@ -20,14 +20,6 @@ const showRegisterDialog = ref(false);
 const registerSerial = ref('');
 const registerHwRev = ref('');
 const registerLoading = ref(false);
-
-// Start Run Dialog
-const showStartRunDialog = ref(false);
-const activeEcuId = ref<string | null>(null);
-const activeEcuSerial = ref('');
-const runFirmware = ref('');
-const runMap = ref('');
-const startRunLoading = ref(false);
 
 const loadEcus = async () => {
   loading.value = true;
@@ -47,10 +39,8 @@ const handleRegister = async () => {
   errorMsg.value = '';
   try {
     await EcusService.registerEcu({
-      requestBody: {
-        serial_number: registerSerial.value,
-        hardware_revision: registerHwRev.value
-      }
+      serial_number: registerSerial.value,
+      hardware_revision: registerHwRev.value
     });
     showRegisterDialog.value = false;
     registerSerial.value = '';
@@ -60,35 +50,6 @@ const handleRegister = async () => {
     errorMsg.value = err.body?.detail || err.message || 'Failed to register ECU';
   } finally {
     registerLoading.value = false;
-  }
-};
-
-const openStartRun = (ecu: EcuResponse) => {
-  activeEcuId.value = ecu.id;
-  activeEcuSerial.value = ecu.serial_number;
-  runFirmware.value = '1.0.0';
-  runMap.value = 'default_ignition_map';
-  showStartRunDialog.value = true;
-};
-
-const handleStartRun = async () => {
-  if (!activeEcuId.value) return;
-  startRunLoading.value = true;
-  errorMsg.value = '';
-  try {
-    const res = await RunsService.startRun({
-      requestBody: {
-        ecu_id: activeEcuId.value,
-        firmware_version: runFirmware.value || undefined,
-        map_version: runMap.value || undefined
-      }
-    });
-    showStartRunDialog.value = false;
-    router.push({ name: 'telemetry', params: { runId: res.run_id } });
-  } catch (err: any) {
-    errorMsg.value = err.body?.detail || err.message || 'Failed to start run';
-  } finally {
-    startRunLoading.value = false;
   }
 };
 
@@ -162,10 +123,6 @@ onMounted(() => {
                 <Layers :size="14" />
                 <span>Runs</span>
               </Button>
-              <Button severity="success" size="small" @click="openStartRun(data)" class="btn-table btn-success-table">
-                <Play :size="14" />
-                <span>Start Run</span>
-              </Button>
             </div>
           </template>
         </Column>
@@ -187,24 +144,6 @@ onMounted(() => {
       <template #footer>
         <Button label="Cancel" severity="secondary" text @click="showRegisterDialog = false" />
         <Button label="Register" :loading="registerLoading" @click="handleRegister" class="btn-primary" />
-      </template>
-    </Dialog>
-
-    <!-- Start Run Dialog -->
-    <Dialog v-model:visible="showStartRunDialog" modal :header="'Start Run for ' + activeEcuSerial" :style="{ width: '400px' }">
-      <div class="form-container">
-        <div class="form-group">
-          <label for="firmware">Firmware Version</label>
-          <InputText id="firmware" v-model="runFirmware" placeholder="e.g. v2.4.1" class="w-full glow-border" />
-        </div>
-        <div class="form-group">
-          <label for="map">Engine Map Version</label>
-          <InputText id="map" v-model="runMap" placeholder="e.g. stage1_linear_tps" class="w-full glow-border" />
-        </div>
-      </div>
-      <template #footer>
-        <Button label="Cancel" severity="secondary" text @click="showStartRunDialog = false" />
-        <Button label="Start Engine" :loading="startRunLoading" severity="success" @click="handleStartRun" />
       </template>
     </Dialog>
   </div>
@@ -317,17 +256,6 @@ onMounted(() => {
   gap: 0.4rem;
   padding: 0.4rem 0.75rem;
   font-size: 0.85rem;
-}
-
-.btn-success-table {
-  background-color: rgba(16, 185, 129, 0.1) !important;
-  border-color: rgba(16, 185, 129, 0.3) !important;
-  color: var(--color-success) !important;
-}
-
-.btn-success-table:hover {
-  background-color: var(--color-success) !important;
-  color: white !important;
 }
 
 /* Dialog Styling */
