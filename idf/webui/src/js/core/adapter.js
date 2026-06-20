@@ -2,6 +2,7 @@ import { Store } from "./store.js";
 import { Paths } from "../utils/paths.js";
 
 const MAX_EVENTS_LOG = 100;
+const telemetryFrameSubscribers = [];
 
 /**
  * Parses and dispatches incoming WebSocket JSON frames from the ECU.
@@ -30,9 +31,26 @@ export function dispatchMessage(raw) {
     case "telemetry":
       handleTelemetry(payload);
       break;
+    case "recording_config":
+      handleRecordingConfig(payload);
+      break;
     default:
       break;
   }
+}
+
+export function onTelemetryFrame(callback) {
+  if (typeof callback !== "function") {
+    return () => {};
+  }
+
+  telemetryFrameSubscribers.push(callback);
+  return () => {
+    const index = telemetryFrameSubscribers.indexOf(callback);
+    if (index >= 0) {
+      telemetryFrameSubscribers.splice(index, 1);
+    }
+  };
 }
 
 function handleCapabilities(capabilities) {
@@ -46,9 +64,21 @@ function handleCapabilities(capabilities) {
   Store.set(Paths.CONNECTION.SCHEMA_VERSION, capabilities.schema_version ?? 1);
   Store.set(Paths.CONNECTION.STATE_HZ, capabilities.state_hz ?? 10);
   Store.set(Paths.CONNECTION.EVENTS_PER_BATCH, capabilities.events_per_batch ?? 8);
+  if (capabilities.device != null) {
+    Store.set(Paths.CONNECTION.DEVICE, normalizeDevice(capabilities.device));
+  }
+  if (capabilities.recording != null) {
+    Store.set(Paths.RECORDING.CONFIG, normalizeRecordingConfig(capabilities.recording));
+  }
+}
+
+function handleRecordingConfig(config) {
+  Store.set(Paths.RECORDING.CONFIG, normalizeRecordingConfig(config));
 }
 
 function handleTelemetry(frame) {
+  notifyTelemetryFrame(frame);
+
   Store.set(Paths.TELEMETRY.TIMESTAMP, frame.t_us ?? 0);
   Store.set(Paths.TELEMETRY.GEN, frame.gen ?? 0);
 
@@ -115,6 +145,44 @@ function handleTelemetry(frame) {
       merged.length > MAX_EVENTS_LOG ? merged.slice(-MAX_EVENTS_LOG) : merged
     );
   }
+}
+
+function notifyTelemetryFrame(frame) {
+  if (telemetryFrameSubscribers.length === 0) return;
+
+  const subscribers = telemetryFrameSubscribers.slice();
+  for (const callback of subscribers) {
+    try {
+      callback(cloneFrame(frame));
+    } catch (err) {
+      console.error("[Adapter] telemetry frame subscriber error:", err);
+    }
+  }
+}
+
+function cloneFrame(frame) {
+  if (typeof structuredClone === "function") {
+    return structuredClone(frame);
+  }
+  return JSON.parse(JSON.stringify(frame));
+}
+
+function normalizeDevice(device) {
+  return {
+    hwid: String(device.hwid ?? ""),
+    hardware_revision: String(device.hardware_revision ?? ""),
+    chip_model: String(device.chip_model ?? ""),
+    flash_size_bytes: Number(device.flash_size_bytes ?? 0)
+  };
+}
+
+function normalizeRecordingConfig(config) {
+  return {
+    auto_enabled: !!config.auto_enabled,
+    rpm_threshold: Number(config.rpm_threshold ?? 300),
+    start_debounce_ms: Number(config.start_debounce_ms ?? 1000),
+    stop_debounce_ms: Number(config.stop_debounce_ms ?? 3000)
+  };
 }
 
 function normalizeTpsPercent(tps) {

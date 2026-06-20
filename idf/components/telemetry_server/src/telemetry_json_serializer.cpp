@@ -315,6 +315,14 @@ void write_event(std::ostream &out, const ecu::telemetry::TelemetryEventFrame &f
     }
 }
 
+void write_recording_config(std::ostream &out, const RecordingConfigSnapshot &recording) {
+    out << "\"auto_enabled\":";
+    write_bool(out, recording.auto_enabled);
+    out << ",\"rpm_threshold\":" << recording.rpm_threshold
+        << ",\"start_debounce_ms\":" << recording.start_debounce_ms
+        << ",\"stop_debounce_ms\":" << recording.stop_debounce_ms;
+}
+
 } // namespace
 
 TelemetryJsonSerializer::TelemetryJsonSerializer(TelemetryJsonSerializerConfig config) : config_(config) {}
@@ -327,7 +335,25 @@ std::string TelemetryJsonSerializer::serialize_capabilities() const {
         << ",\"paths\":[\"state\",\"event\"]"
         << ",\"state_hz\":" << config_.state_hz
         << ",\"events_per_batch\":" << config_.events_per_batch
+        << ",\"device\":{\"hwid\":";
+    write_string(out, config_.device.hwid);
+    out << ",\"hardware_revision\":";
+    write_string(out, config_.device.hardware_revision);
+    out << ",\"chip_model\":";
+    write_string(out, config_.device.chip_model);
+    out << ",\"flash_size_bytes\":" << config_.device.flash_size_bytes
+        << "},\"recording\":{";
+    write_recording_config(out, config_.recording);
+    out << '}'
         << '}';
+    return out.str();
+}
+
+std::string TelemetryJsonSerializer::serialize_recording_config() const {
+    std::ostringstream out;
+    out << "{\"type\":\"recording_config\",";
+    write_recording_config(out, config_.recording);
+    out << '}';
     return out.str();
 }
 

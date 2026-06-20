@@ -1,10 +1,15 @@
 import assert from "node:assert/strict";
 
-import { dispatchMessage } from "../src/js/core/adapter.js";
+import { dispatchMessage, onTelemetryFrame } from "../src/js/core/adapter.js";
 import { Store } from "../src/js/core/store.js";
 import { Paths } from "../src/js/utils/paths.js";
 
 Store.reset();
+
+const rawTelemetryFrames = [];
+const unsubscribeRawTelemetry = onTelemetryFrame((frame) => {
+  rawTelemetryFrames.push(frame);
+});
 
 dispatchMessage(JSON.stringify({
   type: "capabilities",
@@ -12,7 +17,27 @@ dispatchMessage(JSON.stringify({
   schema_version: 1,
   paths: ["state", "event"],
   state_hz: 10,
-  events_per_batch: 8
+  events_per_batch: 8,
+  device: {
+    hwid: "esp32s3-010203040506",
+    hardware_revision: "ESP32-S3FH4R2",
+    chip_model: "ESP32-S3",
+    flash_size_bytes: 4194304
+  },
+  recording: {
+    auto_enabled: false,
+    rpm_threshold: 300,
+    start_debounce_ms: 1000,
+    stop_debounce_ms: 3000
+  }
+}));
+
+dispatchMessage(JSON.stringify({
+  type: "recording_config",
+  auto_enabled: true,
+  rpm_threshold: 300,
+  start_debounce_ms: 1000,
+  stop_debounce_ms: 3000
 }));
 
 dispatchMessage(JSON.stringify({
@@ -153,8 +178,22 @@ dispatchMessage(JSON.stringify({
   }
 }));
 
+unsubscribeRawTelemetry();
+
 assert.equal(Store.get(Paths.CONNECTION.SCHEMA_VERSION), 1);
 assert.equal(Store.get(Paths.CONNECTION.STATE_HZ), 10);
+assert.deepEqual(Store.get(Paths.CONNECTION.DEVICE), {
+  hwid: "esp32s3-010203040506",
+  hardware_revision: "ESP32-S3FH4R2",
+  chip_model: "ESP32-S3",
+  flash_size_bytes: 4194304
+});
+assert.deepEqual(Store.get(Paths.RECORDING.CONFIG), {
+  auto_enabled: true,
+  rpm_threshold: 300,
+  start_debounce_ms: 1000,
+  stop_debounce_ms: 3000
+});
 assert.equal(Store.get(Paths.TELEMETRY.RPM), 6400);
 assert.equal(Store.get(Paths.TELEMETRY.TPS), 32.5);
 assert.equal(Store.get(Paths.TELEMETRY.EGT), 410);
@@ -163,5 +202,8 @@ assert.equal(Store.get(Paths.TELEMETRY.ECU_ADVANCE), 22.4);
 assert.equal(Store.get(Paths.TELEMETRY.QS_ARMED), true);
 assert.equal(Store.get(Paths.TELEMETRY.MAP_REQUEST), "Primary");
 assert.equal(Store.get(Paths.TELEMETRY.EVENTS)[0].kind, "MapSwitchChange");
+assert.equal(rawTelemetryFrames.length, 1);
+assert.equal(rawTelemetryFrames[0].type, "telemetry");
+assert.equal(rawTelemetryFrames[0].state.rpm.rpm, 6400);
 
 console.log("adapter websocket telemetry V1 contract passed");

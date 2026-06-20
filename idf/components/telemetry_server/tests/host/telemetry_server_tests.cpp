@@ -228,6 +228,14 @@ void test_capabilities_frame_declares_contract() {
     TelemetryJsonSerializerConfig config{};
     config.state_hz = 20;
     config.events_per_batch = 3;
+    config.device.hwid = "esp32s3-010203040506";
+    config.device.hardware_revision = "ESP32-S3FH4R2";
+    config.device.chip_model = "ESP32-S3";
+    config.device.flash_size_bytes = 4194304;
+    config.recording.auto_enabled = true;
+    config.recording.rpm_threshold = 300;
+    config.recording.start_debounce_ms = 1000;
+    config.recording.stop_debounce_ms = 3000;
     TelemetryJsonSerializer serializer(config);
 
     const std::string json = serializer.serialize_capabilities();
@@ -238,6 +246,25 @@ void test_capabilities_frame_declares_contract() {
     EXPECT_CONTAINS(json, R"("paths":["state","event"])");
     EXPECT_CONTAINS(json, R"("state_hz":20)");
     EXPECT_CONTAINS(json, R"("events_per_batch":3)");
+    EXPECT_CONTAINS(json, R"("device":{"hwid":"esp32s3-010203040506","hardware_revision":"ESP32-S3FH4R2","chip_model":"ESP32-S3","flash_size_bytes":4194304})");
+    EXPECT_CONTAINS(json, R"("recording":{"auto_enabled":true,"rpm_threshold":300,"start_debounce_ms":1000,"stop_debounce_ms":3000})");
+}
+
+void test_recording_config_frame_reports_current_settings() {
+    TelemetryJsonSerializerConfig config{};
+    config.recording.auto_enabled = true;
+    config.recording.rpm_threshold = 450;
+    config.recording.start_debounce_ms = 1500;
+    config.recording.stop_debounce_ms = 2500;
+    TelemetryJsonSerializer serializer(config);
+
+    const std::string json = serializer.serialize_recording_config();
+
+    EXPECT_CONTAINS(json, R"("type":"recording_config")");
+    EXPECT_CONTAINS(json, R"("auto_enabled":true)");
+    EXPECT_CONTAINS(json, R"("rpm_threshold":450)");
+    EXPECT_CONTAINS(json, R"("start_debounce_ms":1500)");
+    EXPECT_CONTAINS(json, R"("stop_debounce_ms":2500)");
 }
 
 void test_telemetry_frame_serializes_state_events_and_counters() {
@@ -395,6 +422,7 @@ void test_static_resolver_rejects_path_traversal() {
 
 int main() {
     test_capabilities_frame_declares_contract();
+    test_recording_config_frame_reports_current_settings();
     test_telemetry_frame_serializes_state_events_and_counters();
     test_telemetry_frame_serializes_null_knock();
     test_pump_does_not_collect_when_disconnected_or_backpressured();

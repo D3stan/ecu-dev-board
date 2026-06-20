@@ -53,6 +53,57 @@
   color: var(--ecu-warning);
 }
 
+.status-pill[data-state="recording"] {
+  border-color: rgba(79, 195, 247, 0.45);
+  color: var(--ecu-info);
+}
+
+#status-hwid {
+  max-width: 13rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.status-action,
+.status-toggle {
+  align-items: center;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text);
+  display: inline-flex;
+  flex: 0 0 auto;
+  font-size: 0.68rem;
+  font-weight: 900;
+  min-height: 1.75rem;
+  padding: 0 0.625rem;
+  text-transform: uppercase;
+}
+
+.status-action {
+  cursor: pointer;
+}
+
+.status-action:not(:disabled):hover,
+.status-toggle:hover {
+  border-color: rgba(79, 195, 247, 0.5);
+}
+
+.status-action:disabled {
+  color: var(--text-muted);
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.status-toggle {
+  gap: 0.375rem;
+}
+
+.status-toggle input {
+  accent-color: var(--ecu-primary);
+  margin: 0;
+}
+
 .rpm-hero {
   align-items: center;
   background:

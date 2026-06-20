@@ -1,5 +1,6 @@
 import { Page } from "../core/Page.js";
 import { CommandManager } from "../managers/commandManager.js";
+import { DigitalTwinClient } from "../managers/DigitalTwinClient.js";
 import { NavigatorManager } from "../managers/navigatorManager.js";
 import { RecentEventsRail } from "../components/RecentEventsRail/RecentEventsRail.js";
 import { AppMode, TelemetryUiConfig } from "../utils/telemetryConfig.js";
@@ -30,6 +31,15 @@ export class DashboardPage extends Page {
         schemaVersion: Paths.CONNECTION.SCHEMA_VERSION,
         stateHz: Paths.CONNECTION.STATE_HZ,
         eventsPerBatch: Paths.CONNECTION.EVENTS_PER_BATCH,
+        device: Paths.CONNECTION.DEVICE,
+        recordingConfig: Paths.RECORDING.CONFIG,
+        digitalTwinEnabled: Paths.DIGITAL_TWIN.ENABLED,
+        digitalTwinStatus: Paths.DIGITAL_TWIN.STATUS,
+        digitalTwinError: Paths.DIGITAL_TWIN.ERROR,
+        activeRunId: Paths.DIGITAL_TWIN.ACTIVE_RUN_ID,
+        queuedFrames: Paths.DIGITAL_TWIN.QUEUED_FRAMES,
+        lastAckTUs: Paths.DIGITAL_TWIN.LAST_ACK_T_US,
+        lastAckBatchSeq: Paths.DIGITAL_TWIN.LAST_ACK_BATCH_SEQ,
         frameTUs: Paths.TELEMETRY.TIMESTAMP,
         gen: Paths.TELEMETRY.GEN,
         rpm: Paths.TELEMETRY.RPM,
@@ -91,6 +101,26 @@ export class DashboardPage extends Page {
         CommandManager.triggerQs();
       });
     }
+
+    const startButton = this.$("#dashboard-recording-start-btn");
+    const stopButton = this.$("#dashboard-recording-stop-btn");
+    const autoToggle = this.$("#dashboard-recording-auto-toggle");
+
+    if (startButton) {
+      this.addEventListener(startButton, "click", () => {
+        DigitalTwinClient.startManual();
+      });
+    }
+    if (stopButton) {
+      this.addEventListener(stopButton, "click", () => {
+        DigitalTwinClient.stopRecording();
+      });
+    }
+    if (autoToggle) {
+      this.addEventListener(autoToggle, "change", (event) => {
+        DigitalTwinClient.setAutoRecordEnabled(event.currentTarget.checked);
+      });
+    }
   }
 
   onActivate() {
@@ -136,6 +166,17 @@ export class DashboardPage extends Page {
           <span class="status-pill">gen <span id="status-gen">--</span></span>
           <span class="status-pill">rx <span id="status-age">--</span></span>
           <span class="status-pill" id="status-transport">transport --</span>
+          <span class="status-pill" id="status-digital-twin">dt --</span>
+          <span class="status-pill" id="status-hwid">hwid --</span>
+          <span class="status-pill">run <span id="status-run">--</span></span>
+          <span class="status-pill">queue <span id="status-queue">0</span></span>
+          <span class="status-pill">ack <span id="status-ack">--</span></span>
+          <button class="status-action" id="dashboard-recording-start-btn" type="button">Start</button>
+          <button class="status-action" id="dashboard-recording-stop-btn" type="button">Stop</button>
+          <label class="status-toggle">
+            <input id="dashboard-recording-auto-toggle" type="checkbox">
+            <span>Auto</span>
+          </label>
         </section>
 
         <section class="rpm-hero" data-signal="rpm" title="Open RPM history">
@@ -218,6 +259,35 @@ export class DashboardPage extends Page {
     const transportEl = this.$("#status-transport");
     setText(transportEl, label);
     transportEl?.classList.toggle("warning", hasTransportIssue);
+
+    const bridgeEl = this.$("#status-digital-twin");
+    const bridgeLabel = this.data.digitalTwinError
+      ? `dt ${this.data.digitalTwinStatus || "error"}`
+      : `dt ${this.data.digitalTwinStatus || "--"}`;
+    setText(bridgeEl, bridgeLabel);
+    bridgeEl?.classList.toggle("warning", Boolean(this.data.digitalTwinError));
+    bridgeEl?.setAttribute("data-state", String(this.data.digitalTwinStatus || "unknown").toLowerCase());
+
+    setText(this.$("#status-hwid"), `hwid ${this.data.device?.hwid || "--"}`);
+    setText(this.$("#status-run"), this.data.activeRunId || "--");
+    setText(this.$("#status-queue"), this.data.queuedFrames ?? 0);
+    setText(this.$("#status-ack"), this.data.lastAckTUs ?? this.data.lastAckBatchSeq ?? "--");
+    this._updateRecordingControls();
+  }
+
+  _updateRecordingControls() {
+    const enabled = !!this.data.digitalTwinEnabled;
+    const active = !!this.data.activeRunId;
+    const hasHwid = !!this.data.device?.hwid;
+
+    setDisabled(this.$("#dashboard-recording-start-btn"), !enabled || active || !hasHwid);
+    setDisabled(this.$("#dashboard-recording-stop-btn"), !enabled || !active);
+
+    const autoToggle = this.$("#dashboard-recording-auto-toggle");
+    if (autoToggle) {
+      autoToggle.checked = !!this.data.recordingConfig?.auto_enabled;
+      autoToggle.disabled = !enabled;
+    }
   }
 
   _updateFrameAge() {
@@ -294,6 +364,10 @@ export class DashboardPage extends Page {
 
 function setText(element, value) {
   if (element) element.textContent = String(value);
+}
+
+function setDisabled(element, disabled) {
+  if (element) element.disabled = !!disabled;
 }
 
 function setBadge(element, meta) {

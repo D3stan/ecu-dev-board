@@ -25,6 +25,10 @@ struct TelemetryServerConfig {
     std::size_t max_events_per_batch{8};
     std::uint32_t task_stack_bytes{8192};
     std::uint32_t task_priority_offset{2};
+    const char *digital_twin_hardware_revision{""};
+    std::uint32_t digital_twin_auto_rpm_threshold{0};
+    std::uint32_t digital_twin_auto_start_ms{0};
+    std::uint32_t digital_twin_auto_stop_ms{0};
 };
 
 esp_err_t start(ecu::sensors::SensorDataStore &store,

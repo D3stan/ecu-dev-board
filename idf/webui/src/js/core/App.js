@@ -29,6 +29,7 @@ import { ModalManager } from '../managers/modalManager.js';
 import { SidebarManager } from '../managers/sidebarManager.js';
 import { CommandManager } from '../managers/commandManager.js';
 import { TelemetryHistoryManager } from '../managers/TelemetryHistoryManager.js';
+import { DigitalTwinClient } from '../managers/DigitalTwinClient.js';
 
 // UI Components
 import { TopBar } from '../components/TopBar/TopBar.js';
@@ -58,6 +59,7 @@ export class App {
       enableDebugLogs: config.enableDebugLogs !== undefined ? config.enableDebugLogs : false,
       autoConnectSocket: config.autoConnectSocket !== undefined ? config.autoConnectSocket : false,
       useMockData: config.useMockData !== undefined ? config.useMockData : false,
+      digitalTwinServerUrl: config.digitalTwinServerUrl || "",
       appMode: config.appMode || (config.useMockData ? AppMode.DEVELOPMENT : AppMode.ECU)
     };
 
@@ -91,6 +93,7 @@ export class App {
 
       TelemetryHistoryManager.init({ Store });
       this.managers.telemetryHistory = TelemetryHistoryManager;
+      this.managers.digitalTwin = DigitalTwinClient;
 
       // 2. Load mock data & start emulator if offline/dev mode
       if (this.config.useMockData) {
@@ -130,7 +133,8 @@ export class App {
           NavigatorManager: this.managers.navigator,
           SidebarManager: this.managers.sidebar,
           CommandManager: this.managers.command,
-          TelemetryHistoryManager
+          TelemetryHistoryManager,
+          DigitalTwinClient
         };
       }
     } catch (error) {
@@ -148,6 +152,11 @@ export class App {
 
     Socket.setConfig({
       url: this.config.socketUrl
+    });
+
+    DigitalTwinClient.configure({
+      serverUrl: this.config.digitalTwinServerUrl,
+      ecuSocket: Socket
     });
 
     // Handle connection status changes
@@ -298,6 +307,7 @@ export class App {
         if (this._mockEmulatorStop) {
           try { this._mockEmulatorStop(); } catch (_) {}
         }
+        DigitalTwinClient.dispose();
         TelemetryHistoryManager.stop();
       });
       this._beforeUnloadCleanupBound = true;

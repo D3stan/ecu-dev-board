@@ -122,6 +122,57 @@
   text-transform: uppercase;
 }
 
+.diagnostics-page .recording-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.diagnostics-page .recording-btn,
+.diagnostics-page .recording-toggle {
+  align-items: center;
+  appearance: none;
+  background: rgba(0, 201, 167, 0.14);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  color: #00a98d;
+  display: inline-flex;
+  font-size: 0.76rem;
+  font-weight: 900;
+  justify-content: center;
+  min-height: 2.25rem;
+  padding: 0 0.75rem;
+  text-transform: uppercase;
+}
+
+.diagnostics-page .recording-btn {
+  cursor: pointer;
+}
+
+.diagnostics-page .recording-btn:not(:disabled):hover,
+.diagnostics-page .recording-toggle:hover {
+  border-color: rgba(0, 201, 167, 0.45);
+  filter: brightness(1.03);
+}
+
+.diagnostics-page .recording-btn:disabled {
+  background: var(--surface);
+  color: var(--text-muted);
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.diagnostics-page .recording-toggle {
+  cursor: pointer;
+  gap: 0.45rem;
+}
+
+.diagnostics-page .recording-toggle input {
+  accent-color: #00c9a7;
+  margin: 0;
+}
+
 .metadata-grid,
 .stat-grid,
 .sensor-table-meta {
@@ -282,4 +333,3 @@
     font-size: 1.7rem;
   }
 }
-

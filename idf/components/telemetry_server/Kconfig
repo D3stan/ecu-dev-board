@@ -44,4 +44,27 @@ menu "ECU telemetry server"
         range 1 10
         depends on TELEMETRY_SERVER_ENABLED
 
+    config DIGITAL_TWIN_HARDWARE_REVISION
+        string "Digital twin hardware revision"
+        default "ESP32-S3FH4R2"
+        depends on TELEMETRY_SERVER_ENABLED
+
+    config DIGITAL_TWIN_AUTO_RPM_THRESHOLD
+        int "Digital twin auto-record RPM threshold"
+        default 300
+        range 0 30000
+        depends on TELEMETRY_SERVER_ENABLED
+
+    config DIGITAL_TWIN_AUTO_START_MS
+        int "Digital twin auto-record start debounce (ms)"
+        default 1000
+        range 0 60000
+        depends on TELEMETRY_SERVER_ENABLED
+
+    config DIGITAL_TWIN_AUTO_STOP_MS
+        int "Digital twin auto-record stop debounce (ms)"
+        default 3000
+        range 0 60000
+        depends on TELEMETRY_SERVER_ENABLED
+
 endmenu
