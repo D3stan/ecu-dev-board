@@ -2,6 +2,7 @@
 \usepackage{graphicx} % Required for inserting images
 \usepackage{parskip}
 \usepackage{url}
+\usepackage{longtable}
 
 \title{Tesi - Alessandro Porcheddu}
 \author{Alessandro Ricci}
@@ -99,119 +100,189 @@ configurazioni rimangano tracciabili.
 
 \subsection{Attori e confine del sistema}
 
-Il sistema interagisce con quattro attori. Il motore produce le grandezze
-fisiche ed è destinatario dei comandi. Il pilota genera richieste immediate,
-come apertura farfalla, quick shifter e selezione della mappa. Il tecnico usa
-l'interfaccia per osservare, configurare e diagnosticare. Il servizio remoto
-conserva dati e revisioni, ma non partecipa al ciclo di controllo.
+Il sistema principale è costituito dalla ECU, responsabile dell'acquisizione dei segnali, dell'elaborazione delle strategie di controllo e dell'attuazione dei comandi verso il motore.
 
-La ECU è l'autorità sullo stato real-time. Se client e server vengono spenti,
-la ECU deve continuare ad acquisire gli ingressi, applicare la strategia attiva
-e mantenere una postura sicura. Il server può ricostruire ciò che è avvenuto,
-ma non può correggere in tempo reale una decisione già presa sul motore. Questo
-confine evita che la disponibilità di Internet diventi un requisito implicito
-per l'accensione.
+Gli attori esterni principali sono quattro: il motore, il pilota, il tecnico e il servizio remoto. Il motore rappresenta il processo fisico da controllare: da esso vengono acquisite le grandezze necessarie alla ricostruzione dello suo stato, come il regime di rotazione, la posizione angolare dell'albero motore, la posizione della farfalla, la temperatura dei gas di scarico e gli eventuali segnali associati alla detonazione. Allo stesso tempo, il motore è anche il destinatario finale delle azioni calcolate dalla ECU, come il comando di accensione della scintilla, la gestione del power jet e il controllo della valvola di scarico.
+
+Il pilota interagisce con il sistema attraverso comandi diretti, legati alla guida del veicolo. Alcuni di questi segnali hanno carattere immediato e devono essere gestiti con priorità elevata, come la richiesta proveniente dal quick shifter o le variazioni rapide dell'apertura farfalla. Altri comandi, come la selezione della mappa o l'attivazione di strategie specifiche, non richiedono necessariamente la stessa latenza, ma devono comunque essere acquisiti e applicati in modo coerente con lo stato corrente della centralina.
+
+Il tecnico rappresenta invece l'utente incaricato della configurazione, della calibrazione e della diagnosi del sistema. La sua interazione avviene tramite computer o smartphone collegandosi con un browser alla webapp fornita dalla ECU. Attraverso tale interfaccia il tecnico può osservare la telemetria, modificare parametri e mappe, verificare lo stato degli ingressi e degli attuatori, ed effettuare attività di test o manutenzione.
+
+Il servizio remoto ha un ruolo distinto rispetto al ciclo di controllo. Esso può essere utilizzato per conservare dati, revisioni delle configurazioni, informazioni diagnostiche, statistiche sulla telemetria ed eventualmente per distribuire aggiornamenti software. La disponibilità della rete o del server non costituisce una condizione necessaria per il funzionamento della ECU.
 
 \subsection{Requisiti funzionali}
 
-I requisiti seguenti descrivono il sistema. La Sezione~\ref{sec:validazione}
-associa a ciascuno di essi la corrispondente evidenza di verifica.
-
 \begin{description}
-    \item[RF-01 -- Acquisizione degli ingressi.] Il sistema deve acquisire il
-          pick-up, la posizione farfalla, le temperature previste, il quick
-          shifter, il selettore di mappa e il segnale di detonazione. Ogni valore
-          pubblicato deve conservare tempo di
-          acquisizione, validità e indicazione di guasto.
+    \item[RF-001.] Il sistema deve acquisire un riferimento di posizione e
+          velocità del motore per consentire il controllo sincronizzato delle
+          funzioni motore.
 
-    \item[RF-02 -- Stato cinematico.] Il sistema deve stimare il regime del
-          motore a partire dagli eventi di pick-up, riconoscere
-          sincronizzazione, perdita del riferimento e recupero.
+    \item[RF-002.] Il sistema deve determinare lo stato dinamico del motore,
+          inclusi regime di rotazione, variazioni di velocità e stato di
+          sincronizzazione.
 
-    \item[RF-03 -- Strategia di accensione.] Il sistema deve determinare
-          l'anticipo a partire dalla mappa attiva e dal punto operativo,
-          applicando le correzioni e i limiti abilitati.
+    \item[RF-003.] Il sistema deve validare la coerenza dei segnali utilizzati
+          per il controllo motore e rilevare condizioni non plausibili.
 
-    \item[RF-04 -- Comando degli attuatori.] Il sistema deve temporizzare il
-          comando CDI e produrre i riferimenti per Power Jet ed eventuale
-          valvola di scarico. Un riferimento di fase non valido deve impedire
-          la schedulazione dell'accensione.
+    \item[RF-004.] Il sistema deve consentire il funzionamento delle strategie
+          motore solo quando le informazioni necessarie risultano affidabili.
 
-    \item[RF-05 -- Gestione dei guasti.] Il sistema deve distinguere misura
-          assente, obsoleta, degradata e fallita; deve pubblicare gli eventi di
-          transizione e applicare una politica esplicita di fallback o
-          inibizione.
+    \item[RF-005.] Il sistema deve calcolare il comando di accensione sulla base
+          dello stato motore e delle strategie configurate.
 
-    \item[RF-06 -- Gestione delle mappe.] Il sistema deve memorizzare più mappe,
-          selezionarne una, validare le modifiche e applicarle in un punto nel
-          quale non venga osservata una configurazione parziale.
+    \item[RF-006.] Il sistema deve supportare la configurazione dei parametri
+          necessari alla sincronizzazione e al controllo del motore.
 
-    \item[RF-07 -- Telemetria locale.] Il sistema deve trasferire al client lo
-          stato più recente, gli eventi discreti e i contatori diagnostici. Il
-          destinatario deve poter riconoscere dati obsoleti e perdite nella
-          sequenza.
+    \item[RF-007.] Il sistema deve acquisire i principali parametri operativi
+          del motore attraverso sensori dedicati.
 
-    \item[RF-08 -- Interfaccia utente.] Il sistema deve presentare stato dei
-          sensori, salute, eventi e informazioni diagnostiche in un browser,
-          senza richiedere un'applicazione nativa dedicata.
+    \item[RF-008.] Il sistema deve normalizzare, validare e rendere disponibili
+          i dati provenienti dai sensori alle funzioni di controllo.
 
-    \item[RF-09 -- Comandi e configurazione.] Il client deve poter inviare
-          richieste di configurazione e comandi ammessi. La ECU deve validarli,
-          rispondere esplicitamente e rifiutare valori incompatibili.
+    \item[RF-009.] Il sistema deve supportare procedure di calibrazione dei
+          sensori configurabili dall'utente.
 
-    \item[RF-10 -- Registrazione delle sessioni.] Il sistema deve associare i
-          dati di una sessione a identificativo ECU, firmware, configurazione,
-          calibrazione e mappa effettivamente usati.
+    \item[RF-010.] Il sistema deve applicare strategie di fallback in caso di
+          indisponibilità o invalidità dei dati sensoriali.
 
-    \item[RF-11 -- Ricostruzione e replay.] Il server deve conservare i dati
-          originali e consentire la ricostruzione della sessione. I risultati
-          di replay o simulazioni alternative non devono sostituire i campioni
-          acquisiti.
+    \item[RF-011.] Il sistema deve gestire configurazioni persistenti e
+          ripristinarle automaticamente all'avvio.
 
-    \item[RF-12 -- Aggiornamento.] Il sistema deve prevedere un aggiornamento
-          controllato del firmware, con verifica dell'artefatto e possibilità
-          di recupero da un aggiornamento non valido.
+    \item[RF-012.] Il sistema deve validare configurazioni e strategie prima
+          della loro applicazione operativa.
+
+    \item[RF-013.] Il sistema deve utilizzare configurazioni di sicurezza
+          predefinite in caso di dati mancanti, corrotti o non validi.
+
+    \item[RF-014.] Il sistema deve consentire la configurazione e il tuning
+          delle strategie motore tramite interfacce dedicate.
+
+    \item[RF-015.] Il sistema deve fornire strumenti di monitoraggio in tempo
+          reale dello stato del motore e della ECU.
+
+    \item[RF-016.] Il sistema deve rendere disponibili informazioni operative e
+          diagnostiche tramite telemetria.
+
+    \item[RF-017.] Il sistema deve monitorare continuamente lo stato di salute
+          dei sensori e delle funzioni interne.
+
+    \item[RF-018.] Il sistema deve rilevare, classificare e registrare
+          condizioni di errore e anomalie operative.
+
+    \item[RF-019.] Il sistema deve acquisire parametri termici rilevanti per il
+          monitoraggio dello stato del motore.
+
+    \item[RF-020.] Il sistema deve fornire informazioni sullo stato termico del
+          motore e sulle relative tendenze evolutive.
+
+    \item[RF-021.] Il sistema deve rilevare fenomeni potenzialmente dannosi per
+          il motore e renderli disponibili alle strategie di controllo.
+
+    \item[RF-022.] Il sistema deve supportare ingressi dedicati all'interazione
+          del pilota con le strategie motore.
+
+    \item[RF-023.] Il sistema deve consentire la selezione e il cambio delle
+          strategie operative durante il funzionamento.
+
+    \item[RF-024.] Il sistema deve supportare la gestione di più mappe o profili
+          di funzionamento selezionabili.
+
+    \item[RF-025.] Il sistema deve fornire informazioni sullo stato corrente
+          delle strategie attive e delle modalità operative.
+
+    \item[RF-026.] Il sistema deve supportare funzionalità di diagnostica e
+          manutenzione del sistema.
+
+    \item[RF-027.] Il sistema deve consentire la simulazione delle principali
+          condizioni operative per attività di verifica e validazione.
+
+    \item[RF-028.] Il sistema deve supportare la raccolta e la consultazione dei
+          dati necessari all'analisi delle prestazioni e dei fault.
+
+    \item[RF-029.] Il sistema deve garantire la disponibilità delle informazioni
+          necessarie al controllo, alla diagnostica e alla supervisione del
+          motore.
 \end{description}
 
 \subsection{Requisiti non funzionali}
 
 \begin{description}
-    \item[RNF-01 -- Determinismo.] Acquisizione del riferimento motore e
-          schedulazione degli output non devono attendere telemetria, file
-          system, interfaccia utente o rete.
+    \item[RNF-001.] Le funzioni critiche di controllo motore devono operare con
+          comportamento deterministico e prevedibile.
 
-    \item[RNF-02 -- Risorse limitate.] Buffer, code e memoria delle sessioni
-          devono avere dimensione finita. La congestione deve produrre
-          riduzione, sostituzione o perdita rilevabile dei dati, non crescita
-          illimitata della memoria.
+    \item[RNF-002.] Le funzioni critiche devono essere isolate dalle
+          funzionalità non essenziali quali interfacce utente, comunicazioni e
+          servizi ausiliari.
 
-    \item[RNF-03 -- Indipendenza dall'infrastruttura.] La ECU deve operare senza
-          client e server. La perdita del collegamento non deve modificare la
-          strategia di controllo attiva.
+    \item[RNF-003.] Il sistema deve garantire la precisione temporale necessaria
+          al corretto controllo del motore.
 
-    \item[RNF-04 -- Separazione dall'hardware.] Regole di validazione,
-          calibrazione, debounce, fallback e stima devono poter essere eseguite
-          su un calcolatore senza includere ESP-IDF.
+    \item[RNF-004.] Il sistema deve minimizzare la latenza tra acquisizione
+          degli eventi critici e relativa elaborazione.
 
-    \item[RNF-05 -- Proprietà dello stato.] Ogni stato mutabile deve avere un
-          solo proprietario. Gli altri sottosistemi devono riceverne snapshot,
-          eventi o risposte, senza modifiche concorrenti dirette.
+    \item[RNF-005.] Le attività non critiche non devono compromettere le
+          prestazioni delle funzioni di controllo motore.
 
-    \item[RNF-06 -- Tracciabilità.] Misure, decisioni e comandi devono rimanere
-          distinguibili. Sequenza, origine, revisione di configurazione e
-          identificativo di sessione devono essere conservati quando necessari
-          all'interpretazione.
+    \item[RNF-006.] I meccanismi di comunicazione e telemetria devono essere non
+          bloccanti rispetto alle funzioni critiche.
 
-    \item[RNF-07 -- Evolvibilità.] L'aggiunta di un sensore o di una famiglia di
-          telemetria non deve richiedere un nuovo protocollo di trasporto né
-          modificare il nucleo di tutti i consumatori.
+    \item[RNF-007.] Il sistema deve avviarsi e operare in condizioni sicure fino
+          alla verifica della propria integrità operativa.
 
-    \item[RNF-08 -- Accessibilità.] Il monitoraggio locale deve essere fruibile
-          da dispositivi comuni e adattarsi a schermi di dimensioni diverse.
+    \item[RNF-008.] Il sistema deve essere in grado di rilevare e recuperare da
+          condizioni di blocco o malfunzionamento software.
 
-    \item[RNF-09 -- Comportamento verificabile.] Timeout, guasti e recuperi
-          devono poter essere riprodotti con un tempo deterministico e sorgenti
-          controllate.
+    \item[RNF-009.] Le configurazioni persistenti devono essere protette da
+          corruzione e perdita di dati.
+
+    \item[RNF-010.] Le strategie di controllo devono mantenere comportamento
+          coerente indipendentemente dal carico delle altre funzioni del
+          sistema.
+
+    \item[RNF-011.] L'architettura software deve essere modulare e separare
+          chiaramente responsabilità e domini funzionali.
+
+    \item[RNF-012.] Il sistema deve essere progettato per favorire
+          manutenibilità, evoluzione e riutilizzo dei componenti software.
+
+    \item[RNF-013.] Le logiche di controllo devono essere verificabili e
+          testabili indipendentemente dall'hardware finale.
+
+    \item[RNF-014.] Il sistema deve supportare attività di simulazione e
+          validazione ripetibili e automatizzabili.
+
+    \item[RNF-015.] Le interfacce utente devono fornire una rappresentazione
+          chiara dello stato operativo del sistema.
+
+    \item[RNF-016.] Ogni informazione resa disponibile dal sistema deve essere
+          accompagnata da indicatori di validità e affidabilità quando
+          applicabile.
+
+    \item[RNF-017.] Il sistema deve essere robusto rispetto a rumore, disturbi e
+          condizioni operative non ideali.
+
+    \item[RNF-018.] La telemetria deve garantire coerenza, tracciabilità e
+          contestualizzazione dei dati trasmessi.
+
+    \item[RNF-019.] In condizioni di risorse limitate, il sistema deve
+          preservare prioritariamente le informazioni critiche per sicurezza e
+          diagnostica.
+
+    \item[RNF-020.] Gli eventi e i dati registrati devono mantenere il corretto
+          ordine temporale.
+
+    \item[RNF-021.] Le funzionalità diagnostiche avanzate devono essere
+          configurabili e non interferire con il funzionamento operativo.
+
+    \item[RNF-022.] L'accesso alle funzioni critiche deve essere protetto da
+          adeguati meccanismi di autorizzazione e conferma.
+
+    \item[RNF-023.] Il sistema deve adottare strategie di degradazione
+          controllata in presenza di fault o perdita di informazioni.
+
+    \item[RNF-024.] L'architettura deve essere estendibile e consentire
+          l'introduzione di nuove funzionalità senza modifiche sostanziali ai
+          componenti esistenti.
 \end{description}
 
 \subsection{Confine funzionale del sistema}
@@ -612,45 +683,80 @@ validazione corrispondente. I test sul calcolatore verificano la logica; le prov
 sul dispositivo e HIL verificano i confini elettrici e temporali; le prove
 end-to-end coprono client e server.
 
-\begin{table}[h]
-\centering
-\small
-\begin{tabular}{p{0.12\textwidth} p{0.55\textwidth} p{0.23\textwidth}}
+{\small
+\begin{longtable}{p{0.14\textwidth} p{0.54\textwidth} p{0.18\textwidth}}
+\caption{Copertura dei requisiti funzionali.}
+\label{tab:copertura} \\
 \hline
 \textbf{Requisito} & \textbf{Evidenza di validazione} & \textbf{Stato} \\
 \hline
-RF-01 & Test dei sensori, sorgenti sintetiche e collegamenti fisici & Soddisfatto \\
-RF-02 & Stima RPM, perdita e recupero della sincronizzazione & Soddisfatto \\
-RF-03 & Interpolazione mappa e composizione delle correzioni & Soddisfatto \\
-RF-04 & Misura HIL di CDI, Power Jet e valvola di scarico & Soddisfatto \\
-RF-05 & Obsolescenza, guasti, fallback, code piene e recupero & Soddisfatto \\
-RF-06 & Persistenza, validazione e attivazione atomica delle mappe & Soddisfatto \\
-RF-07 & WebSocket, sequenze, congestione e rilevamento delle lacune & Soddisfatto \\
-RF-08 & Viste, stato di salute, eventi e storico locale & Soddisfatto \\
-RF-09 & Validazione, applicazione e risposta ai comandi & Soddisfatto \\
-RF-10 & Sessioni associate a firmware, mappe e calibrazione & Soddisfatto \\
-RF-11 & Immutabilità, replay e simulazioni alternative & Soddisfatto \\
-RF-12 & Download, verifica, applicazione e ripristino OTA & Soddisfatto \\
+\endfirsthead
 \hline
-\end{tabular}
-\caption{Copertura dei requisiti funzionali.}
-\label{tab:copertura}
-\end{table}
+\textbf{Requisito} & \textbf{Evidenza di validazione} & \textbf{Stato} \\
+\hline
+\endhead
+\hline
+\endfoot
+\hline
+\endlastfoot
+RF-001 & Cattura del pick-up, stima RPM e acquisizione della sincronizzazione & Soddisfatto \\
+RF-002 & Stima RPM, perdita e recupero della sincronizzazione, rapido aumento di regime & Soddisfatto \\
+RF-003 & Controlli di intervallo, intervalli impossibili del pick-up e rifiuto dei valori non plausibili & Soddisfatto \\
+RF-004 & Abilitazione del controllo solo con riferimento attendibile e inibizione con riferimento angolare non valido & Soddisfatto \\
+RF-005 & Interpolazione della mappa, composizione delle correzioni e transizioni della macchina a stati & Soddisfatto \\
+RF-006 & Profili validati delle sorgenti, validazione e persistenza dei parametri & Soddisfatto \\
+RF-007 & Test dei sensori con sorgenti sintetiche e collegamenti fisici (modalità mista) & Soddisfatto \\
+RF-008 & Calibrazione, controlli di intervallo e coerenza degli snapshot & Soddisfatto \\
+RF-009 & Calibrazione TPS e validazione dei comandi di configurazione & Soddisfatto \\
+RF-010 & Fallback TPS esplicito, obsolescenza e recupero & Soddisfatto \\
+RF-011 & Persistenza e attivazione delle mappe, ripristino delle revisioni all'avvio & Soddisfatto \\
+RF-012 & Validazione, persistenza e attivazione atomica delle mappe & Soddisfatto \\
+RF-013 & Valori di sicurezza predefiniti, fallback espliciti e code piene & Soddisfatto \\
+RF-014 & Validazione, applicazione e risposta ai comandi di configurazione & Soddisfatto \\
+RF-015 & Viste, stato di salute, eventi e storico locale & Soddisfatto \\
+RF-016 & WebSocket, sequenze, congestione e rilevamento delle lacune & Soddisfatto \\
+RF-017 & Stato di salute dei sensori e contatori diagnostici & Soddisfatto \\
+RF-018 & Obsolescenza, guasti, eventi di transizione, fallback e recupero & Soddisfatto \\
+RF-019 & Prove termiche: lettura nominale, termocoppia aperta, guasto del convertitore e soglie & Soddisfatto \\
+RF-020 & Pubblicazione dello stato termico e delle richieste di protezione & Soddisfatto \\
+RF-021 & Misure knock mancanti, sature o arretrate e finestra sincronizzata & Soddisfatto \\
+RF-022 & Quick shifter e selettore di mappa: debounce, riarmo e richieste validate & Soddisfatto \\
+RF-023 & Cambio mappa e selezione della strategia in punti ripetibili & Soddisfatto \\
+RF-024 & Persistenza, validazione e attivazione atomica delle mappe & Soddisfatto \\
+RF-025 & Decisioni di controllo e codici di motivazione in telemetria & Soddisfatto \\
+RF-026 & Comandi diagnostici, contatori e aggiornamento OTA con ripristino & Soddisfatto \\
+RF-027 & Sorgenti sintetiche deterministiche e banco HIL con fault injection & Soddisfatto \\
+RF-028 & Registrazione delle sessioni, immutabilità dei campioni e replay & Soddisfatto \\
+RF-029 & Coerenza degli snapshot, telemetria e ricostruzione delle sessioni & Soddisfatto \\
+\end{longtable}
+}
 
 \subsection{Valutazione dei requisiti non funzionali}
 
-RNF-04 e RNF-09 sono verificati compilando il dominio senza ESP-IDF e controllando
-il tempo mediante sorgenti deterministiche. RNF-02 è verificato saturando code e
-storici: il sistema espone contatori e lacune senza crescita non limitata della
-memoria. RNF-05 è verificato attraverso le regole di singolo scrittore e le
-istantanee coerenti. La disconnessione di client e server conferma RNF-03.
+RNF-013 e RNF-014 sono verificati compilando il dominio senza ESP-IDF e
+controllando il tempo mediante sorgenti deterministiche, così da rendere le
+logiche di controllo testabili indipendentemente dall'hardware e le prove
+ripetibili. RNF-019 è verificato saturando code e storici: in condizioni di
+risorse limitate il sistema preserva le informazioni critiche ed espone contatori
+e lacune senza crescita non limitata della memoria. RNF-010 è verificato
+attraverso le regole di singolo scrittore e le istantanee coerenti, che mantengono
+il comportamento del controllo indipendente dal carico delle altre funzioni. La
+disconnessione di client e server conferma RNF-002 e RNF-006, poiché l'isolamento
+delle funzioni critiche e la telemetria non bloccante lasciano invariata la
+strategia di controllo attiva.
 
-Per RNF-01 le misure HIL confrontano latenza e jitter con il budget temporale
-del controllo, sia a rete inattiva sia durante il massimo carico di telemetria.
-Le prove di concorrenza confermano che acquisizione, schedulazione e pubblicazione
-sensoriale non attendono i consumatori. RNF-06 è verificato ricostruendo una
-sessione dalla relativa identità ECU, versione firmware, mappa, configurazione e
-calibrazione.
+Per RNF-001, RNF-003 e RNF-004 le misure HIL confrontano latenza e jitter con il
+budget temporale del controllo, sia a rete inattiva sia durante il massimo carico
+di telemetria. Le prove di concorrenza confermano RNF-005, poiché acquisizione,
+schedulazione e pubblicazione sensoriale non attendono i consumatori. La coerenza
+degli snapshot verifica inoltre che ogni lettura conservi validità e salute
+(RNF-016). RNF-018 e RNF-020 sono verificati ricostruendo una sessione dalla
+relativa identità ECU, versione firmware, mappa, configurazione e calibrazione,
+mantenendo ordine e provenienza dei dati. Le prove HIL con disturbi, corto verso
+massa o alimentazione e guasti dei convertitori sostengono RNF-017, mentre il
+fallback esplicito degli ingressi conferma la degradazione controllata richiesta
+da RNF-023. L'aggiornamento OTA con verifica dell'artefatto, autorizzazione e
+ripristino della versione precedente sostiene RNF-007, RNF-009 e RNF-022.
 
 I risultati mostrano che le funzioni del sistema sono coperte da prove coerenti con
 il loro livello: logica sul calcolatore, integrazione sul dispositivo, tempi e
