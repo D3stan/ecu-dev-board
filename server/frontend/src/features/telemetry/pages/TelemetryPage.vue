@@ -231,7 +231,7 @@ const extractedEvents = computed<CustomTimelineEvent[]>(() => {
   const list: CustomTimelineEvent[] = [];
   if (telemetryData.value.length < 2) return list;
   
-  for (let i = 1; i < telemetryData.value.value?.length || telemetryData.value.length; i++) {
+  for (let i = 1; i < telemetryData.value.length; i++) {
     const prev = telemetryData.value[i - 1];
     const curr = telemetryData.value[i];
     const timeSec = curr.ecu_collected_at_us / 1000000;
