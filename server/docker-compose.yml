@@ -49,6 +49,7 @@ services:
       DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-ecu}:${POSTGRES_PASSWORD:-ecu_password}@db:5432/${POSTGRES_DB:-ecudb}
       REDIS_URL: redis://redis:6379/0
       LOG_LEVEL: ${LOG_LEVEL:-info}
+      CORS_ORIGINS: ${CORS_ORIGINS:-*}
     # Traefik labels — route APIs/WS to backend, serve root from frontend
     labels:
       - "traefik.enable=true"
