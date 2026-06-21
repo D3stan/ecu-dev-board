@@ -31,6 +31,12 @@ export function formatSigned(value, decimals = 0) {
   return `${prefix}${formatNumber(number, decimals)}`;
 }
 
+export function formatMicroseconds(value) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return "--";
+  return `${formatNumber(number, 0)} µs`;
+}
+
 export function formatFaultBits(value) {
   const number = Number(value) || 0;
   return `0x${number.toString(16).toUpperCase().padStart(2, "0")}`;

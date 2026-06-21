@@ -1,13 +1,13 @@
 {
   "name": "fogextra-webui",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "private": true,
   "type": "module",
   "description": "Interfaccia web per ESP32 FogExtra",
   "main": "index.js",
   "scripts": {
     "dev": "vite",
-    "test": "node --test src/js/core/adapter.test.js test/adapter-contract.test.mjs test/telemetry-view-model.test.mjs test/telemetry-history-manager.test.mjs",
+    "test": "node --test src/js/core/adapter.test.js test/adapter-contract.test.mjs test/build-config-contract.test.mjs test/digital-twin-client.test.mjs test/telemetry-view-model.test.mjs test/telemetry-history-manager.test.mjs",
     "build": "vite build",
     "preview": "vite preview"
   },

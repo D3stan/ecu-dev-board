@@ -1,24 +1,38 @@
 #include "telemetry_server/telemetry_server.hpp"
 
+#include <cctype>
 #include <cstring>
+#include <cstdio>
+#include <array>
+#include <cstdlib>
 #include <mutex>
 #include <new>
+#include <optional>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "esp_check.h"
 #include "esp_event.h"
+#include "esp_flash.h"
+#include "esp_heap_caps.h"
 #include "esp_http_server.h"
 #include "esp_log.h"
+#include "esp_mac.h"
 #include "esp_netif.h"
+#include "esp_spiffs.h"
 #include "esp_timer.h"
 #include "esp_wifi.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "nvs.h"
 #include "nvs_flash.h"
 #include "sdkconfig.h"
+#include "telemetry_server/static_file_resolver.hpp"
 #include "telemetry_server/telemetry_json_serializer.hpp"
 #include "telemetry_server/telemetry_pump.hpp"
+
+#include <sys/stat.h>
 
 #ifndef PRO_CPU_NUM
 #define PRO_CPU_NUM 0
@@ -29,6 +43,8 @@ namespace ecu::telemetry_server {
 namespace {
 
 constexpr char kTag[] = "telemetry_server";
+constexpr char kRecordingNvsNamespace[] = "digital_twin";
+constexpr char kRecordingAutoEnabledKey[] = "auto_rec";
 
 template <std::size_t N>
 void copy_wifi_field(std::uint8_t (&destination)[N], const char *source) {
@@ -38,6 +54,193 @@ void copy_wifi_field(std::uint8_t (&destination)[N], const char *source) {
     }
     std::strncpy(reinterpret_cast<char *>(destination), source, N - 1);
 }
+
+class RuntimeDiagnostics {
+public:
+    explicit RuntimeDiagnostics(bool heap_checks) : heap_checks_(heap_checks) {}
+
+    static unsigned stack_free_bytes() {
+        return static_cast<unsigned>(uxTaskGetStackHighWaterMark2(nullptr));
+    }
+
+    void check_heap(const char *location) const {
+        if (!heap_checks_) {
+            return;
+        }
+
+        if (!heap_caps_check_integrity_all(true)) {
+            ESP_LOGE(kTag, "heap corruption detected near %s", location);
+            std::abort();
+        }
+    }
+
+private:
+    bool heap_checks_{false};
+};
+
+struct RuntimeDeviceIdentity {
+    std::string hwid{"esp32s3-unknown"};
+    std::string hardware_revision{"unknown"};
+    std::string chip_model{"unknown"};
+    std::uint32_t flash_size_bytes{0};
+};
+
+const char *configured_chip_model_name() {
+#if defined(CONFIG_IDF_TARGET_ESP32S3)
+    return "ESP32-S3";
+#elif defined(CONFIG_IDF_TARGET_ESP32S2)
+    return "ESP32-S2";
+#elif defined(CONFIG_IDF_TARGET_ESP32)
+    return "ESP32";
+#elif defined(CONFIG_IDF_TARGET_ESP32C2)
+    return "ESP32-C2";
+#elif defined(CONFIG_IDF_TARGET_ESP32C3)
+    return "ESP32-C3";
+#elif defined(CONFIG_IDF_TARGET_ESP32C6)
+    return "ESP32-C6";
+#elif defined(CONFIG_IDF_TARGET_ESP32H2)
+    return "ESP32-H2";
+#elif defined(CONFIG_IDF_TARGET_ESP32P4)
+    return "ESP32-P4";
+#else
+    return "unknown";
+#endif
+}
+
+RuntimeDeviceIdentity read_device_identity(const TelemetryServerConfig &config) {
+    RuntimeDeviceIdentity identity{};
+    identity.hardware_revision = config.digital_twin_hardware_revision != nullptr
+                                     ? config.digital_twin_hardware_revision
+                                     : "unknown";
+
+    std::uint8_t mac[6]{};
+    const esp_err_t mac_err = esp_efuse_mac_get_default(mac);
+    if (mac_err == ESP_OK) {
+        char hwid[32]{};
+        std::snprintf(hwid,
+                      sizeof(hwid),
+                      "esp32s3-%02x%02x%02x%02x%02x%02x",
+                      static_cast<unsigned>(mac[0]),
+                      static_cast<unsigned>(mac[1]),
+                      static_cast<unsigned>(mac[2]),
+                      static_cast<unsigned>(mac[3]),
+                      static_cast<unsigned>(mac[4]),
+                      static_cast<unsigned>(mac[5]));
+        identity.hwid = hwid;
+    } else {
+        ESP_LOGW(kTag, "failed to read eFuse MAC for HWID: %s", esp_err_to_name(mac_err));
+    }
+
+    identity.chip_model = configured_chip_model_name();
+
+    std::uint32_t flash_size = 0;
+    const esp_err_t flash_err = esp_flash_get_size(nullptr, &flash_size);
+    if (flash_err == ESP_OK) {
+        identity.flash_size_bytes = flash_size;
+    } else {
+        ESP_LOGW(kTag, "failed to read flash size: %s", esp_err_to_name(flash_err));
+    }
+
+    return identity;
+}
+
+RecordingConfigSnapshot make_recording_config(const TelemetryServerConfig &config) {
+    RecordingConfigSnapshot recording{};
+    recording.rpm_threshold = config.digital_twin_auto_rpm_threshold;
+    recording.start_debounce_ms = config.digital_twin_auto_start_ms;
+    recording.stop_debounce_ms = config.digital_twin_auto_stop_ms;
+    return recording;
+}
+
+TelemetryJsonSerializerConfig make_serializer_config(const TelemetryServerConfig &config,
+                                                     const RuntimeDeviceIdentity &identity,
+                                                     const RecordingConfigSnapshot &recording) {
+    TelemetryJsonSerializerConfig serializer_config{};
+    serializer_config.state_hz = config.state_hz;
+    serializer_config.events_per_batch = config.max_events_per_batch;
+    serializer_config.device.hwid = identity.hwid.c_str();
+    serializer_config.device.hardware_revision = identity.hardware_revision.c_str();
+    serializer_config.device.chip_model = identity.chip_model.c_str();
+    serializer_config.device.flash_size_bytes = identity.flash_size_bytes;
+    serializer_config.recording = recording;
+    return serializer_config;
+}
+
+std::optional<bool> parse_recording_config_set(std::string_view text) {
+    if (text.find("\"recording_config_set\"") == std::string_view::npos) {
+        return std::nullopt;
+    }
+
+    const auto key = text.find("\"auto_enabled\"");
+    if (key == std::string_view::npos) {
+        return std::nullopt;
+    }
+
+    const auto colon = text.find(':', key);
+    if (colon == std::string_view::npos) {
+        return std::nullopt;
+    }
+
+    auto value_start = colon + 1;
+    while (value_start < text.size() && std::isspace(static_cast<unsigned char>(text[value_start])) != 0) {
+        ++value_start;
+    }
+
+    if (text.substr(value_start, 4) == "true") {
+        return true;
+    }
+    if (text.substr(value_start, 5) == "false") {
+        return false;
+    }
+    return std::nullopt;
+}
+
+class RecordingSettingsStore {
+public:
+    bool load_auto_enabled(bool fallback) const {
+        nvs_handle_t handle = 0;
+        esp_err_t err = nvs_open(kRecordingNvsNamespace, NVS_READONLY, &handle);
+        if (err == ESP_ERR_NVS_NOT_FOUND) {
+            return fallback;
+        }
+        if (err != ESP_OK) {
+            ESP_LOGW(kTag, "failed to open recording NVS for read: %s", esp_err_to_name(err));
+            return fallback;
+        }
+
+        std::uint8_t stored = fallback ? 1 : 0;
+        err = nvs_get_u8(handle, kRecordingAutoEnabledKey, &stored);
+        nvs_close(handle);
+        if (err == ESP_ERR_NVS_NOT_FOUND) {
+            return fallback;
+        }
+        if (err != ESP_OK) {
+            ESP_LOGW(kTag, "failed to read recording NVS: %s", esp_err_to_name(err));
+            return fallback;
+        }
+        return stored != 0;
+    }
+
+    esp_err_t save_auto_enabled(bool enabled) const {
+        nvs_handle_t handle = 0;
+        esp_err_t err = nvs_open(kRecordingNvsNamespace, NVS_READWRITE, &handle);
+        if (err != ESP_OK) {
+            ESP_LOGW(kTag, "failed to open recording NVS for write: %s", esp_err_to_name(err));
+            return err;
+        }
+
+        err = nvs_set_u8(handle, kRecordingAutoEnabledKey, enabled ? 1 : 0);
+        if (err == ESP_OK) {
+            err = nvs_commit(handle);
+        }
+        nvs_close(handle);
+
+        if (err != ESP_OK) {
+            ESP_LOGW(kTag, "failed to save recording NVS: %s", esp_err_to_name(err));
+        }
+        return err;
+    }
+};
 
 class WifiStation {
 public:
@@ -131,6 +334,172 @@ private:
     esp_event_handler_instance_t ip_event_handler_{nullptr};
 };
 
+class StaticFileSystemMount {
+public:
+    esp_err_t mount(const TelemetryServerConfig &config) {
+        esp_vfs_spiffs_conf_t spiffs_config{};
+        spiffs_config.base_path = config.static_base_path;
+        spiffs_config.partition_label = config.static_partition_label;
+        spiffs_config.max_files = config.static_max_open_files;
+        spiffs_config.format_if_mount_failed = false;
+
+        const esp_err_t err = esp_vfs_spiffs_register(&spiffs_config);
+        if (err != ESP_OK) {
+            if (err == ESP_ERR_NOT_FOUND) {
+                ESP_LOGE(kTag, "SPIFFS partition '%s' not found", config.static_partition_label);
+            } else if (err == ESP_FAIL) {
+                ESP_LOGE(kTag, "failed to mount SPIFFS partition '%s'", config.static_partition_label);
+            } else {
+                ESP_LOGE(kTag, "failed to initialize SPIFFS '%s': %s",
+                         config.static_partition_label,
+                         esp_err_to_name(err));
+            }
+            return err;
+        }
+
+        mounted_ = true;
+        size_t total = 0;
+        size_t used = 0;
+        const esp_err_t info_err = esp_spiffs_info(config.static_partition_label, &total, &used);
+        if (info_err == ESP_OK) {
+            ESP_LOGI(kTag, "SPIFFS '%s' mounted at %s, used=%u total=%u",
+                     config.static_partition_label,
+                     config.static_base_path,
+                     static_cast<unsigned>(used),
+                     static_cast<unsigned>(total));
+        } else {
+            ESP_LOGW(kTag, "SPIFFS '%s' mounted, info failed: %s",
+                     config.static_partition_label,
+                     esp_err_to_name(info_err));
+        }
+        return ESP_OK;
+    }
+
+    bool mounted() const { return mounted_; }
+
+private:
+    bool mounted_{false};
+};
+
+class PosixStaticFileCatalog final : public IStaticFileCatalog {
+public:
+    bool exists(std::string_view path) const override {
+        std::string path_string(path);
+        struct stat file_stat {};
+        return stat(path_string.c_str(), &file_stat) == 0 && S_ISREG(file_stat.st_mode);
+    }
+};
+
+class StaticFileHandler {
+public:
+    StaticFileHandler(const char *base_path,
+                      const IStaticFileCatalog &catalog,
+                      const RuntimeDiagnostics &diagnostics,
+                      bool close_connection)
+        : resolver_(base_path != nullptr ? base_path : "/www", catalog),
+          diagnostics_(diagnostics),
+          close_connection_(close_connection) {}
+
+    esp_err_t register_handlers(httpd_handle_t server) {
+        httpd_uri_t static_uri{};
+        static_uri.uri = "/*";
+        static_uri.method = HTTP_GET;
+        static_uri.handler = &StaticFileHandler::handle_request;
+        static_uri.user_ctx = this;
+        return httpd_register_uri_handler(server, &static_uri);
+    }
+
+private:
+    static esp_err_t handle_request(httpd_req_t *req) {
+        auto *self = static_cast<StaticFileHandler *>(req->user_ctx);
+        return self->serve(*req);
+    }
+
+    esp_err_t serve(httpd_req_t &req) {
+        diagnostics_.check_heap("before static request");
+        ESP_LOGI(kTag, "static request uri=%s stack_free=%u", req.uri, RuntimeDiagnostics::stack_free_bytes());
+
+        const auto resolved = resolver_.resolve(req.uri);
+        if (resolved.status == StaticFileResolveStatus::BadRequest) {
+            set_connection_close(req);
+            ESP_LOGW(kTag, "static bad request uri=%s", req.uri);
+            return httpd_resp_send_err(&req, HTTPD_400_BAD_REQUEST, "Bad static file path");
+        }
+        if (resolved.status == StaticFileResolveStatus::NotFound) {
+            set_connection_close(req);
+            ESP_LOGW(kTag, "static not found uri=%s", req.uri);
+            return httpd_resp_send_err(&req, HTTPD_404_NOT_FOUND, "Static file not found");
+        }
+
+        FILE *file = std::fopen(resolved.filesystem_path.c_str(), "rb");
+        if (file == nullptr) {
+            set_connection_close(req);
+            ESP_LOGE(kTag, "failed to open static file %s", resolved.filesystem_path.c_str());
+            return httpd_resp_send_err(&req, HTTPD_404_NOT_FOUND, "Static file not found");
+        }
+
+        (void)httpd_resp_set_type(&req, resolved.content_type.c_str());
+        if (resolved.gzip_encoded) {
+            (void)httpd_resp_set_hdr(&req, "Content-Encoding", "gzip");
+        }
+        (void)httpd_resp_set_hdr(&req,
+                                 "Cache-Control",
+                                 resolved.no_store ? "no-store, max-age=0"
+                                                   : "public, max-age=31536000, immutable");
+        set_connection_close(req);
+
+        ESP_LOGI(kTag, "static serving uri=%s file=%s gzip=%d stack_free=%u",
+                 req.uri,
+                 resolved.filesystem_path.c_str(),
+                 resolved.gzip_encoded ? 1 : 0,
+                 RuntimeDiagnostics::stack_free_bytes());
+
+        while (true) {
+            const std::size_t read = std::fread(scratch_.data(), 1, scratch_.size(), file);
+            if (read > 0) {
+                const esp_err_t send_err = httpd_resp_send_chunk(&req, scratch_.data(), read);
+                if (send_err != ESP_OK) {
+                    std::fclose(file);
+                    ESP_LOGE(kTag, "failed to send static file %s: %s",
+                             resolved.filesystem_path.c_str(),
+                             esp_err_to_name(send_err));
+                    (void)httpd_resp_send_chunk(&req, nullptr, 0);
+                    return send_err;
+                }
+            }
+
+            if (read < scratch_.size()) {
+                if (std::ferror(file) != 0) {
+                    std::fclose(file);
+                    ESP_LOGE(kTag, "failed to read static file %s", resolved.filesystem_path.c_str());
+                    return httpd_resp_send_err(&req, HTTPD_500_INTERNAL_SERVER_ERROR, "Static file read failed");
+                }
+                break;
+            }
+        }
+
+        std::fclose(file);
+        const esp_err_t final_err = httpd_resp_send_chunk(&req, nullptr, 0);
+        diagnostics_.check_heap("after static request");
+        ESP_LOGI(kTag, "static done uri=%s err=%s stack_free=%u",
+                 req.uri,
+                 esp_err_to_name(final_err),
+                 RuntimeDiagnostics::stack_free_bytes());
+        return final_err;
+    }
+
+    void set_connection_close(httpd_req_t &req) const {
+        if (close_connection_) {
+            (void)httpd_resp_set_hdr(&req, "Connection", "close");
+        }
+    }
+
+    StaticFileResolver resolver_;
+    const RuntimeDiagnostics &diagnostics_;
+    bool close_connection_{true};
+    std::array<char, 2048> scratch_{};
+};
+
 class EspWebSocketTransport final : public ITelemetryTransport {
 public:
     bool connected() const override {
@@ -172,6 +541,11 @@ public:
                                                        &EspWebSocketTransport::send_complete,
                                                        pending);
         if (err != ESP_OK) {
+            ESP_LOGW(kTag,
+                     "WebSocket async send queue failed fd=%d bytes=%u err=%s",
+                     pending->socket,
+                     static_cast<unsigned>(pending->payload.size()),
+                     esp_err_to_name(err));
             finish_send(pending->socket, err);
             delete pending;
             return false;
@@ -230,6 +604,7 @@ private:
         if (err == ESP_OK) {
             ++counters_.sent_frames;
         } else {
+            ESP_LOGW(kTag, "WebSocket send failed fd=%d err=%s", socket, esp_err_to_name(err));
             ++counters_.send_errors;
             if (active_ && socket_ == socket) {
                 active_ = false;
@@ -253,12 +628,16 @@ class TelemetryServerApplication {
 public:
     TelemetryServerApplication(ecu::sensors::SensorDataStore &store, TelemetryServerConfig config)
         : config_(config),
+          device_identity_(read_device_identity(config_)),
+          recording_config_(make_recording_config(config_)),
           source_(store, make_collector_config(config)),
-          serializer_(make_serializer_config(config)),
+          serializer_(make_serializer_config(config_, device_identity_, recording_config_)),
           pump_(source_, serializer_, transport_) {}
 
     esp_err_t start() {
         ESP_RETURN_ON_ERROR(wifi_.start(config_), kTag, "failed to start WiFi station");
+        load_recording_config();
+        ESP_RETURN_ON_ERROR(static_filesystem_.mount(config_), kTag, "failed to mount static file system");
         ESP_RETURN_ON_ERROR(start_http_server(), kTag, "failed to start HTTP server");
         ESP_RETURN_ON_ERROR(start_pump_task(), kTag, "failed to start telemetry pump task");
         return ESP_OK;
@@ -271,16 +650,22 @@ private:
         return collector_config;
     }
 
-    static TelemetryJsonSerializerConfig make_serializer_config(const TelemetryServerConfig &config) {
-        TelemetryJsonSerializerConfig serializer_config{};
-        serializer_config.state_hz = config.state_hz;
-        serializer_config.events_per_batch = config.max_events_per_batch;
-        return serializer_config;
-    }
-
     esp_err_t start_http_server() {
         httpd_config_t http_config = HTTPD_DEFAULT_CONFIG();
         http_config.server_port = config_.http_port;
+        http_config.stack_size = config_.http_task_stack_bytes;
+        http_config.max_open_sockets = config_.http_max_open_sockets;
+        http_config.lru_purge_enable = config_.http_lru_purge_enable;
+        http_config.uri_match_fn = httpd_uri_match_wildcard;
+
+        ESP_LOGI(kTag,
+                 "starting HTTP server port=%u stack=%u sockets=%u lru=%d static_close=%d heap_checks=%d",
+                 static_cast<unsigned>(http_config.server_port),
+                 static_cast<unsigned>(http_config.stack_size),
+                 static_cast<unsigned>(http_config.max_open_sockets),
+                 http_config.lru_purge_enable ? 1 : 0,
+                 config_.static_close_connection ? 1 : 0,
+                 config_.diagnostics_heap_checks ? 1 : 0);
 
         ESP_RETURN_ON_ERROR(httpd_start(&server_, &http_config), kTag, "failed to start HTTP server");
 
@@ -292,7 +677,10 @@ private:
         ws_uri.is_websocket = true;
         ws_uri.handle_ws_control_frames = true;
 
-        return httpd_register_uri_handler(server_, &ws_uri);
+        ESP_RETURN_ON_ERROR(httpd_register_uri_handler(server_, &ws_uri),
+                            kTag,
+                            "failed to register WebSocket handler");
+        return static_handler_.register_handlers(server_);
     }
 
     esp_err_t start_pump_task() {
@@ -309,11 +697,19 @@ private:
     static esp_err_t websocket_handler(httpd_req_t *req) {
         auto *self = static_cast<TelemetryServerApplication *>(req->user_ctx);
         const int socket = httpd_req_to_sockfd(req);
+        self->diagnostics_.check_heap("before websocket request");
+
+        ESP_LOGI(kTag,
+                 "ws request method=%d fd=%d stack_free=%u",
+                 static_cast<int>(req->method),
+                 socket,
+                 RuntimeDiagnostics::stack_free_bytes());
 
         if (req->method == HTTP_GET) {
             self->transport_.accept(req->handle, socket);
-            const auto capabilities = self->serializer_.serialize_capabilities();
+            const auto capabilities = self->serialize_capabilities();
             (void)self->transport_.send_text(capabilities);
+            self->diagnostics_.check_heap("after websocket accept");
             return ESP_OK;
         }
 
@@ -321,6 +717,7 @@ private:
         esp_err_t err = httpd_ws_recv_frame(req, &frame, 0);
         if (err != ESP_OK) {
             self->transport_.close(socket);
+            self->diagnostics_.check_heap("after websocket recv header failed");
             return err;
         }
 
@@ -330,22 +727,89 @@ private:
             err = httpd_ws_recv_frame(req, &frame, frame.len);
             if (err != ESP_OK) {
                 self->transport_.close(socket);
+                self->diagnostics_.check_heap("after websocket recv payload failed");
                 return err;
             }
         }
 
         if (frame.type == HTTPD_WS_TYPE_PING) {
             frame.type = HTTPD_WS_TYPE_PONG;
-            return httpd_ws_send_frame(req, &frame);
+            err = httpd_ws_send_frame(req, &frame);
+            self->diagnostics_.check_heap("after websocket pong");
+            return err;
         }
 
         if (frame.type == HTTPD_WS_TYPE_CLOSE) {
             self->transport_.close(socket);
             frame.len = 0;
             frame.payload = nullptr;
-            return httpd_ws_send_frame(req, &frame);
+            err = httpd_ws_send_frame(req, &frame);
+            self->diagnostics_.check_heap("after websocket close");
+            return err;
         }
+
+        if (frame.type == HTTPD_WS_TYPE_TEXT) {
+            const std::string_view text(reinterpret_cast<const char *>(payload.data()), payload.size());
+            if (const auto auto_enabled = parse_recording_config_set(text)) {
+                err = self->handle_recording_config_set(req, *auto_enabled);
+                self->diagnostics_.check_heap("after websocket recording_config_set");
+                return err;
+            }
+        }
+
+        self->diagnostics_.check_heap("after websocket request");
         return ESP_OK;
+    }
+
+    void load_recording_config() {
+        const bool fallback = recording_config_.auto_enabled;
+        const bool enabled = recording_store_.load_auto_enabled(fallback);
+        {
+            std::lock_guard<std::mutex> lock(recording_mutex_);
+            recording_config_.auto_enabled = enabled;
+        }
+        ESP_LOGI(kTag,
+                 "recording auto=%d rpm_threshold=%u start_ms=%u stop_ms=%u",
+                 enabled ? 1 : 0,
+                 static_cast<unsigned>(recording_config_.rpm_threshold),
+                 static_cast<unsigned>(recording_config_.start_debounce_ms),
+                 static_cast<unsigned>(recording_config_.stop_debounce_ms));
+    }
+
+    RecordingConfigSnapshot recording_config_snapshot() const {
+        std::lock_guard<std::mutex> lock(recording_mutex_);
+        return recording_config_;
+    }
+
+    std::string serialize_capabilities() const {
+        TelemetryJsonSerializer serializer(make_serializer_config(config_,
+                                                                  device_identity_,
+                                                                  recording_config_snapshot()));
+        return serializer.serialize_capabilities();
+    }
+
+    std::string serialize_recording_config() const {
+        TelemetryJsonSerializer serializer(make_serializer_config(config_,
+                                                                  device_identity_,
+                                                                  recording_config_snapshot()));
+        return serializer.serialize_recording_config();
+    }
+
+    esp_err_t handle_recording_config_set(httpd_req_t *req, bool auto_enabled) {
+        ESP_RETURN_ON_ERROR(recording_store_.save_auto_enabled(auto_enabled),
+                            kTag,
+                            "failed to persist recording config");
+        {
+            std::lock_guard<std::mutex> lock(recording_mutex_);
+            recording_config_.auto_enabled = auto_enabled;
+        }
+
+        const std::string response = serialize_recording_config();
+        httpd_ws_frame_t response_frame{};
+        response_frame.type = HTTPD_WS_TYPE_TEXT;
+        response_frame.payload = reinterpret_cast<std::uint8_t *>(const_cast<char *>(response.data()));
+        response_frame.len = response.size();
+        return httpd_ws_send_frame(req, &response_frame);
     }
 
     static void pump_task(void *arg) {
@@ -356,12 +820,25 @@ private:
         while (true) {
             vTaskDelayUntil(&last_wake, period_ticks);
             const auto now = static_cast<ecu::sensors::TimestampUs>(esp_timer_get_time());
+            self->diagnostics_.check_heap("before telemetry pump tick");
             (void)self->pump_.tick(now);
+            self->diagnostics_.check_heap("after telemetry pump tick");
         }
     }
 
     TelemetryServerConfig config_{};
+    RuntimeDeviceIdentity device_identity_{};
+    RecordingConfigSnapshot recording_config_{};
+    mutable std::mutex recording_mutex_{};
+    RecordingSettingsStore recording_store_{};
     WifiStation wifi_{};
+    StaticFileSystemMount static_filesystem_{};
+    PosixStaticFileCatalog static_catalog_{};
+    RuntimeDiagnostics diagnostics_{config_.diagnostics_heap_checks};
+    StaticFileHandler static_handler_{config_.static_base_path,
+                                      static_catalog_,
+                                      diagnostics_,
+                                      config_.static_close_connection};
     SensorTelemetryBatchSource source_;
     TelemetryJsonSerializer serializer_;
     EspWebSocketTransport transport_{};
@@ -388,6 +865,18 @@ TelemetryServerConfig with_kconfig_defaults(TelemetryServerConfig config) {
     }
     if (config.task_priority_offset == 0) {
         config.task_priority_offset = CONFIG_TELEMETRY_SERVER_TASK_PRIORITY;
+    }
+    if (config.digital_twin_hardware_revision == nullptr || config.digital_twin_hardware_revision[0] == '\0') {
+        config.digital_twin_hardware_revision = CONFIG_DIGITAL_TWIN_HARDWARE_REVISION;
+    }
+    if (config.digital_twin_auto_rpm_threshold == 0) {
+        config.digital_twin_auto_rpm_threshold = CONFIG_DIGITAL_TWIN_AUTO_RPM_THRESHOLD;
+    }
+    if (config.digital_twin_auto_start_ms == 0) {
+        config.digital_twin_auto_start_ms = CONFIG_DIGITAL_TWIN_AUTO_START_MS;
+    }
+    if (config.digital_twin_auto_stop_ms == 0) {
+        config.digital_twin_auto_stop_ms = CONFIG_DIGITAL_TWIN_AUTO_STOP_MS;
     }
     return config;
 }

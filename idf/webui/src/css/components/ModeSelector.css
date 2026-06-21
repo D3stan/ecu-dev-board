@@ -68,9 +68,9 @@
 
 /* Color variants for pump states */
 .pump-badge.on {
-  background: rgba(16, 185, 129, 0.2);
-  border-color: rgba(16, 185, 129, 0.4);
-  color: #059669;
+  background: var(--success-soft);
+  border-color: var(--success);
+  color: var(--success);
 }
 
 .pump-badge.on .pump-badge-icon {
@@ -78,9 +78,9 @@
 }
 
 .pump-badge.off {
-  background: rgba(100, 116, 139, 0.2);
-  border-color: rgba(100, 116, 139, 0.3);
-  color: #475569;
+  background: var(--neutral-soft);
+  border-color: var(--neutral-soft);
+  color: var(--text-muted);
 }
 
 .pump-badge.off .pump-badge-icon {
@@ -88,9 +88,9 @@
 }
 
 .pump-badge.warning {
-  background: rgba(245, 158, 11, 0.2);
-  border-color: rgba(245, 158, 11, 0.3);
-  color: #d97706;
+  background: var(--warning-soft);
+  border-color: var(--warning);
+  color: var(--warning);
 }
 
 .pump-badge.warning .pump-badge-icon {
@@ -98,9 +98,9 @@
 }
 
 .pump-badge.error {
-  background: rgba(239, 68, 68, 0.2);
-  border-color: rgba(239, 68, 68, 0.3);
-  color: #dc2626;
+  background: var(--danger-soft);
+  border-color: var(--danger);
+  color: var(--danger);
 }
 
 .pump-badge.error .pump-badge-icon {
@@ -108,9 +108,9 @@
 }
 
 .pump-badge.testing {
-  background: rgba(59, 130, 246, 0.2);
-  border-color: rgba(59, 130, 246, 0.3);
-  color: #2563eb;
+  background: var(--accent-info-soft);
+  border-color: var(--accent-info);
+  color: var(--accent-info);
 }
 
 .pump-badge.testing .pump-badge-icon {

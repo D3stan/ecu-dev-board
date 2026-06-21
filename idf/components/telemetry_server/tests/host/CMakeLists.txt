@@ -9,6 +9,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 enable_testing()
 
 add_library(telemetry_server_host
+    ../../src/static_file_resolver.cpp
     ../../src/telemetry_json_serializer.cpp
     ../../src/telemetry_pump.cpp
 )

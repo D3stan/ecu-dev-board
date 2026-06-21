@@ -1,4 +1,5 @@
 #include <cstdlib>
+#include <initializer_list>
 #include <iostream>
 #include <optional>
 #include <string>
@@ -7,6 +8,7 @@
 #include <vector>
 
 #include "telemetry/sensor_telemetry_collector.hpp"
+#include "telemetry_server/static_file_resolver.hpp"
 #include "telemetry_server/telemetry_json_serializer.hpp"
 #include "telemetry_server/telemetry_pump.hpp"
 #include "telemetry_server/telemetry_transport.hpp"
@@ -205,10 +207,35 @@ private:
     TelemetryTransportCounters counters_{};
 };
 
+class FakeStaticFileCatalog final : public IStaticFileCatalog {
+public:
+    FakeStaticFileCatalog(std::initializer_list<std::string_view> paths) : paths_(paths.begin(), paths.end()) {}
+
+    bool exists(std::string_view path) const override {
+        for (const auto &candidate : paths_) {
+            if (candidate == path) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+private:
+    std::vector<std::string> paths_;
+};
+
 void test_capabilities_frame_declares_contract() {
     TelemetryJsonSerializerConfig config{};
     config.state_hz = 20;
     config.events_per_batch = 3;
+    config.device.hwid = "esp32s3-010203040506";
+    config.device.hardware_revision = "ESP32-S3FH4R2";
+    config.device.chip_model = "ESP32-S3";
+    config.device.flash_size_bytes = 4194304;
+    config.recording.auto_enabled = true;
+    config.recording.rpm_threshold = 300;
+    config.recording.start_debounce_ms = 1000;
+    config.recording.stop_debounce_ms = 3000;
     TelemetryJsonSerializer serializer(config);
 
     const std::string json = serializer.serialize_capabilities();
@@ -219,6 +246,25 @@ void test_capabilities_frame_declares_contract() {
     EXPECT_CONTAINS(json, R"("paths":["state","event"])");
     EXPECT_CONTAINS(json, R"("state_hz":20)");
     EXPECT_CONTAINS(json, R"("events_per_batch":3)");
+    EXPECT_CONTAINS(json, R"("device":{"hwid":"esp32s3-010203040506","hardware_revision":"ESP32-S3FH4R2","chip_model":"ESP32-S3","flash_size_bytes":4194304})");
+    EXPECT_CONTAINS(json, R"("recording":{"auto_enabled":true,"rpm_threshold":300,"start_debounce_ms":1000,"stop_debounce_ms":3000})");
+}
+
+void test_recording_config_frame_reports_current_settings() {
+    TelemetryJsonSerializerConfig config{};
+    config.recording.auto_enabled = true;
+    config.recording.rpm_threshold = 450;
+    config.recording.start_debounce_ms = 1500;
+    config.recording.stop_debounce_ms = 2500;
+    TelemetryJsonSerializer serializer(config);
+
+    const std::string json = serializer.serialize_recording_config();
+
+    EXPECT_CONTAINS(json, R"("type":"recording_config")");
+    EXPECT_CONTAINS(json, R"("auto_enabled":true)");
+    EXPECT_CONTAINS(json, R"("rpm_threshold":450)");
+    EXPECT_CONTAINS(json, R"("start_debounce_ms":1500)");
+    EXPECT_CONTAINS(json, R"("stop_debounce_ms":2500)");
 }
 
 void test_telemetry_frame_serializes_state_events_and_counters() {
@@ -300,14 +346,92 @@ void test_pump_collects_and_sends_when_transport_is_ready() {
     EXPECT_CONTAINS(transport.last_payload, R"("t_us":5555)");
 }
 
+void test_static_resolver_maps_root_to_index() {
+    FakeStaticFileCatalog catalog{"/www/index.html"};
+    StaticFileResolver resolver("/www", catalog);
+
+    const auto result = resolver.resolve("/");
+
+    EXPECT_EQ(static_cast<int>(StaticFileResolveStatus::Ok), static_cast<int>(result.status));
+    EXPECT_EQ(std::string("/index.html"), result.logical_path);
+    EXPECT_EQ(std::string("/www/index.html"), result.filesystem_path);
+    EXPECT_EQ(std::string("text/html"), result.content_type);
+    EXPECT_FALSE(result.gzip_encoded);
+    EXPECT_TRUE(result.no_store);
+}
+
+void test_static_resolver_strips_query_and_serves_gzip_variant() {
+    FakeStaticFileCatalog catalog{"/www/app.js.gz", "/www/style.css.gz"};
+    StaticFileResolver resolver("/www", catalog);
+
+    const auto js = resolver.resolve("/app.js?v=1.0.0");
+    EXPECT_EQ(static_cast<int>(StaticFileResolveStatus::Ok), static_cast<int>(js.status));
+    EXPECT_EQ(std::string("/app.js"), js.logical_path);
+    EXPECT_EQ(std::string("/www/app.js.gz"), js.filesystem_path);
+    EXPECT_EQ(std::string("application/javascript"), js.content_type);
+    EXPECT_TRUE(js.gzip_encoded);
+    EXPECT_FALSE(js.no_store);
+
+    const auto css = resolver.resolve("/style.css#cache-bust");
+    EXPECT_EQ(static_cast<int>(StaticFileResolveStatus::Ok), static_cast<int>(css.status));
+    EXPECT_EQ(std::string("/style.css"), css.logical_path);
+    EXPECT_EQ(std::string("/www/style.css.gz"), css.filesystem_path);
+    EXPECT_EQ(std::string("text/css"), css.content_type);
+    EXPECT_TRUE(css.gzip_encoded);
+}
+
+void test_static_resolver_serves_exact_image() {
+    FakeStaticFileCatalog catalog{"/www/assets/icons/icon-wifi.png"};
+    StaticFileResolver resolver("/www", catalog);
+
+    const auto result = resolver.resolve("/assets/icons/icon-wifi.png");
+
+    EXPECT_EQ(static_cast<int>(StaticFileResolveStatus::Ok), static_cast<int>(result.status));
+    EXPECT_EQ(std::string("/assets/icons/icon-wifi.png"), result.logical_path);
+    EXPECT_EQ(std::string("/www/assets/icons/icon-wifi.png"), result.filesystem_path);
+    EXPECT_EQ(std::string("image/png"), result.content_type);
+    EXPECT_FALSE(result.gzip_encoded);
+}
+
+void test_static_resolver_uses_spa_fallback_only_for_extensionless_routes() {
+    FakeStaticFileCatalog catalog{"/www/index.html"};
+    StaticFileResolver resolver("/www", catalog);
+
+    const auto route = resolver.resolve("/dashboard");
+    EXPECT_EQ(static_cast<int>(StaticFileResolveStatus::Ok), static_cast<int>(route.status));
+    EXPECT_EQ(std::string("/index.html"), route.logical_path);
+    EXPECT_EQ(std::string("/www/index.html"), route.filesystem_path);
+    EXPECT_TRUE(route.no_store);
+
+    const auto asset = resolver.resolve("/missing.png");
+    EXPECT_EQ(static_cast<int>(StaticFileResolveStatus::NotFound), static_cast<int>(asset.status));
+}
+
+void test_static_resolver_rejects_path_traversal() {
+    FakeStaticFileCatalog catalog{"/www/index.html"};
+    StaticFileResolver resolver("/www", catalog);
+
+    const auto traversal = resolver.resolve("/../sdkconfig");
+    EXPECT_EQ(static_cast<int>(StaticFileResolveStatus::BadRequest), static_cast<int>(traversal.status));
+
+    const auto backslash = resolver.resolve("/assets\\icon.png");
+    EXPECT_EQ(static_cast<int>(StaticFileResolveStatus::BadRequest), static_cast<int>(backslash.status));
+}
+
 } // namespace
 
 int main() {
     test_capabilities_frame_declares_contract();
+    test_recording_config_frame_reports_current_settings();
     test_telemetry_frame_serializes_state_events_and_counters();
     test_telemetry_frame_serializes_null_knock();
     test_pump_does_not_collect_when_disconnected_or_backpressured();
     test_pump_collects_and_sends_when_transport_is_ready();
+    test_static_resolver_maps_root_to_index();
+    test_static_resolver_strips_query_and_serves_gzip_variant();
+    test_static_resolver_serves_exact_image();
+    test_static_resolver_uses_spa_fallback_only_for_extensionless_routes();
+    test_static_resolver_rejects_path_traversal();
 
     if (failures != 0) {
         std::cerr << failures << " telemetry server test failure(s)\n";

@@ -46,7 +46,33 @@ function createInitialState() {
     connection: {
       schema_version: 0,
       state_hz: 0,
-      events_per_batch: 0
+      events_per_batch: 0,
+      device: {
+        hwid: "",
+        hardware_revision: "",
+        chip_model: "",
+        flash_size_bytes: 0
+      }
+    },
+    recording: {
+      config: {
+        auto_enabled: false,
+        rpm_threshold: 300,
+        start_debounce_ms: 1000,
+        stop_debounce_ms: 3000
+      }
+    },
+    digitalTwin: {
+      enabled: false,
+      server_url: "",
+      status: "disabled",
+      error: null,
+      active_run_id: null,
+      ecu_id: null,
+      recording_source: null,
+      queued_frames: 0,
+      last_ack_t_us: null,
+      last_ack_batch_seq: null
     },
     overrides: {
       tps: { active: false, value: 0.0 },

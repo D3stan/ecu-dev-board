@@ -15,7 +15,7 @@
   background: var(--card);
   border-radius: 1rem;
   padding: 1rem 1.125rem;
-  border-left: 4px solid var(--accent, #3B82F6);
+  border-left: 4px solid var(--accent, #00c9a7);
   box-shadow: var(--shadow);
 }
 
@@ -118,7 +118,7 @@
 }
 
 input:checked + .switch-slider {
-  background-color: #10b981;
+  background-color: var(--success);
 }
 
 .warning-switch input:checked + .switch-slider {

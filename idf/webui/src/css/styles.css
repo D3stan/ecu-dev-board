@@ -6,36 +6,96 @@
 
 /* ============= THEME VARS ============= */
 :root {
-  /* Brand Colors - Industrial Blue */
-  --brand: #0D2B45;
-  --brand-light: #1e3e5c;
-  --brand-dark: #07192b;
-  
+  /* ===== Typography ===== */
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+
+  /* Type scale (sizes) */
+  --fs-display: 2.6rem;   /* RPM gauge value */
+  --fs-value-xl: 2.1rem;  /* detail live value */
+  --fs-value: 1.65rem;    /* metric value */
+  --fs-page-title: 1.5rem; /* detail/page title */
+  --fs-heading-lg: 1.25rem;
+  --fs-value-sm: 1rem;
+  --fs-title: 0.875rem;   /* section/page headings, large units */
+  --fs-body: 0.8rem;      /* supporting text, mid units */
+  --fs-label: 0.72rem;    /* card labels, tabs, buttons */
+  --fs-meta: 0.68rem;     /* footers / pills */
+  --fs-caption: 0.65rem;  /* metadata field labels */
+  --fs-badge: 0.6rem;     /* badges */
+
+  /* Font weights */
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+  --fw-extrabold: 800;
+  --fw-black: 900;
+
+  /* Line heights */
+  --lh-tight: 1;
+  --lh-snug: 1.2;
+  --lh-normal: 1.4;
+  --lh-relaxed: 1.6;
+
+  /* Letter spacing */
+  --ls-tight: -0.01em;
+  --ls-normal: 0;
+  --ls-wide: 0.02em;
+
+  /* ===== Color ===== */
+  /* Brand - teal family (solid fills keep white-text contrast) */
+  --brand: #008f78;
+  --brand-light: #00a98d;
+  --brand-dark: #006b59;
+
+  /* Accent - ECU teal */
+  --accent: #00c9a7;
+  --accent-strong: #00a98d;
+  --accent-soft: rgba(0, 201, 167, 0.14);
+  --accent-border: rgba(0, 201, 167, 0.35);
+  --accent-border-strong: rgba(0, 201, 167, 0.6);
+  --accent-glow: rgba(0, 201, 167, 0.28);
+
+  /* Accent - ECU attention (orange) */
+  --accent-warning: #ff6b35;
+  --accent-warning-soft: rgba(255, 107, 53, 0.14);
+  --accent-warning-border: rgba(255, 107, 53, 0.45);
+
+  /* Accent - ECU info (light blue) */
+  --accent-info: #4fc3f7;
+  --accent-info-soft: rgba(79, 195, 247, 0.14);
+  --accent-info-border: rgba(79, 195, 247, 0.45);
+
   /* Backgrounds - soft light-blue */
   --bg: #F4F8FA;
   --card: #FFFFFF;
   --surface: #EAF0F4;
-  
+
   /* Text Colors */
   --text: #1A1C1E;
   --text-muted: #5C6E7E;
-  
+
   /* Borders & Icons */
   --border: #D1DFE8;
   --ring: #A9BFD0;
   --icon-bg: #EAF0F4;
-  
-  /* Status Colors */
+
+  /* Status Colors (semantic states) */
   --success: #10b981;
+  --success-soft: rgba(16, 185, 129, 0.15);
   --warning: #f59e0b;
+  --warning-soft: rgba(245, 158, 11, 0.15);
   --danger: #ef4444;
-  
+  --danger-soft: rgba(239, 68, 68, 0.16);
+  --danger-border: rgba(239, 68, 68, 0.6);
+  --neutral-soft: rgba(100, 116, 139, 0.2);
+
   /* Dragger Colors - Light Mode */
   --drag-start: #3b82f6;
   --drag-start-light: #60a5fa;
   --drag-stop: #1e3a8a;
   --drag-stop-light: #3b5998;
-  
+
   /* Utility */
   --overlay: rgba(13, 43, 69, 0.5);
   --gap: 1rem;
@@ -45,31 +105,40 @@
 }
 
 [data-theme="dark"] {
-  /* Brand Colors */
-  --brand: #58A6FF;
-  --brand-light: #79c0ff;
-  --brand-dark: #1f6feb;
-  
+  /* Brand - teal (brighter for dark) */
+  --brand: #00c9a7;
+  --brand-light: #34d8bf;
+  --brand-dark: #00a98d;
+
+  /* Accent - teal lifts slightly on dark; warning/info + soft variants inherit from :root */
+  --accent: #34d8bf;
+  --accent-strong: #00c9a7;
+
+  /* Status colors lift to lighter shades for contrast on dark (soft variants inherit) */
+  --success: #34d399;
+  --warning: #fbbf24;
+  --danger: #f87171;
+
   /* Backgrounds */
   --bg: #0D1117;
   --card: #161B22;
   --surface: #21262D;
-  
+
   /* Text Colors */
   --text: #C9D1D9;
   --text-muted: #8B949E;
-  
+
   /* Borders & Icons */
   --border: #30363D;
   --ring: #484F58;
   --icon-bg: #21262D;
-  
+
   /* Dragger Colors - Dark Mode */
   --drag-start: #60a5fa;
   --drag-start-light: #93c5fd;
   --drag-stop: #1e40af;
   --drag-stop-light: #3b82f6;
-  
+
   /* Utility */
   --overlay: rgba(0, 0, 0, 0.75);
 }
@@ -102,7 +171,7 @@ html, body {
   height: 100dvh; /* Dynamic viewport height - adapts to browser UI */
   background: var(--bg);
   color: var(--text);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+  font-family: var(--font-sans);
   overflow: hidden;
 }
 
@@ -223,14 +292,14 @@ html, body {
   justify-content: center;
   height: 100%;
   color: #113f67;
-  line-height: 1.2;
-  font-family: sans-serif;
+  line-height: var(--lh-snug);
+  font-family: var(--font-sans);
   gap: 0.1rem;
   width: fit-content;
 }
 
 .logo-idrobase-title {
-  font-family: "Impact", "Arial Narrow", sans-serif;
+  font-family: var(--font-sans);
   font-size: 1.5rem;
   font-weight: normal;
   line-height: 1;
@@ -240,7 +309,7 @@ html, body {
 }
 
 .logo-idrobase-registered {
-  font-family: "Arial", sans-serif;
+  font-family: var(--font-sans);
   font-size: 0.75rem;
   vertical-align: super;
   position: absolute;
@@ -249,7 +318,7 @@ html, body {
 }
 
 .logo-idrobase-payoff {
-  font-family: sans-serif;
+  font-family: var(--font-sans);
   font-size: 0.75rem;
   font-weight: bold;
   text-transform: uppercase;
@@ -533,7 +602,7 @@ html, body {
 
 /* Simple card state colors - Applied to label text only */
 .pump-card.simple-card.on .pump-card-label {
-  color: #10b981;
+  color: var(--success);
 }
 
 .pump-card.simple-card.off .pump-card-label {
@@ -541,15 +610,15 @@ html, body {
 }
 
 .pump-card.simple-card.warning .pump-card-label {
-  color: #f59e0b;
+  color: var(--warning);
 }
 
 .pump-card.simple-card.error .pump-card-label {
-  color: #ef4444;
+  color: var(--danger);
 }
 
 .pump-card.simple-card.testing .pump-card-label {
-  color: #3b82f6;
+  color: var(--accent-info);
 }
 
 /* Relay mode label - shown only on small screens (≤340px) */
@@ -994,20 +1063,20 @@ html, body {
   width: 2rem;
   height: 2rem;
   border: none;
-  background: rgba(239, 68, 68, 0.1);
+  background: var(--danger-soft);
   border-radius: 0.5rem;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #ef4444;
+  color: var(--danger);
   transition: all 150ms;
   flex-shrink: 0;
 }
 
 .timeslot-delete-btn:hover {
-  background: rgba(239, 68, 68, 0.2);
-  color: #dc2626;
+  background: var(--danger-border);
+  color: var(--danger);
   transform: scale(1.05);
 }
 

@@ -20,6 +20,8 @@ import { log } from './utils/logger.js';
 // CONFIGURAZIONE GLOBALE
 // ============================================
 
+const DIGITAL_TWIN_SERVER_URL = "https://ecu.0xpuddu.com";
+
 /**
  * Legge la configurazione dall'oggetto globale window.APP_CONFIG
  * (definito in index.html — FASE 1: MAC rimosso, URL auto-detect)
@@ -42,6 +44,7 @@ function getConfig() {
   return {
     socketUrl: htmlConfig.socketUrl || (window.location.host + "/ws"),
     appVersion: window.APP_VERSION || "dev",
+    digitalTwinServerUrl: DIGITAL_TWIN_SERVER_URL,
     
     enableDebugLogs: Boolean(htmlConfig.enableLogs ?? htmlConfig.enableDebugLogs ?? false),
 

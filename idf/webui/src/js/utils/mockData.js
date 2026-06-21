@@ -13,7 +13,19 @@ export function loadMockData(Store, Paths) {
     schema_version: 1,
     paths: ["state", "event"],
     state_hz: 10,
-    events_per_batch: 8
+    events_per_batch: 8,
+    device: {
+      hwid: "esp32s3-mock",
+      hardware_revision: "ESP32-S3FH4R2",
+      chip_model: "ESP32-S3",
+      flash_size_bytes: 4194304
+    },
+    recording: {
+      auto_enabled: false,
+      rpm_threshold: 300,
+      start_debounce_ms: 1000,
+      stop_debounce_ms: 3000
+    }
   }));
 
   Store.set(Paths.OVERRIDES.TPS.ACTIVE, false);

@@ -40,7 +40,27 @@ export const Paths = {
   CONNECTION: {
     SCHEMA_VERSION: "connection.schema_version",
     STATE_HZ: "connection.state_hz",
-    EVENTS_PER_BATCH: "connection.events_per_batch"
+    EVENTS_PER_BATCH: "connection.events_per_batch",
+    DEVICE: "connection.device"
+  },
+  RECORDING: {
+    CONFIG: "recording.config",
+    AUTO_ENABLED: "recording.config.auto_enabled",
+    RPM_THRESHOLD: "recording.config.rpm_threshold",
+    START_DEBOUNCE_MS: "recording.config.start_debounce_ms",
+    STOP_DEBOUNCE_MS: "recording.config.stop_debounce_ms"
+  },
+  DIGITAL_TWIN: {
+    ENABLED: "digitalTwin.enabled",
+    SERVER_URL: "digitalTwin.server_url",
+    STATUS: "digitalTwin.status",
+    ERROR: "digitalTwin.error",
+    ACTIVE_RUN_ID: "digitalTwin.active_run_id",
+    ECU_ID: "digitalTwin.ecu_id",
+    RECORDING_SOURCE: "digitalTwin.recording_source",
+    QUEUED_FRAMES: "digitalTwin.queued_frames",
+    LAST_ACK_T_US: "digitalTwin.last_ack_t_us",
+    LAST_ACK_BATCH_SEQ: "digitalTwin.last_ack_batch_seq"
   },
   OVERRIDES: {
     TPS: {
