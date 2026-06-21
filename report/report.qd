@@ -281,24 +281,11 @@ La stessa logica viene poi esercitata sull'ESP32-S3 reale tramite una sorgente d
 
 ## Test server
 
-Il repository include un container **test runner** che:
+Sul lato server i test sono di tipo end-to-end: un container dedicato avvia l'intero stack e lo interroga come farebbe un client reale, tramite chiamate HTTP e una connessione WebSocket. Il percorso principale ripercorre l'intero ciclo di una sessione: apertura di una run, invio di un batch telemetrico, attesa dell'acknowledgement che il server restituisce solo dopo aver persistito i dati, e verifica che lo stato corrente sia effettivamente presente nella cache Redis e che il record salvato su TimescaleDB sia coerente con quanto inviato.
 
-1. Registra una ECU mock via REST.
-2. Apre sessione di acquisizione e invia batch telemetrici via WebSocket.
-3. Verifica lo stato live su Redis.
-4. Verifica la persistenza su TimescaleDB.
-5. Chiude la sessione e controlla i risultati.
-
+I test coprono anche duplicatione e la robustezza del servizio: la stessa centralina, riconosciuta dal proprio identificativo hardware, non genera mai un Digital Twin duplicato, mentre richieste malformate, sessioni inesistenti o batch provenienti da una centralina diversa vengono respinti con un messaggio di errore esplicito.
 
 
 # Conclusioni
 
-Il progetto realizza un'infrastruttura completa di telemetria per ECU monocilindrica:
-
-- **Acquisizione hardware** deterministica su ESP32-S3 con ESP-IDF/FreeRTOS.
-- **Contratto telemetrico** standardizzato (V1 WebSocket JSON a 10 Hz) con metadati di salute per ogni sensore.
-- **Server scalabile** (FastAPI + TimescaleDB + Redis + Docker) con persistenza, replay e digital twin.
-- **Client Web UI** reattiva, ospitata sull'ECU, con dashboard live e gateway verso il server.
-- **Emulatore HIL** su ESP32-S2 per test su banco senza motore fisico.
-
-L'infrastruttura costituisce la base per la futura implementazione della logica di controllo motore (anticipo, CDI, Power Jet, valvola di scarico), che potrà integrarsi nel firmware esistente senza modificare il layer di telemetria e comunicazione.
+Il filo conduttore dell'intero sistema è la separazione tra il percorso critico di acquisizione e tutto ciò che lo segue: la rete, il client e il server non possono mai rallentare la centralina, e ogni livello comunica con il successivo attraverso contratti stabili e dati corredati di significato e qualità. È questa impostazione, insieme a una logica di dominio disaccoppiata dall'hardware e quindi verificabile in modo sistematico, a rendere il prototipo una base solida per il passo successivo: l'introduzione della logica di controllo motore che potrà innestarsi sui task esistenti senza modificare il layer di acquisizione e telemetria.
