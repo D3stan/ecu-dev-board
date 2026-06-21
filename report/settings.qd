@@ -7,3 +7,5 @@
   - Alessandro Porcheddu
 
 .pageformat size:{a4}
+.pagemargin {bottomcenter}
+	.currentpage
