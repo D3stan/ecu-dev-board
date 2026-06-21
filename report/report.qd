@@ -252,46 +252,43 @@ L'interfaccia che l'untente finale utilizza è una WebApp contenuta direttamente
 
 ## UI
 
-La UI offre due sezioni complementari: la stato del motore in tempo reale (rpm, posizione farfalla, temperature, richiesta di mappa, ...) e il flusso ordinato degli eventi discreti (cambi marcia, cambi di mappa, guasti).
+La schermata principale è una dashboard che riassume a colpo d'occhio lo stato del motore: al centro un indicatore mostra il regime di rotazione e se il segnale è sincronizzato, mentre nella parte inferiore una griglia di schede riporta le altre grandezze: posizione della farfalla, temperatura dei gas di scarico e dell'acqua, accelerazione del regime, stato del quick-shifter, richiesta di mappa e, quando disponibile, l'indice di detonazione. Ogni valore è affiancato da un indicatore di qualità e dalla sua"età", così che un dato fermo o non più valido si riconosca subito da uno aggiornato, e la scheda viene evidenziata in caso di guasto. In alto una barra segnala lo stato della connessione con la centralina, mentre un riquadro elenca gli ultimi eventi ricevuti, ordinati e distinti per tipo.
 
-## Fedeltà al contratto
-
-Un principio guida la presentazione: il client riflette il contratto telemetrico senza reinterpretarlo. La richiesta fisica del selettore di mappa resta tale e non viene confusa con la mappa effettivamente attiva, così come i livelli di richiesta dei sensori non vengono presentati come comandi a un attuatore. Questa disciplina semantica, ereditata dal layer di telemetria, impedisce che l'interfaccia suggerisca uno stato del sistema diverso da quello reale.
+La dashboard non è solo di lettura. Selezionando una grandezza si apre la sua vista di dettaglio, dove al valore live si affianca un grafico storico a scorrimento con finestra temporale selezionabile, possibilità di mettere in pausa la traccia e di sovrapporre i marcatori degli eventi insieme ai metadati di qualità del segnale. Dalla dashboard è inoltre possibile avviare e fermare una registrazione, cioè una sessione di acquisizione che il server associerà al Digital Twin della centralina; il comando è disponibile solo quando la registrazione è abilitata e la centralina è correttamente identificata.
 
 
-# Emulatore HIL (Hardware-In-the-Loop)
+# Emulatore
 
-Per validare il firmware senza un motore reale, un secondo microcontrollore (ESP32-S2, su scheda Lolin S2 Mini) fa da banco di prova, generando fisicamente i segnali che la centralina si aspetta di leggere.
+Per validare il firmware senza un motore reale, un secondo microcontrollore fa da banco di prova, generando fisicamente i segnali che la centralina si aspetta di leggere.
 
 ## Segnali reali
 
-La scelta è deliberatamente *hardware-in-the-loop*: l'emulatore non simula i dati all'interno della ECU, ma produce veri segnali elettrici — un'onda quadra a frequenza variabile per il pick-up, tensioni analogiche per posizione farfalla e temperatura dei gas di scarico, impulsi per il quick-shifter — così che l'intera catena di acquisizione, dagli ingressi analogici alla cattura delle onde quadre fino agli interrupt, venga esercitata esattamente come avverrebbe sul motore. L'emulatore può inoltre richiudere l'anello catturando le uscite della ECU, come il comando di accensione, ponendo le basi per test a ciclo chiuso sulla futura logica di controllo.
+La scelta è deliberatamente *hardware-in-the-loop*: l'emulatore non simula i dati all'interno della ECU, ma produce veri segnali elettrici, tra cui un'onda quadra a frequenza variabile per il pick-up, tensioni analogiche per posizione farfalla e temperatura dei gas di scarico, impulsi per il quick-shifter, così che l'intera catena di acquisizione, dagli ingressi analogici alla cattura delle onde quadre fino agli interrupt, venga simulata esattamente come avverrebbe sul motore. L'emulatore può inoltre richiudere l'anello catturando le uscite della ECU, come il comando di accensione, ponendo le basi per test a ciclo chiuso sulla futura logica di controllo.
 
 ## Determinismo e controllo
 
-A differenza della centralina, costruita su FreeRTOS, il simulatore adotta un *superloop* a thread singolo affiancato da interrupt hardware: rinunciando allo scheduling di un sistema operativo evita ogni jitter e raggiunge il timing sub-microsecondo necessario a generare segnali fedeli. Una Web UI dedicata ne completa il ruolo di strumento di test, permettendo di forzare manualmente i parametri — regime, farfalla, temperature — e di iniettare guasti, come un sovrariscaldamento dei gas di scarico, per verificare la reazione della ECU e i suoi stati di allarme.
+A differenza della centralina, costruita su FreeRTOS, il simulatore adotta un *superloop* con da interrupt hardware. Una WebApp dedicata ne completa il ruolo di strumento di test, permettendo di forzare manualmente i parametri e di simulare guasti, come un sovrariscaldamento dei gas di scarico, per verificare la reazione della ECU e i suoi stati di allarme.
 
 
 # Testing e Risultati
 
-## Test automatizzati (integrazione server)
+## Test ECU
 
-Il repository include un container **test runner** (`docker-compose.test.yml`) che:
+Il firmware è organizzato in modo che la logica di acquisizione e telemetria sia indipendente dai driver hardware dell'ESP-IDF: questa separazione permette di verificarla su un normale computer, senza la centralina. Una suite di **unit test**, compilata ed eseguita con CMake/CTest, alimenta i servizi reali con sorgenti fittizie che iniettano campioni deterministici e ne controlla il comportamento. Allo stesso modo sono coperti le code di eventi a dimensione limitata con i relativi contatori di overflow, la composizione dello snapshot di telemetria e la serializzazione dei frame con cui la centralina dichiara il proprio contratto al client.
+
+La stessa logica viene poi esercitata sull'ESP32-S3 reale tramite una sorgente dati software: ogni ingresso può essere commutato da simulato a reale in fase di compilazione consentendo test dei sensori fisici mentre gli altri restano simulati.
+
+
+## Test server
+
+Il repository include un container **test runner** che:
 
 1. Registra una ECU mock via REST.
 2. Apre sessione di acquisizione e invia batch telemetrici via WebSocket.
-3. Verifica lo stato live su Redis (`GET /api/ecus/{id}/state`).
-4. Verifica la persistenza su TimescaleDB (`GET /api/runs/{id}/telemetry`).
-5. Chiude la sessione e asserisce i risultati — exit code 0 = successo.
+3. Verifica lo stato live su Redis.
+4. Verifica la persistenza su TimescaleDB.
+5. Chiude la sessione e controlla i risultati.
 
-```
-docker-compose -f docker-compose.test.yml up --build --exit-code-from test-runner
-```
-
-## Validazione firmware
-
-- **JTAG** per debug embedded.
-- **HITL** su banco con simulatore HIL: il firmware viene flashato sull'ECU reale, che riceve segnali fisici dal nodo simulatore.
 
 
 # Conclusioni
