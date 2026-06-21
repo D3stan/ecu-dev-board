@@ -60,7 +60,7 @@ Il sistema è composto da quattro blocchi principali:
             subgraph EMULATOR["Emulatore ESP32-S2"]
                 direction LR
                 SIM["Simulatore motore"]
-                WEBUI_SIM["WebApp<br/>"]
+                WEBUI_SIM["WebApp"]
                 WEBUI_SIM -- "Override parametri" --> SIM
             end
 
@@ -105,10 +105,10 @@ Coerentemente con la natura del prototipo non è ancora presente una macchina a 
 
 ## Sensori
 
-- **Pick-Up:** onda quadra a Frequenza variabile, catturata come fronte di discesa via MCPWM. Genera interrupt per il calcolo degli RPM, periodo e accelerazione angolare.
+- **Pick-Up:** onda quadra a frequenza variabile, catturata come fronte di discesa via MCPWM. Genera interrupt per il calcolo degli RPM, periodo e accelerazione angolare.
 - **TPS:** segnale analogico convertito in permille (0-1000).
-- **Quick-Shifter:** Ingresso digitale che segnala l'intenzione del cambio marcia.
-- **Map Switch:** Ingresso digitale che segnala la richiesta della seconda mappatura.
+- **Quick-Shifter:** ingresso digitale che segnala l'intenzione del cambio marcia.
+- **Map Switch:** ingresso digitale che segnala la richiesta della seconda mappatura.
 
 ## Sensori predisposti
 I seguenti sensori non sono stati fisicamente testati in quanto verranno implementati su un hardware futuro, ma sono comunque stati predisposti per essere acquisiti dal sistema. La loro gestione avviene con un chip dedicato, ognuno dei quali comunica con la centralina via SPI.
@@ -152,7 +152,7 @@ Lo schema seguente riassume il percorso complessivo dei dati, dai domini della c
                 direction LR
                 STATE["Stato<br/>ultimo valore, sostituibile"]
                 EVENTS["Eventi ordinati"]
-                FUTURE["Diagnostica e Sensori    "]
+                FUTURE["Diagnostica e Sensori"]
                 STATE --- EVENTS --- FUTURE
             end
 
@@ -248,11 +248,11 @@ Al di sopra della semplice archiviazione, il server mantiene per ogni centralina
 
 # Client WebApp
 
-L'interfaccia che l'untente finale utilizza è una WebApp contenuta direttamente sulla ECU: risiede nel filesystem in flash ed è servita dal server web integrato. Per visuallizzare lo stato della centralina basta un browser ed essere connessi alla stessa rete. Inoltre il client viene utilizzato come gateway che inoltra la telemetria al server remoto per l'archiviazione.
+L'interfaccia che l'utente finale utilizza è una WebApp contenuta direttamente sulla ECU: risiede nel filesystem in flash ed è servita dal server web integrato. Per visualizzare lo stato della centralina basta un browser ed essere connessi alla stessa rete. Inoltre il client viene utilizzato come gateway che inoltra la telemetria al server remoto per l'archiviazione.
 
 ## UI
 
-La schermata principale è una dashboard che riassume a colpo d'occhio lo stato del motore: al centro un indicatore mostra il regime di rotazione e se il segnale è sincronizzato, mentre nella parte inferiore una griglia di schede riporta le altre grandezze: posizione della farfalla, temperatura dei gas di scarico e dell'acqua, accelerazione del regime, stato del quick-shifter, richiesta di mappa e, quando disponibile, l'indice di detonazione. Ogni valore è affiancato da un indicatore di qualità e dalla sua"età", così che un dato fermo o non più valido si riconosca subito da uno aggiornato, e la scheda viene evidenziata in caso di guasto. In alto una barra segnala lo stato della connessione con la centralina, mentre un riquadro elenca gli ultimi eventi ricevuti, ordinati e distinti per tipo.
+La schermata principale è una dashboard che riassume a colpo d'occhio lo stato del motore: al centro un indicatore mostra il regime di rotazione e se il segnale è sincronizzato, mentre nella parte inferiore una griglia di schede riporta le altre grandezze: posizione della farfalla, temperatura dei gas di scarico e dell'acqua, accelerazione del regime, stato del quick-shifter, richiesta di mappa e, quando disponibile, l'indice di detonazione. Ogni valore è affiancato da un indicatore di qualità e dalla sua "età", così che un dato fermo o non più valido si riconosca subito da uno aggiornato, e la scheda viene evidenziata in caso di guasto. In alto una barra segnala lo stato della connessione con la centralina, mentre un riquadro elenca gli ultimi eventi ricevuti, ordinati e distinti per tipo.
 
 La dashboard non è solo di lettura. Selezionando una grandezza si apre la sua vista di dettaglio, dove al valore live si affianca un grafico storico a scorrimento con finestra temporale selezionabile, possibilità di mettere in pausa la traccia e di sovrapporre i marcatori degli eventi insieme ai metadati di qualità del segnale. Dalla dashboard è inoltre possibile avviare e fermare una registrazione, cioè una sessione di acquisizione che il server associerà al Digital Twin della centralina; il comando è disponibile solo quando la registrazione è abilitata e la centralina è correttamente identificata.
 
@@ -267,7 +267,7 @@ La scelta è deliberatamente *hardware-in-the-loop*: l'emulatore non simula i da
 
 ## Determinismo e controllo
 
-A differenza della centralina, costruita su FreeRTOS, il simulatore adotta un *superloop* con interrupt hardware. Una WebApp dedicata ne completa il ruolo di strumento di test, permettendo di forzare manualmente i parametri e di simulare guasti, come un surriscaldamento dei gas di scarico, per verificare la reazione della ECU e i suoi stati di allarme.
+A differenza della centralina, costruita su FreeRTOS, il simulatore adotta un *superloop* gestito da interrupt hardware. Una WebApp dedicata ne completa il ruolo di strumento di test, permettendo di forzare manualmente i parametri e di simulare guasti, come un sovrariscaldamento dei gas di scarico, per verificare la reazione della ECU e i suoi stati di allarme.
 
 
 # Testing e Risultati
@@ -283,7 +283,7 @@ La stessa logica viene poi esercitata sull'ESP32-S3 reale tramite una sorgente d
 
 Sul lato server i test sono di tipo end-to-end: un container dedicato avvia l'intero stack e lo interroga come farebbe un client reale, tramite chiamate HTTP e una connessione WebSocket. Il percorso principale ripercorre l'intero ciclo di una sessione: apertura di una run, invio di un batch telemetrico, attesa dell'acknowledgement che il server restituisce solo dopo aver persistito i dati, e verifica che lo stato corrente sia effettivamente presente nella cache Redis e che il record salvato su TimescaleDB sia coerente con quanto inviato.
 
-I test coprono anche duplicatione e la robustezza del servizio: la stessa centralina, riconosciuta dal proprio identificativo hardware, non genera mai un Digital Twin duplicato, mentre richieste malformate, sessioni inesistenti o batch provenienti da una centralina diversa vengono respinti con un messaggio di errore esplicito.
+I test coprono anche la duplicazione e la robustezza del servizio: la stessa centralina, riconosciuta dal proprio identificativo hardware, non genera mai un Digital Twin duplicato, mentre richieste malformate, sessioni inesistenti o batch provenienti da una centralina diversa vengono respinti con un messaggio di errore esplicito.
 
 
 # Conclusioni
