@@ -270,7 +270,7 @@ La scelta è deliberatamente *hardware-in-the-loop*: l'emulatore non simula i da
 A differenza della centralina, costruita su FreeRTOS, il simulatore adotta un *superloop* gestito da interrupt hardware. Una WebApp dedicata ne completa il ruolo di strumento di test, permettendo di forzare manualmente i parametri e di simulare guasti, come un sovrariscaldamento dei gas di scarico, per verificare la reazione della ECU e i suoi stati di allarme.
 
 
-# Testing e Risultati
+# Test e Risultati
 
 ## Test ECU
 
