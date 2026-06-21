@@ -194,60 +194,69 @@ Il trasferimento avviene tramite WebSocket, con messaggi codificati in JSON. Per
 Poiché le risorse sono limitate, in caso di congestione la telemetria applica una scala di priorità ben definita: preserva gli eventi di guasto e i dati registrati, riduce la frequenza degli aggiornamenti di stato, scarta le informazioni ridondanti e disattiva per primi i contributi diagnostici opzionali. Il principio di fondo è che la completezza della telemetria non deve ritardare il controllo del motore.
 In assenza di un client connesso il sistema non produce telemetria e le code degli eventi non vengono svuotate. Alla riconnessione la ricezione riprende in modo pulito, senza duplicare i dati già consegnati.
 
-# Implementazione Server
+# Architettura del Server
 
-## Stack tecnologico
+Il server è il punto in cui la telemetria prodotta dalle centraline viene raccolta, conservata e resa nuovamente consultabile. Il server deve accogliere i flussi di più centraline contemporaneamente, conservarli in modo affidabile e renderli disponibili sia in tempo reale sia a posteriori. Tutta la sua architettura è asincrona e tiene nettamente separato il percorso con cui i dati entrano da quello con cui vengono riletti.
 
-| Componente | Tecnologia |
-|---|---|
-| Backend | Python, FastAPI (async) |
-| Database | PostgreSQL + TimescaleDB |
-| ORM / Driver | SQLAlchemy async + asyncpg |
-| Migrazioni | Alembic |
-| Cache | Redis (`redis.asyncio`) |
-| Deploy | Docker Compose su Dokploy (Traefik ingress) |
+Lo schema seguente segue il dato nel suo percorso end-to-end lato server, dall'arrivo dal gateway fino ai diversi consumatori.
 
-## Flusso di ingestione
+.container classname:{architecture-diagram}
+    .mermaid caption:{Percorso del dato lato server}
+        flowchart TB
+            GW["Client<br/>(batch telemetrici)"]
 
-1. Il client apre WebSocket su `/ws/v1/telemetry` e invia batch JSON.
-2. Il backend valida e inserisce in una `asyncio.Queue` bounded.
-3. Worker dedicati eseguono bulk insert su TimescaleDB e aggiornano lo stato live su Redis.
-4. L'acknowledgement viene inviato solo dopo commit DB (no silent drop).
-5. Backpressure: il server rallenta le letture se la coda è piena.
+            subgraph INGEST["Ingestione"]
+                direction LR
+                WS["Endpoint WebSocket"]
+                QUEUE["Coda bounded"]
+                WORK["Worker di scrittura"]
+                WS --> QUEUE --> WORK
+            end
 
-## API principali
+            subgraph STORE["Persistenza e stato"]
+                direction LR
+                TS["TimescaleDB<br/>memoria storica"]
+                REDIS["Redis<br/>caching"]
+                TS --- REDIS
+            end
 
-- `POST /api/ecus` — registra ECU
-- `POST /api/runs/start` / `POST /api/runs/{id}/end` — gestione sessioni di acquisizione
-- `GET /api/ecus/{id}/state` — ultimo stato live (Redis)
-- `GET /api/runs/{id}/telemetry` — dati storici persistiti
+            subgraph CONSUMERS["Consultazione"]
+                direction LR
+                DASH["Dashboard remota"]
+                TWIN["Digital Twin"]
+                REPLAY["Replay e analisi"]
+                DASH --- TWIN --- REPLAY
+            end
+
+            GW -- "WebSocket remoto" --> INGEST
+            INGEST -- "bulk insert / update" --> STORE
+            STORE -- "query e stato corrente" --> CONSUMERS
+            INGEST -- "ack post-commit" --> GW
+
+## Ingestione affidabile
+
+Il principio guida dell'ingestione è che nessun dato accettato vada perso. I batch arrivano dal gateway via WebSocket e non vengono scritti subito nel database: dopo una validazione vengono depositati in una coda interna a dimensione limitata, dalla quale dei worker dedicati li prelevano e li inseriscono in blocco. Questo disaccoppiamento separa la velocità della rete da quella della scrittura su disco e assorbe i picchi di traffico. Quando la coda si riempie il server rallenta deliberatamente la lettura dalla connessione anziché scartare dati, e conferma la ricezione al client solo dopo che il database ha effettivamente scritto il batch.
+
+## Caching e memoria storica
+
+Una volta ingeriti, i dati seguono due destini complementari. Confluiscono in **TimescaleDB** che ne costituisce la memoria storica completa e interrogabile; parallelamente, l'ultimo stato di ciascuna centralina viene mantenuto in una cache **Redis**, che risponde immediatamente alla domanda "cosa sta facendo ora questa ECU?"" senza gravare sul database. La consultazione riflette la stessa dualità: un accesso a bassissima latenza allo stato corrente e uno, orientato all'analisi, ai dati storici di una sessione registrata.
 
 ## Digital Twin
 
-Per ogni ECU registrata il server mantiene un **Digital Twin** persistente:
-
-- Identità hardware e firmware history
-- Map history e configuration history
-- Run registrate con associazione versione firmware/mappa esatta
-- Capacità di replay deterministic e di valutazione mappe alternative
+Al di sopra della semplice archiviazione, il server mantiene per ogni centralina registrata un **Digital Twin** persistente: un modello che ne raccoglie l'identità hardware, la storia delle versioni di firmware e di mappa e l'insieme delle sessioni acquisite, ciascuna legata alla configurazione esatta con cui è stata prodotta. È proprio questo legame preciso tra dato e contesto a rendere possibile il replay deterministico di una sessione e, in prospettiva, il confronto tra mappe alternative sugli stessi dati registrati. Così il server smette di essere un semplice archivio e diventa la rappresentazione digitale e storicizzata di ogni centralina sul campo.
 
 
 # Client Application
 
-La Web UI è ospitata sull'ECU stessa (flash filesystem) e servita via `esp_http_server`. Funziona anche come gateway verso il server remoto.
+L'interfaccia di osservazione è una Web UI ospitata direttamente sulla ECU: risiede nel filesystem in flash ed è servita dal web server integrato (`esp_http_server`). Questo rende la centralina autosufficiente — per visualizzarne lo stato basta un browser sulla stessa rete, senza infrastruttura esterna — e affida allo stesso client un duplice ruolo, di cruscotto per l'operatore e di gateway che inoltra la telemetria al server remoto per l'archiviazione.
 
-## Funzionalità principali
+## Viste
 
-- **Dashboard live:** gauge RPM, TPS %, EGT °C, water temp °C, stato QS, map request fisica, knock index (quando disponibile).
-- **Status strip:** stato WebSocket, versione schema, Hz effettivi, generation, età frame, dropped frames.
-- **Event rail:** ultimi 5–8 eventi ricevuti (QuickShift, MapSwitch, Fault), ordinati per timestamp ECU.
-- **Navigazione:** architettura SPA con `NavigatorManager` e binding reattivo allo Store.
+La UI restituisce due viste complementari: la fotografia in tempo reale dello stato del motore (regime, posizione farfalla, temperature, richiesta di mappa, indice di detonazione quando disponibile) e il flusso ordinato degli eventi discreti — cambi marcia, cambi di mappa, guasti. Accanto ai dati, una fascia di stato espone la salute della connessione stessa: versione dello schema, frequenza effettiva, età dell'ultimo frame, frame persi. È un dettaglio non accessorio, perché consente all'operatore di distinguere sempre un valore attuale da uno ormai obsoleto.
 
-## Vincoli semantici
+## Fedeltà al contratto
 
-- `map_switch.request` = richiesta fisica del selettore, **non** la mappa attiva confermata.
-- `egt_request` / `water_request` = livelli di richiesta sensore, **non** comandi attuatori.
-- `knock` = nullable, ultimo sommario, **non** uno stream revolution-by-revolution.
+Un principio guida la presentazione: il client riflette il contratto telemetrico senza reinterpretarlo. La richiesta fisica del selettore di mappa resta tale e non viene confusa con la mappa effettivamente attiva, così come i livelli di richiesta dei sensori non vengono presentati come comandi a un attuatore. Questa disciplina semantica, ereditata dal layer di telemetria, impedisce che l'interfaccia suggerisca uno stato del sistema diverso da quello reale.
 
 
 # Emulatore HIL (Hardware-In-the-Loop)
