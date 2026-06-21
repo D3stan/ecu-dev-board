@@ -6,4 +6,4 @@
 .docauthors
   - Alessandro Porcheddu
 
-.pageformat {a4}
+.pageformat size:{a4}

@@ -1,3 +1,234 @@
 .include {header.qd}
 
 # Introduzione
+
+Il progetto consiste nello sviluppo di una Electronic Control Unit per motocicli monocilindrici a carburatore, basata sull'SoC **ESP32-S3**, particolarmente adatto alle applicazioni IoT grazie alla connettività Wi-Fi integrata. Il firmware è sviluppato in ambiente nativo **ESP-IDF** su **FreeRTOS** per garantire maggior determinismo real-time rispetto al framework Arduino. 
+
+L'obiettivo di questo prototipo è concentrato sull'acquisizione dei sensori e sulla telemetria, di conseguenza il sistema non implementa le logiche di controllo attivo del motore.  
+Per simulare i segnali fisici del motore in un ambiente Hardware-in-the-Loop (HIL) senza motore reale, viene utilizzato un secondo microcontrollore **ESP32-S2**. La ECU legge i dati emulati generati da quest'ultimo e li comunica al client che li mostra tramite una WebApp, che a sua volta può condividerli inoltrandoli al server remoto per l'archiviazione e la gestione del Digital Twin.
+
+
+# Requisiti di Sistema
+
+## Segnali acquisiti
+
+| Sensore | Binding ESP32-S3 | Interfaccia |
+|---|---|---|
+| TPS (Throttle Position) | GPIO7 / ADC1_CH6 | ADC oneshot con calibrazione ESP-IDF |
+| Quick-Shifter (digitale) | GPIO9 | GPIO pull-up, active-low |
+| Map Switch (fisico) | GPIO14 | GPIO pull-up con debounce |
+| Pick-Up (sincronizzazione giri) | GPIO21 | MCPWM falling-edge capture |
+| EGT, Water Temp, Knock | TBD | Pending conferma pin/hardware |
+
+## Requisiti temporali e telemetrici
+
+- Frequenza di campionamento sensori: determinata dagli interrupt hardware (pick-up) e dall'ADC oneshot.
+- Telemetria live: **10 Hz** (default), configurabile.
+- Protocollo di trasporto: **WebSocket** (frame JSON UTF-8), un client attivo alla volta.
+- Connettività: Wi-Fi Station mode; ECU non ha connessione Internet diretta.
+
+
+# Architettura del Sistema
+
+Il sistema è composto da tre blocchi principali:
+
+.mermaid
+    flowchart LR
+        subgraph ECU["ECU (ESP32-S3)"]
+            direction TB
+            S["Sensori fisici\n(TPS, Pick-Up, QS, Map Switch)"]
+            FW["Firmware ESP-IDF / FreeRTOS\nCore 0: acquisizione real-time\nCore 1: telemetria, WebUI"]
+            WS_ECU["WebSocket server\n/ws — 10 Hz"]
+            S --> FW --> WS_ECU
+        end
+
+        subgraph CLIENT["Client (Browser / App)"]
+            direction TB
+            UI["Web UI\nDashboard live\nGestione connessione"]
+            GW["Gateway Server\nForwarding telemetria\nvia WebSocket /ws/v1/telemetry"]
+            UI --> GW
+        end
+
+        subgraph SERVER["Server (Docker)"]
+            direction TB
+            BE["Backend FastAPI\n(Python)"]
+            DB["TimescaleDB\n(PostgreSQL + estensione)"]
+            CACHE["Redis\n(stato ECU live)"]
+            BE --> DB
+            BE --> CACHE
+        end
+
+        subgraph EMULATOR["Emulatore HIL (ESP32-S2)"]
+            SIM["Simulatore motore\n(superloop + interrupt)"]
+            WEBUI_SIM["Web UI simulatore\nOverride parametri"]
+            SIM --> WEBUI_SIM
+        end
+
+        WS_ECU -- "JSON telemetria (locale)" --> UI
+        GW -- "WebSocket /ws/v1/telemetry" --> BE
+        SIM -- "Segnali fisici (GPIO)" --> ECU
+
+
+# Acquisizione Sensori
+
+## Sensori
+
+- **Pick-Up:** Segnale quadro condizionato, cattura falling-edge via MCPWM su GPIO21. Genera interrupt su Core 0 per calcolo RPM, periodo e accelerazione angolare.
+- **TPS:** ADC1_CH6 con calibrazione ESP-IDF in millivolt, convertito in permille (0–1000). Supporta fallback con flag `fallback_used`.
+- **Quick-Shifter:** Ingresso digitale attivo-basso (GPIO9), con normalizzazione di dominio.
+- **Map Switch:** Ingresso digitale (GPIO14) con debounce, segnala richiesta fisica `Primary` / `Secondary` (non la mappa attiva effettiva).
+
+## Sensori pendenti (hardware non ancora confermato)
+
+- **EGT:** termocoppia via MAX31856 (SPI), pin da confermare.
+- **Water Temperature:** NTC con partitore, ADC da confermare.
+- **Knock:** TPIC8101 via SPI, finestra di acquisizione sincrona al pick-up.
+
+## Elaborazione e qualità
+
+Ogni lettura è accompagnata da metadati di salute:
+
+| Campo | Significato |
+|---|---|
+| `acquired_at` | Timestamp monotono µs (ECU authoritative) |
+| `sequence` | Sequenza per rilevare valori saltati |
+| `valid_for_control` | Usabilità per logica di controllo |
+| `health` | `Valid`, `Stale`, `Failed`, `Degraded`, … |
+| `quality` | `Good`, `Suspect`, `Bad` |
+| `fault_bits` | Bitset di fault attivi |
+
+# Telemetria e Comunicazione
+
+## Struttura del batch
+
+Il collettore (`SensorTelemetryCollector`) produce a ogni chiamata un `TelemetryBatch`:
+
+- **`state`** — snapshot sostituibile dell'ultimo stato sensori (TPS, RPM, EGT, water temp, QS, map switch, knock).
+- **`events`** — eventi discreti ordinati (QuickShiftRequest, MapSwitchChange, FaultTransition), max 8 per batch.
+- **`overflow`** — contatori di overflow delle code sensori.
+
+## Contratto WebSocket (ECU → Client)
+
+| Parametro | Valore |
+|---|---|
+| Path | `/ws` |
+| Encoding | JSON UTF-8 su frame WebSocket text |
+| Frequenza | 10 Hz (default) |
+| Connessioni attive | 1 (la più recente vince) |
+| Frame iniziale | `capabilities` (schema, versione, Hz) |
+| Frame periodici | `telemetry` (stato + eventi + counters) |
+
+Il timestamp ECU (`t_us`) è autoritativo per ordinamento e replay. Il client non sostituisce i timestamp ECU con UTC browser.
+
+## Gestione disconnessione
+
+In assenza di client WebSocket, il collettore non viene invocato (le code eventi non vengono svuotate). La riconnessione ripristina la ricezione senza dati duplicati.
+
+# Implementazione Server
+
+## Stack tecnologico
+
+| Componente | Tecnologia |
+|---|---|
+| Backend | Python, FastAPI (async) |
+| Database | PostgreSQL + TimescaleDB |
+| ORM / Driver | SQLAlchemy async + asyncpg |
+| Migrazioni | Alembic |
+| Cache | Redis (`redis.asyncio`) |
+| Deploy | Docker Compose su Dokploy (Traefik ingress) |
+
+## Flusso di ingestione
+
+1. Il client apre WebSocket su `/ws/v1/telemetry` e invia batch JSON.
+2. Il backend valida e inserisce in una `asyncio.Queue` bounded.
+3. Worker dedicati eseguono bulk insert su TimescaleDB e aggiornano lo stato live su Redis.
+4. L'acknowledgement viene inviato solo dopo commit DB (no silent drop).
+5. Backpressure: il server rallenta le letture se la coda è piena.
+
+## API principali
+
+- `POST /api/ecus` — registra ECU
+- `POST /api/runs/start` / `POST /api/runs/{id}/end` — gestione sessioni di acquisizione
+- `GET /api/ecus/{id}/state` — ultimo stato live (Redis)
+- `GET /api/runs/{id}/telemetry` — dati storici persistiti
+
+## Digital Twin
+
+Per ogni ECU registrata il server mantiene un **Digital Twin** persistente:
+
+- Identità hardware e firmware history
+- Map history e configuration history
+- Run registrate con associazione versione firmware/mappa esatta
+- Capacità di replay deterministic e di valutazione mappe alternative
+
+
+# Client Application
+
+La Web UI è ospitata sull'ECU stessa (flash filesystem) e servita via `esp_http_server`. Funziona anche come gateway verso il server remoto.
+
+## Funzionalità principali
+
+- **Dashboard live:** gauge RPM, TPS %, EGT °C, water temp °C, stato QS, map request fisica, knock index (quando disponibile).
+- **Status strip:** stato WebSocket, versione schema, Hz effettivi, generation, età frame, dropped frames.
+- **Event rail:** ultimi 5–8 eventi ricevuti (QuickShift, MapSwitch, Fault), ordinati per timestamp ECU.
+- **Navigazione:** architettura SPA con `NavigatorManager` e binding reattivo allo Store.
+
+## Vincoli semantici
+
+- `map_switch.request` = richiesta fisica del selettore, **non** la mappa attiva confermata.
+- `egt_request` / `water_request` = livelli di richiesta sensore, **non** comandi attuatori.
+- `knock` = nullable, ultimo sommario, **non** uno stream revolution-by-revolution.
+
+
+# Emulatore HIL (Hardware-In-the-Loop)
+
+Il nodo simulatore gira su un ESP32-S2 (Lolin S2 Mini) e genera fisicamente i segnali che l'ECU legge, consentendo test su banco senza motore reale.
+
+## Architettura
+
+Il simulatore opera in **superloop single-thread** con interrupt hardware, per garantire timing sub-microsecondo.
+
+| Pin simulatore | GPIO | Segnale |
+|---|---|---|
+| Pick-Up output | GPIO13 | Onda quadra 0–300 Hz verso ECU |
+| TPS output (PWM+RC) | GPIO16 | Tensione TPS simulata |
+| EGT output (DAC) | GPIO17 | Tensione EGT 0–3.3 V |
+| CDI input (misura spark) | GPIO21 | Cattura trigger accensione ECU |
+| QS output | GPIO12 | Impulso active-low |
+
+La Web UI del simulatore permette override manuale di RPM, TPS, EGT e iniezione di fault (es. overheating EGT) per testare gli stati `ALARM` dell'ECU.
+
+
+# Testing e Risultati
+
+## Test automatizzati (integrazione server)
+
+Il repository include un container **test runner** (`docker-compose.test.yml`) che:
+
+1. Registra una ECU mock via REST.
+2. Apre sessione di acquisizione e invia batch telemetrici via WebSocket.
+3. Verifica lo stato live su Redis (`GET /api/ecus/{id}/state`).
+4. Verifica la persistenza su TimescaleDB (`GET /api/runs/{id}/telemetry`).
+5. Chiude la sessione e asserisce i risultati — exit code 0 = successo.
+
+```
+docker-compose -f docker-compose.test.yml up --build --exit-code-from test-runner
+```
+
+## Validazione firmware
+
+- **JTAG** per debug embedded.
+- **HITL** su banco con simulatore HIL: il firmware viene flashato sull'ECU reale, che riceve segnali fisici dal nodo simulatore.
+
+
+# Conclusioni
+
+Il progetto realizza un'infrastruttura completa di telemetria per ECU monocilindrica:
+
+- **Acquisizione hardware** deterministica su ESP32-S3 con ESP-IDF/FreeRTOS.
+- **Contratto telemetrico** standardizzato (V1 WebSocket JSON a 10 Hz) con metadati di salute per ogni sensore.
+- **Server scalabile** (FastAPI + TimescaleDB + Redis + Docker) con persistenza, replay e digital twin.
+- **Client Web UI** reattiva, ospitata sull'ECU, con dashboard live e gateway verso il server.
+- **Emulatore HIL** su ESP32-S2 per test su banco senza motore fisico.
+
+L'infrastruttura costituisce la base per la futura implementazione della logica di controllo motore (anticipo, CDI, Power Jet, valvola di scarico), che potrà integrarsi nel firmware esistente senza modificare il layer di telemetria e comunicazione.

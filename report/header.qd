@@ -1,25 +1,26 @@
 .include {settings.qd} 
 
-.whitespace height:{5%} 
+.whitespace height:{50px} 
 
 .center 
     #! ECU acquisizione dati per ICE monocilindrici
 
-.whitespace height:{30%} 
 
-.align {end} 
+.whitespace height:{350px}
+
+.align {start} 
     **Corso**
-.align {end} 
-    Ricerca Operativa
+.align {start} 
+    Sistemi Embedded e IoT
 
-.align {end} 
+.align {start} 
     **Anno Accademico**
-.align {end} 
+.align {start} 
     2025/2026
 
-.align {end} 
+.align {start} 
     **Studente**
-.align {end} 
+.align {start} 
     Alessandro Porcheddu
 
 .tableofcontents
