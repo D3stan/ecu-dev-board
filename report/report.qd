@@ -246,13 +246,13 @@ Una volta ingeriti, i dati seguono due destini complementari. Confluiscono in **
 Al di sopra della semplice archiviazione, il server mantiene per ogni centralina registrata un **Digital Twin** persistente: un modello che ne raccoglie l'identità hardware, la storia delle versioni di firmware e di mappa e l'insieme delle sessioni acquisite, ciascuna legata alla configurazione esatta con cui è stata prodotta. È proprio questo legame preciso tra dato e contesto a rendere possibile il replay deterministico di una sessione e, in prospettiva, il confronto tra mappe alternative sugli stessi dati registrati. Così il server smette di essere un semplice archivio e diventa la rappresentazione digitale e storicizzata di ogni centralina sul campo.
 
 
-# Client Application
+# Client WebApp
 
-L'interfaccia di osservazione è una Web UI ospitata direttamente sulla ECU: risiede nel filesystem in flash ed è servita dal web server integrato (`esp_http_server`). Questo rende la centralina autosufficiente — per visualizzarne lo stato basta un browser sulla stessa rete, senza infrastruttura esterna — e affida allo stesso client un duplice ruolo, di cruscotto per l'operatore e di gateway che inoltra la telemetria al server remoto per l'archiviazione.
+L'interfaccia che l'untente finale utilizza è una WebApp contenuta direttamente sulla ECU: risiede nel filesystem in flash ed è servita dal server web integrato. Per visuallizzare lo stato della centralina basta un browser ed essere connessi alla stessa rete. Inoltre il client viene utilizzato come gateway che inoltra la telemetria al server remoto per l'archiviazione.
 
-## Viste
+## UI
 
-La UI restituisce due viste complementari: la fotografia in tempo reale dello stato del motore (regime, posizione farfalla, temperature, richiesta di mappa, indice di detonazione quando disponibile) e il flusso ordinato degli eventi discreti — cambi marcia, cambi di mappa, guasti. Accanto ai dati, una fascia di stato espone la salute della connessione stessa: versione dello schema, frequenza effettiva, età dell'ultimo frame, frame persi. È un dettaglio non accessorio, perché consente all'operatore di distinguere sempre un valore attuale da uno ormai obsoleto.
+La UI offre due sezioni complementari: la stato del motore in tempo reale (rpm, posizione farfalla, temperature, richiesta di mappa, ...) e il flusso ordinato degli eventi discreti (cambi marcia, cambi di mappa, guasti).
 
 ## Fedeltà al contratto
 
@@ -261,21 +261,15 @@ Un principio guida la presentazione: il client riflette il contratto telemetrico
 
 # Emulatore HIL (Hardware-In-the-Loop)
 
-Il nodo simulatore gira su un ESP32-S2 (Lolin S2 Mini) e genera fisicamente i segnali che l'ECU legge, consentendo test su banco senza motore reale.
+Per validare il firmware senza un motore reale, un secondo microcontrollore (ESP32-S2, su scheda Lolin S2 Mini) fa da banco di prova, generando fisicamente i segnali che la centralina si aspetta di leggere.
 
-## Architettura
+## Segnali reali
 
-Il simulatore opera in **superloop single-thread** con interrupt hardware, per garantire timing sub-microsecondo.
+La scelta è deliberatamente *hardware-in-the-loop*: l'emulatore non simula i dati all'interno della ECU, ma produce veri segnali elettrici — un'onda quadra a frequenza variabile per il pick-up, tensioni analogiche per posizione farfalla e temperatura dei gas di scarico, impulsi per il quick-shifter — così che l'intera catena di acquisizione, dagli ingressi analogici alla cattura delle onde quadre fino agli interrupt, venga esercitata esattamente come avverrebbe sul motore. L'emulatore può inoltre richiudere l'anello catturando le uscite della ECU, come il comando di accensione, ponendo le basi per test a ciclo chiuso sulla futura logica di controllo.
 
-| Pin simulatore | GPIO | Segnale |
-|---|---|---|
-| Pick-Up output | GPIO13 | Onda quadra 0–300 Hz verso ECU |
-| TPS output (PWM+RC) | GPIO16 | Tensione TPS simulata |
-| EGT output (DAC) | GPIO17 | Tensione EGT 0–3.3 V |
-| CDI input (misura spark) | GPIO21 | Cattura trigger accensione ECU |
-| QS output | GPIO12 | Impulso active-low |
+## Determinismo e controllo
 
-La Web UI del simulatore permette override manuale di RPM, TPS, EGT e iniezione di fault (es. overheating EGT) per testare gli stati `ALARM` dell'ECU.
+A differenza della centralina, costruita su FreeRTOS, il simulatore adotta un *superloop* a thread singolo affiancato da interrupt hardware: rinunciando allo scheduling di un sistema operativo evita ogni jitter e raggiunge il timing sub-microsecondo necessario a generare segnali fedeli. Una Web UI dedicata ne completa il ruolo di strumento di test, permettendo di forzare manualmente i parametri — regime, farfalla, temperature — e di iniettare guasti, come un sovrariscaldamento dei gas di scarico, per verificare la reazione della ECU e i suoi stati di allarme.
 
 
 # Testing e Risultati
