@@ -31,6 +31,8 @@ L'emulatore di segnali può essere controllato sia dalla propria WebApp che dall
 
 # Architettura del Sistema
 
+## Schema
+
 Il sistema è composto da quattro blocchi principali:
 
 .css
@@ -58,14 +60,14 @@ Il sistema è composto da quattro blocchi principali:
             subgraph EMULATOR["Emulatore ESP32-S2"]
                 direction LR
                 SIM["Simulatore motore"]
-                WEBUI_SIM["WebApp<br/>Override parametri"]
-                SIM --> WEBUI_SIM
+                WEBUI_SIM["WebApp<br/>"]
+                WEBUI_SIM -- "Override parametri" --> SIM
             end
 
             subgraph ECU["ECU ESP32-S3"]
                 direction LR
                 S["Sensori fisici<br/>(TPS, Pick-Up, QS, Map Switch)"]
-                FW["Core 0: acquisizione segnali<br/>Core 1: telemetria, WebApp"]
+                FW["Acquisizione segnali<br/>Telemetria, WebApp"]
                 WS_ECU["WebSocket server"]
                 S --> FW --> WS_ECU
             end
@@ -91,6 +93,12 @@ Il sistema è composto da quattro blocchi principali:
             EMULATOR -- "Segnali fisici" --> ECU
             ECU -- "WebSocket locale" --> CLIENT
             CLIENT -- "WebSocket remoto" --> SERVER
+
+## Esecuzione del firmware
+
+Internamente la ECU sfrutta la natura dual-core dell'ESP32-S3 distribuendo il lavoro su più task **FreeRTOS**. Su un core un task di acquisizione interroga ciclicamente i sensori a frequenza fissa (~10 Hz), mentre sull'altro un task di telemetria ne preleva i risultati e li inoltra al client; i due non comunicano direttamente, ma attraverso una struttura dati condivisa e protetta da mutex, secondo uno schema produttore e consumatore. È questo disaccoppiamento a garantire che il percorso di acquisizione non resti mai in attesa della rete. L'unica eccezione al polling periodico è il segnale di pick-up, gestito tramite interrupt, che risveglia il task di acquisizione.
+
+Coerentemente con la natura del prototipo non è ancora presente una macchina a stati di controllo, che resta un punto di estensione previsto per la futura logica di gestione motore: questa si innesterà sui task esistenti senza alterare il layer di acquisizione e telemetria.
 
 
 # Acquisizione Sensori
@@ -124,30 +132,62 @@ Ogni lettura è accompagnata da metadati specifici per descriverne lo stato e le
 
 # Telemetria e Comunicazione
 
-## Struttura
+Il sottosistema di telemetria ha il compito di trasferire le informazioni dalla ECU al client senza interferire con il controllo del motore. Il percorso di acquisizione e controllo non attende la rete, il client o il server, ma si limita a depositare i propri risultati in strutture a dimensione limitata, dalle quali la telemetria li preleva in modo asincrono. In questo modo un client lento o una connessione congestionata non possono in alcun caso rallentare le attività critiche della centralina.
 
-Il collettore (`SensorTelemetryCollector`) produce a ogni chiamata un `TelemetryBatch`:
+Lo schema seguente riassume il percorso complessivo dei dati, dai domini della centralina fino al client.
 
-- **`state`** — snapshot sostituibile dell'ultimo stato sensori (TPS, RPM, EGT, water temp, QS, map switch, knock).
-- **`events`** — eventi discreti ordinati (QuickShiftRequest, MapSwitchChange, FaultTransition), max 8 per batch.
-- **`overflow`** — contatori di overflow delle code sensori.
+.mermaid caption:{Flusso della telemetria}
+    flowchart TB
+        subgraph DOMAINS["Domini della ECU"]
+            direction LR
+            SENS["Sensori e stato motore"]
+            CTRL["Controllo e attuatori<br/>(futuri)"]
+        end
 
-## Contratto WebSocket (ECU → Client)
+        BUF["Buffer a dimensione limitata<br/>il controllo non attende mai"]
+        subgraph PATHS["Percorsi logici di telemetria"]
+            direction LR
+            STATE["Stato<br/>ultimo valore, sostituibile"]
+            EVENTS["Eventi<br/>ordinati, non perdibili"]
+            FUTURE["Revolution e diagnostica<br/>(previsti)"]
+        end
 
-| Parametro | Valore |
-|---|---|
-| Path | `/ws` |
-| Encoding | JSON UTF-8 su frame WebSocket text |
-| Frequenza | 10 Hz (default) |
-| Connessioni attive | 1 (la più recente vince) |
-| Frame iniziale | `capabilities` (schema, versione, Hz) |
-| Frame periodici | `telemetry` (stato + eventi + counters) |
+        BATCH["Aggregazione in lotti<br/>frame JSON, ~10 Hz"]
+        subgraph CLIENT["Client (Browser)"]
+            direction LR
+            DASH["Dashboard live"]
+            FWD["Forwarding al server"]
+        end
 
-Il timestamp ECU (`t_us`) è autoritativo per ordinamento e replay. Il client non sostituisce i timestamp ECU con UTC browser.
+        DOMAINS -- "pubblicazione" --> BUF
+        BUF --> PATHS
+        PATHS -- "batching" --> BATCH
+        BATCH -- "WebSocket" --> CLIENT
 
-## Gestione disconnessione
 
-In assenza di client WebSocket, il collettore non viene invocato (le code eventi non vengono svuotate). La riconnessione ripristina la ricezione senza dati duplicati.
+## Organizzazione per significato
+
+Anziché trattare ogni sensore come un flusso a sé stante, la telemetria organizza le informazioni in percorsi logici distinti per significato e priorità, che condividono la stessa connessione fisica ma rispondono a esigenze diverse.
+
+Il primo è il **percorso di stato**, che rappresenta la fotografia più recente della centralina: regime di rotazione, posizione della farfalla, temperature, stato del quick-shifter e del selettore di mappa. Qui conta sempre il valore più aggiornato, perciò un dato non ancora inviato può essere sostituito da uno più recente e la frequenza di aggiornamento può essere ridotta per adattarsi all'interfaccia. Ogni valore conserva tuttavia il timestamp dell'osservazione originale della ECU, così il client è sempre in grado di stabilire se lo stato che sta mostrando è attuale oppure ormai obsoleto.
+
+Il secondo è il **percorso degli eventi**, che raccoglie gli eventi discreti e le transizioni di stato: una richiesta di cambio marcia, un cambio di mappa, l'attivazione o il rientro di un guasto. A differenza dello stato, gli eventi non possono essere sovrascritti né andare persi silenziosamente, ma devono preservare l'ordine in cui si sono verificati ed essere consegnati o, al più, segnalati esplicitamente come mancanti.
+
+Oltre a questi due, l'architettura prevede fin dall'origine ulteriori percorsi destinati agli sviluppi futuri: uno ad alta frequenza, sincrono con la rotazione dell'albero motore e pensato per la ricostruzione fedele delle sessioni registrate, e uno diagnostico opzionale per informazioni di dettaglio, attivabile su richiesta e a bassa priorità. Il prototipo attuale implementa i primi due percorsi, sufficienti per la dashboard live, lasciando gli altri come punti di estensione già definiti.
+
+## Estensibilità incrementale
+
+La comunicazione è progettata per crescere senza dover essere riprogettata. Ogni dominio della centralina — sensori, stato motore, controllo, attuatori — espone i propri dati attraverso un contratto stabile, e la telemetria si limita a inoltrarli senza ricalcolarli né reinterpretarli: un valore misurato, una grandezza derivata, una decisione di controllo e un comando a un attuatore restano informazioni distinte e non confondibili tra loro. Aggiungere una nuova grandezza significa quindi, di norma, definirne il significato e collocarla su un percorso esistente, non introdurre un nuovo meccanismo di trasporto. All'apertura della connessione, inoltre, la ECU dichiara al client quali categorie di telemetria il firmware corrente è in grado di produrre, consentendo a versioni diverse di firmware e di client di coesistere.
+
+## Trasporto e batching
+
+Il trasferimento avviene tramite WebSocket, con messaggi codificati in JSON. Per ridurre l'overhead di rete e il numero di risvegli del processore, i record non vengono inviati singolarmente ma raggruppati in piccoli lotti, all'interno dei quali ciascun dato conserva la propria identità e sequenza. La connessione si apre con un messaggio iniziale che ne descrive le capacità e lo schema supportato, seguito da messaggi periodici — tipicamente a 10 Hz — che trasportano lo stato corrente e gli eventi accumulati. Il timestamp generato dalla ECU costituisce l'unico riferimento autoritativo per l'ordinamento e per l'eventuale replay, e non viene mai sostituito dall'orario locale del browser.
+
+## Congestione e disconnessione
+
+Poiché le risorse sono limitate, in caso di congestione la telemetria applica una scala di priorità ben definita: preserva gli eventi di guasto e i dati registrati, riduce la frequenza degli aggiornamenti di stato, scarta le informazioni ridondanti e disattiva per primi i contributi diagnostici opzionali. Il principio di fondo è che la completezza della telemetria non viene mai garantita a costo di ritardare il controllo del motore: la telemetria live può degradare nella fluidità di aggiornamento, mentre i dati registrati possono degradare soltanto attraverso un'interruzione esplicitamente rilevabile, mai con perdite silenziose.
+
+Il prototipo mantiene attivo un solo client per volta, dove l'ultima connessione prevale sulle precedenti. In assenza di un client connesso il sistema non produce telemetria e le code degli eventi non vengono svuotate; alla riconnessione la ricezione riprende in modo pulito, senza duplicare i dati già consegnati.
 
 # Implementazione Server
 
