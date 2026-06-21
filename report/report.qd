@@ -5,69 +5,67 @@
 Il progetto consiste nello sviluppo di una Electronic Control Unit per motocicli monocilindrici a carburatore, basata sull'SoC **ESP32-S3**, particolarmente adatto alle applicazioni IoT grazie alla connettività Wi-Fi integrata. Il firmware è sviluppato in ambiente nativo **ESP-IDF** su **FreeRTOS** per garantire maggior determinismo real-time rispetto al framework Arduino. 
 
 L'obiettivo di questo prototipo è concentrato sull'acquisizione dei sensori e sulla telemetria, di conseguenza il sistema non implementa le logiche di controllo attivo del motore.  
-Per simulare i segnali fisici del motore in un ambiente Hardware-in-the-Loop (HIL) senza motore reale, viene utilizzato un secondo microcontrollore **ESP32-S2**. La ECU legge i dati emulati generati da quest'ultimo e li comunica al client che li mostra tramite una WebApp, che a sua volta può condividerli inoltrandoli al server remoto per l'archiviazione e la gestione del Digital Twin.
-
+Per simulare i segnali fisici senza un motore reale viene utilizzato un secondo microcontrollore **ESP32-S2**. La ECU legge i dati emulati generati da quest'ultimo e li comunica al client che li mostra tramite una WebApp, che a sua volta può condividerli inoltrandoli al server remoto per l'archiviazione e la gestione del Digital Twin.
+L'emulatore di segnali può essere controllato sia dalla propria WebApp che dalla lettura di segnali fisici come potenziometri o pulsanti. 
 
 # Requisiti di Sistema
 
 ## Segnali acquisiti
 
-| Sensore | Binding ESP32-S3 | Interfaccia |
-|---|---|---|
-| TPS (Throttle Position) | GPIO7 / ADC1_CH6 | ADC oneshot con calibrazione ESP-IDF |
-| Quick-Shifter (digitale) | GPIO9 | GPIO pull-up, active-low |
-| Map Switch (fisico) | GPIO14 | GPIO pull-up con debounce |
-| Pick-Up (sincronizzazione giri) | GPIO21 | MCPWM falling-edge capture |
-| EGT, Water Temp, Knock | TBD | Pending conferma pin/hardware |
+| Sensore | Interfaccia |
+|--- | ---|
+| Pick-Up | MCPWM |
+| TPS (Throttle Position) | ADC oneshot |
+| Quick-Shifter e Map Switch| Interrupt con debounce |
+| EGT, Water Temp, Knock | Simulazione |
 
 ## Requisiti temporali e telemetrici
 
-- Frequenza di campionamento sensori: determinata dagli interrupt hardware (pick-up) e dall'ADC oneshot.
-- Telemetria live: **10 Hz** (default), configurabile.
-- Protocollo di trasporto: **WebSocket** (frame JSON UTF-8), un client attivo alla volta.
-- Connettività: Wi-Fi Station mode; ECU non ha connessione Internet diretta.
+- Telemetria live: **10 Hz**, configurabile.
+- Protocollo di trasporto: **WebSocket** (frame JSON UTF-8), multiclient.
+- Connettività: Wi-Fi Station mode.
 
 
 # Architettura del Sistema
 
 Il sistema è composto da tre blocchi principali:
 
-.mermaid
-    flowchart LR
-        subgraph ECU["ECU (ESP32-S3)"]
-            direction TB
-            S["Sensori fisici\n(TPS, Pick-Up, QS, Map Switch)"]
-            FW["Firmware ESP-IDF / FreeRTOS\nCore 0: acquisizione real-time\nCore 1: telemetria, WebUI"]
-            WS_ECU["WebSocket server\n/ws — 10 Hz"]
+.mermaid caption:{Architettura del sistema}
+    flowchart TB
+        subgraph EMULATOR["Emulatore ESP32-S2"]
+            direction LR
+            SIM["Simulatore motore<br/>(superloop + interrupt)"]
+            WEBUI_SIM["Web UI simulatore<br/>Override parametri"]
+            SIM --> WEBUI_SIM
+        end
+
+        subgraph ECU["ECU ESP32-S3"]
+            direction LR
+            S["Sensori fisici<br/>(TPS, Pick-Up, QS, Map Switch)"]
+            FW["Core 0: acquisizione segnali<br/>Core 1: telemetria, WebApp"]
+            WS_ECU["WebSocket server"]
             S --> FW --> WS_ECU
         end
 
         subgraph CLIENT["Client (Browser / App)"]
-            direction TB
-            UI["Web UI\nDashboard live\nGestione connessione"]
-            GW["Gateway Server\nForwarding telemetria\nvia WebSocket /ws/v1/telemetry"]
+            direction LR
+            UI["Web UI<br/>Dashboard live<br/>Gestione connessione"]
+            GW["Gateway Server<br/>Forwarding telemetria<br/>via WebSocket /ws/v1/telemetry"]
             UI --> GW
         end
 
         subgraph SERVER["Server (Docker)"]
-            direction TB
-            BE["Backend FastAPI\n(Python)"]
-            DB["TimescaleDB\n(PostgreSQL + estensione)"]
-            CACHE["Redis\n(stato ECU live)"]
+            direction LR
+            BE["Backend FastAPI<br/>(Python)"]
+            DB["TimescaleDB<br/>(PostgreSQL + estensione)"]
+            CACHE["Redis<br/>(stato ECU live)"]
             BE --> DB
             BE --> CACHE
         end
 
-        subgraph EMULATOR["Emulatore HIL (ESP32-S2)"]
-            SIM["Simulatore motore\n(superloop + interrupt)"]
-            WEBUI_SIM["Web UI simulatore\nOverride parametri"]
-            SIM --> WEBUI_SIM
-        end
-
-        WS_ECU -- "JSON telemetria (locale)" --> UI
-        GW -- "WebSocket /ws/v1/telemetry" --> BE
-        SIM -- "Segnali fisici (GPIO)" --> ECU
-
+        EMULATOR -- "Segnali fisici (GPIO)" --> ECU
+        ECU -- "JSON telemetria (locale)" --> CLIENT
+        CLIENT -- "WebSocket /ws/v1/telemetry" --> SERVER
 
 # Acquisizione Sensori
 
