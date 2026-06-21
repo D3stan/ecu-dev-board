@@ -14,12 +14,12 @@
 - The existing `map_version` database column, domain fields, API fields, OpenAPI schema, and generated client property remain unchanged.
 - An absent or empty ECU firmware version is sent to the server as `null`.
 - Dirty firmware builds retain ESP-IDF's `-dirty` suffix; no clean-worktree build policy is added.
-- Preserve unrelated changes already present in `C:/Users/puddu/Documents/Github/ecu-dev-board`; stage only files named by each task.
+- Implement both ECU and server changes in the `C:/Users/puddu/Documents/Github/ecu-server` worktree; stage only files named by each task.
 - Do not modify generated API files because the server API contract is unchanged.
 
 ## File Structure
 
-### ECU worktree: `C:/Users/puddu/Documents/Github/ecu-dev-board/idf`
+### ECU project: `C:/Users/puddu/Documents/Github/ecu-server/idf`
 
 - `components/telemetry_server/include/telemetry_server/telemetry_json_serializer.hpp`: defines the capabilities device metadata contract.
 - `components/telemetry_server/src/telemetry_json_serializer.cpp`: serializes `firmware_version` into capabilities JSON.
@@ -45,11 +45,11 @@
 ### Task 1: Publish ESP-IDF firmware version in ECU capabilities
 
 **Files:**
-- Modify: `C:/Users/puddu/Documents/Github/ecu-dev-board/idf/components/telemetry_server/include/telemetry_server/telemetry_json_serializer.hpp:12`
-- Modify: `C:/Users/puddu/Documents/Github/ecu-dev-board/idf/components/telemetry_server/src/telemetry_json_serializer.cpp:330`
-- Modify: `C:/Users/puddu/Documents/Github/ecu-dev-board/idf/components/telemetry_server/src/telemetry_server.cpp:18`
-- Modify: `C:/Users/puddu/Documents/Github/ecu-dev-board/idf/components/telemetry_server/CMakeLists.txt:9`
-- Test: `C:/Users/puddu/Documents/Github/ecu-dev-board/idf/components/telemetry_server/tests/host/telemetry_server_tests.cpp:227`
+- Modify: `C:/Users/puddu/Documents/Github/ecu-server/idf/components/telemetry_server/include/telemetry_server/telemetry_json_serializer.hpp:12`
+- Modify: `C:/Users/puddu/Documents/Github/ecu-server/idf/components/telemetry_server/src/telemetry_json_serializer.cpp:330`
+- Modify: `C:/Users/puddu/Documents/Github/ecu-server/idf/components/telemetry_server/src/telemetry_server.cpp:18`
+- Modify: `C:/Users/puddu/Documents/Github/ecu-server/idf/components/telemetry_server/CMakeLists.txt:9`
+- Test: `C:/Users/puddu/Documents/Github/ecu-server/idf/components/telemetry_server/tests/host/telemetry_server_tests.cpp:227`
 
 **Interfaces:**
 - Consumes: `const esp_app_desc_t *esp_app_get_description(void)` from ESP-IDF 5.5.4.
@@ -68,7 +68,7 @@ EXPECT_CONTAINS(
 
 - [ ] **Step 2: Build and run the focused test to verify RED**
 
-Run from `C:/Users/puddu/Documents/Github/ecu-dev-board/idf`:
+Run from `C:/Users/puddu/Documents/Github/ecu-server/idf`:
 
 ```powershell
 cmake -S components/telemetry_server/tests/host -B build/telemetry-server-host
@@ -192,12 +192,12 @@ git commit -m "feat: expose firmware version in ECU capabilities"
 ### Task 2: Forward the capabilities firmware version when starting runs
 
 **Files:**
-- Modify: `C:/Users/puddu/Documents/Github/ecu-dev-board/idf/webui/src/js/core/store.js:50`
-- Modify: `C:/Users/puddu/Documents/Github/ecu-dev-board/idf/webui/src/js/core/adapter.js:170`
-- Modify: `C:/Users/puddu/Documents/Github/ecu-dev-board/idf/webui/src/js/managers/DigitalTwinClient.js:109`
-- Modify: `C:/Users/puddu/Documents/Github/ecu-dev-board/idf/webui/src/js/utils/mockData.js:16`
-- Test: `C:/Users/puddu/Documents/Github/ecu-dev-board/idf/webui/test/adapter-contract.test.mjs:12`
-- Test: `C:/Users/puddu/Documents/Github/ecu-dev-board/idf/webui/test/digital-twin-client.test.mjs:80`
+- Modify: `C:/Users/puddu/Documents/Github/ecu-server/idf/webui/src/js/core/store.js:50`
+- Modify: `C:/Users/puddu/Documents/Github/ecu-server/idf/webui/src/js/core/adapter.js:170`
+- Modify: `C:/Users/puddu/Documents/Github/ecu-server/idf/webui/src/js/managers/DigitalTwinClient.js:109`
+- Modify: `C:/Users/puddu/Documents/Github/ecu-server/idf/webui/src/js/utils/mockData.js:16`
+- Test: `C:/Users/puddu/Documents/Github/ecu-server/idf/webui/test/adapter-contract.test.mjs:12`
+- Test: `C:/Users/puddu/Documents/Github/ecu-server/idf/webui/test/digital-twin-client.test.mjs:80`
 
 **Interfaces:**
 - Consumes: capabilities field `device.firmware_version: string` from Task 1.
@@ -238,7 +238,7 @@ assert.deepEqual(JSON.parse(calls[0].options.body), {
 
 - [ ] **Step 3: Run the focused WebUI tests to verify RED**
 
-Run from `C:/Users/puddu/Documents/Github/ecu-dev-board/idf/webui`:
+Run from `C:/Users/puddu/Documents/Github/ecu-server/idf/webui`:
 
 ```powershell
 node --test test/adapter-contract.test.mjs test/digital-twin-client.test.mjs
@@ -427,7 +427,7 @@ git commit -m "fix: show firmware without engine map metadata"
 
 - [ ] **Step 1: Re-run ECU verification from a fresh command invocation**
 
-From `C:/Users/puddu/Documents/Github/ecu-dev-board/idf`:
+From `C:/Users/puddu/Documents/Github/ecu-server/idf`:
 
 ```powershell
 cmake --build build/telemetry-server-host
@@ -469,7 +469,7 @@ Expected: the first check finds no UI presentation references; the second comman
 - [ ] **Step 4: Inspect final scoped diffs**
 
 ```powershell
-git -C C:/Users/puddu/Documents/Github/ecu-dev-board diff --stat HEAD~2..HEAD -- idf/components/telemetry_server idf/webui/src/js/core/store.js idf/webui/src/js/core/adapter.js idf/webui/src/js/managers/DigitalTwinClient.js idf/webui/src/js/utils/mockData.js idf/webui/test/adapter-contract.test.mjs idf/webui/test/digital-twin-client.test.mjs
+git -C C:/Users/puddu/Documents/Github/ecu-server diff --stat HEAD~2..HEAD -- idf/components/telemetry_server idf/webui/src/js/core/store.js idf/webui/src/js/core/adapter.js idf/webui/src/js/managers/DigitalTwinClient.js idf/webui/src/js/utils/mockData.js idf/webui/test/adapter-contract.test.mjs idf/webui/test/digital-twin-client.test.mjs
 git -C C:/Users/puddu/Documents/Github/ecu-server diff --stat HEAD~1..HEAD -- server/frontend
 ```
 

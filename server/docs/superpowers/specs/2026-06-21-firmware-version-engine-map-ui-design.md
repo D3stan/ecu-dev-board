@@ -6,9 +6,9 @@ Populate each recorded run's firmware value from the version embedded in the run
 
 ## Scope
 
-This change spans two existing worktrees:
+This change spans two project areas in the same worktree:
 
-- ECU firmware and embedded WebUI: `C:/Users/puddu/Documents/Github/ecu-dev-board/idf`
+- ECU firmware and embedded WebUI: `C:/Users/puddu/Documents/Github/ecu-server/idf`
 - Digital-twin server and frontend: `C:/Users/puddu/Documents/Github/ecu-server/server`
 
 No database migration, server request-schema change, generated OpenAPI change, build-date field, or engine-map implementation is required.
