@@ -1,0 +1,9 @@
+.docname {ECU}
+.doctype {paged}
+.doclang {Italian}
+.theme {paperwhite} layout:{latex}
+
+.docauthors
+  - Alessandro Porcheddu
+
+.pageformat {a4}
