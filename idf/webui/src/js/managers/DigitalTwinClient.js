@@ -112,7 +112,7 @@ export class DigitalTwinBridgeClient {
         body: JSON.stringify({
           hwid: device.hwid,
           hardware_revision: device.hardware_revision || null,
-          firmware_version: null,
+          firmware_version: device.firmware_version || null,
           map_version: null
         })
       });

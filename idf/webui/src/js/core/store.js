@@ -51,7 +51,8 @@ function createInitialState() {
         hwid: "",
         hardware_revision: "",
         chip_model: "",
-        flash_size_bytes: 0
+        flash_size_bytes: 0,
+        firmware_version: ""
       }
     },
     recording: {

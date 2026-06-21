@@ -84,7 +84,8 @@ function seedDevice() {
     hwid: "esp32s3-010203040506",
     hardware_revision: "ESP32-S3FH4R2",
     chip_model: "ESP32-S3",
-    flash_size_bytes: 4194304
+    flash_size_bytes: 4194304,
+    firmware_version: "1.0.0-125-gfb81dde"
   });
 }
 
@@ -112,7 +113,7 @@ describe("DigitalTwinBridgeClient", () => {
     assert.deepEqual(JSON.parse(calls[0].options.body), {
       hwid: "esp32s3-010203040506",
       hardware_revision: "ESP32-S3FH4R2",
-      firmware_version: null,
+      firmware_version: "1.0.0-125-gfb81dde",
       map_version: null
     });
 

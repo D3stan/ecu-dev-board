@@ -18,7 +18,8 @@ export function loadMockData(Store, Paths) {
       hwid: "esp32s3-mock",
       hardware_revision: "ESP32-S3FH4R2",
       chip_model: "ESP32-S3",
-      flash_size_bytes: 4194304
+      flash_size_bytes: 4194304,
+      firmware_version: "1.0.2-mock"
     },
     recording: {
       auto_enabled: false,

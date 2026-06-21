@@ -22,7 +22,8 @@ dispatchMessage(JSON.stringify({
     hwid: "esp32s3-010203040506",
     hardware_revision: "ESP32-S3FH4R2",
     chip_model: "ESP32-S3",
-    flash_size_bytes: 4194304
+    flash_size_bytes: 4194304,
+    firmware_version: "1.0.0-125-gfb81dde"
   },
   recording: {
     auto_enabled: false,
@@ -186,7 +187,8 @@ assert.deepEqual(Store.get(Paths.CONNECTION.DEVICE), {
   hwid: "esp32s3-010203040506",
   hardware_revision: "ESP32-S3FH4R2",
   chip_model: "ESP32-S3",
-  flash_size_bytes: 4194304
+  flash_size_bytes: 4194304,
+  firmware_version: "1.0.0-125-gfb81dde"
 });
 assert.deepEqual(Store.get(Paths.RECORDING.CONFIG), {
   auto_enabled: true,

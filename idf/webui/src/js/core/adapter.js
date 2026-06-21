@@ -172,7 +172,8 @@ function normalizeDevice(device) {
     hwid: String(device.hwid ?? ""),
     hardware_revision: String(device.hardware_revision ?? ""),
     chip_model: String(device.chip_model ?? ""),
-    flash_size_bytes: Number(device.flash_size_bytes ?? 0)
+    flash_size_bytes: Number(device.flash_size_bytes ?? 0),
+    firmware_version: String(device.firmware_version ?? "")
   };
 }
 
