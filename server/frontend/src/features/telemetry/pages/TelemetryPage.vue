@@ -367,10 +367,6 @@ onUnmounted(() => {
         <span class="meta-val font-mono">{{ runDetail.firmware_version || 'N/A' }}</span>
       </div>
       <div class="meta-card">
-        <span class="meta-label">ENGINE MAP</span>
-        <span class="meta-val font-mono">{{ runDetail.map_version || 'N/A' }}</span>
-      </div>
-      <div class="meta-card">
         <span class="meta-label">TOTAL FRAMES</span>
         <span class="meta-val font-mono">{{ runDetail.batch_count }}</span>
       </div>

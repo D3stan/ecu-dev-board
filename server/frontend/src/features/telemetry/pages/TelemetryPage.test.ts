@@ -17,7 +17,7 @@ const api = vi.hoisted(() => {
       status: 'ended',
       started_at: '2026-06-20T20:00:00Z',
       ended_at: '2026-06-20T20:01:00Z',
-      firmware_version: null,
+      firmware_version: '1.0.0-125-gfb81dde',
       map_version: null,
       heartbeat: null,
       last_committed_sequence: 39,
@@ -74,6 +74,10 @@ describe('TelemetryPage', () => {
     });
 
     await flushPromises();
+
+    expect(wrapper.text()).toContain('FIRMWARE');
+    expect(wrapper.text()).toContain('1.0.0-125-gfb81dde');
+    expect(wrapper.text()).not.toContain('ENGINE MAP');
 
     expect(api.getTelemetry).toHaveBeenCalledWith(api.runId, 500);
 

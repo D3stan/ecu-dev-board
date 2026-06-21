@@ -161,11 +161,6 @@ onUnmounted(() => {
             <span class="font-mono text-xs">{{ data.firmware_version || 'N/A' }}</span>
           </template>
         </Column>
-        <Column field="map_version" header="Engine Map">
-          <template #body="{ data }">
-            <span class="font-mono text-xs">{{ data.map_version || 'N/A' }}</span>
-          </template>
-        </Column>
         <Column field="batch_count" header="Telemetry Frames">
           <template #body="{ data }">
             <span class="font-semibold text-primary font-mono">{{ data.batch_count }}</span>

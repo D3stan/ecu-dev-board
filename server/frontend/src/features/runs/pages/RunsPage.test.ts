@@ -18,7 +18,7 @@ const api = vi.hoisted(() => {
         status: 'active',
         started_at: '2026-06-20T20:00:00Z',
         ended_at: null,
-        firmware_version: null,
+        firmware_version: '1.0.0-125-gfb81dde',
         map_version: null,
         heartbeat: null,
         last_committed_sequence: 39,
@@ -63,6 +63,10 @@ describe('RunsPage', () => {
       },
     });
     await flushPromises();
+
+    expect(wrapper.text()).toContain('Firmware');
+    expect(wrapper.text()).toContain('1.0.0-125-gfb81dde');
+    expect(wrapper.text()).not.toContain('Engine Map');
 
     const endButton = wrapper.findAll('button').find(button => button.text().includes('End Run'));
     await endButton?.trigger('click');
