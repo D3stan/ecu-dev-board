@@ -232,6 +232,7 @@ void test_capabilities_frame_declares_contract() {
     config.device.hardware_revision = "ESP32-S3FH4R2";
     config.device.chip_model = "ESP32-S3";
     config.device.flash_size_bytes = 4194304;
+    config.device.firmware_version = "1.0.0-125-gfb81dde";
     config.recording.auto_enabled = true;
     config.recording.rpm_threshold = 300;
     config.recording.start_debounce_ms = 1000;
@@ -246,7 +247,7 @@ void test_capabilities_frame_declares_contract() {
     EXPECT_CONTAINS(json, R"("paths":["state","event"])");
     EXPECT_CONTAINS(json, R"("state_hz":20)");
     EXPECT_CONTAINS(json, R"("events_per_batch":3)");
-    EXPECT_CONTAINS(json, R"("device":{"hwid":"esp32s3-010203040506","hardware_revision":"ESP32-S3FH4R2","chip_model":"ESP32-S3","flash_size_bytes":4194304})");
+    EXPECT_CONTAINS(json, R"("device":{"hwid":"esp32s3-010203040506","hardware_revision":"ESP32-S3FH4R2","chip_model":"ESP32-S3","flash_size_bytes":4194304,"firmware_version":"1.0.0-125-gfb81dde"})");
     EXPECT_CONTAINS(json, R"("recording":{"auto_enabled":true,"rpm_threshold":300,"start_debounce_ms":1000,"stop_debounce_ms":3000})");
 }
 

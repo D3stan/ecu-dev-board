@@ -14,6 +14,7 @@ struct TelemetryDeviceIdentity {
     const char *hardware_revision{"unknown"};
     const char *chip_model{"unknown"};
     std::uint32_t flash_size_bytes{0};
+    const char *firmware_version{""};
 };
 
 struct RecordingConfigSnapshot {

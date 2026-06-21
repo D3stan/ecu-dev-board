@@ -6,7 +6,7 @@ idf_component_register(
         "src/sensor_telemetry_batch_source.cpp"
         "src/telemetry_server.cpp"
     INCLUDE_DIRS "include"
-    REQUIRES telemetry sensors esp_event esp_http_server esp_netif esp_timer esp_wifi esp_hw_support nvs_flash spi_flash spiffs
+    REQUIRES telemetry sensors esp_app_format esp_event esp_http_server esp_netif esp_timer esp_wifi esp_hw_support nvs_flash spi_flash spiffs
 )
 
 target_compile_features(${COMPONENT_LIB} PUBLIC cxx_std_17)

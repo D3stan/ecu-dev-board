@@ -13,6 +13,7 @@
 #include <vector>
 
 #include "esp_check.h"
+#include "esp_app_desc.h"
 #include "esp_event.h"
 #include "esp_flash.h"
 #include "esp_heap_caps.h"
@@ -83,6 +84,7 @@ struct RuntimeDeviceIdentity {
     std::string hardware_revision{"unknown"};
     std::string chip_model{"unknown"};
     std::uint32_t flash_size_bytes{0};
+    std::string firmware_version{};
 };
 
 const char *configured_chip_model_name() {
@@ -141,6 +143,11 @@ RuntimeDeviceIdentity read_device_identity(const TelemetryServerConfig &config) 
         ESP_LOGW(kTag, "failed to read flash size: %s", esp_err_to_name(flash_err));
     }
 
+    const esp_app_desc_t *app_description = esp_app_get_description();
+    if (app_description != nullptr) {
+        identity.firmware_version = app_description->version;
+    }
+
     return identity;
 }
 
@@ -162,6 +169,7 @@ TelemetryJsonSerializerConfig make_serializer_config(const TelemetryServerConfig
     serializer_config.device.hardware_revision = identity.hardware_revision.c_str();
     serializer_config.device.chip_model = identity.chip_model.c_str();
     serializer_config.device.flash_size_bytes = identity.flash_size_bytes;
+    serializer_config.device.firmware_version = identity.firmware_version.c_str();
     serializer_config.recording = recording;
     return serializer_config;
 }

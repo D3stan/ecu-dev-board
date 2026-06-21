@@ -342,7 +342,9 @@ std::string TelemetryJsonSerializer::serialize_capabilities() const {
     out << ",\"chip_model\":";
     write_string(out, config_.device.chip_model);
     out << ",\"flash_size_bytes\":" << config_.device.flash_size_bytes
-        << "},\"recording\":{";
+        << ",\"firmware_version\":";
+    write_string(out, config_.device.firmware_version);
+    out << "},\"recording\":{";
     write_recording_config(out, config_.recording);
     out << '}'
         << '}';
