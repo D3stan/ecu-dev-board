@@ -7,109 +7,51 @@
 }
 
 .ecu-cockpit {
-  --ecu-primary: #00c9a7;
-  --ecu-warning: #ff6b35;
-  --ecu-info: #4fc3f7;
+  /* ECU accent aliases -> unified global tokens */
+  --ecu-primary: var(--accent);
+  --ecu-warning: var(--accent-warning);
+  --ecu-info: var(--accent-info);
 }
 
-.telemetry-status-strip {
+.recording-bar {
   display: flex;
   gap: 0.5rem;
-  overflow-x: auto;
-  padding: 0.125rem 0 0.25rem;
-  scrollbar-width: none;
 }
 
-.telemetry-status-strip::-webkit-scrollbar {
-  display: none;
-}
-
-.status-pill {
+.recording-action {
   align-items: center;
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 999px;
-  color: var(--text-muted);
-  display: inline-flex;
-  flex: 0 0 auto;
-  font-size: 0.68rem;
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.02em;
-  min-height: 1.75rem;
-  padding: 0 0.625rem;
-  text-transform: uppercase;
-}
-
-.status-pill[data-state="connected"] {
-  border-color: rgba(0, 201, 167, 0.45);
-  color: var(--ecu-primary);
-}
-
-.status-pill[data-state="connecting"],
-.status-pill[data-state="reconnecting"],
-.status-pill.warning {
-  border-color: rgba(255, 107, 53, 0.45);
-  color: var(--ecu-warning);
-}
-
-.status-pill[data-state="recording"] {
-  border-color: rgba(79, 195, 247, 0.45);
-  color: var(--ecu-info);
-}
-
-#status-hwid {
-  max-width: 13rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.status-action,
-.status-toggle {
-  align-items: center;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 999px;
+  border-radius: 0.5rem;
   color: var(--text);
-  display: inline-flex;
-  flex: 0 0 auto;
-  font-size: 0.68rem;
-  font-weight: 900;
-  min-height: 1.75rem;
-  padding: 0 0.625rem;
-  text-transform: uppercase;
-}
-
-.status-action {
   cursor: pointer;
+  display: inline-flex;
+  flex: 1;
+  font-size: var(--fs-label);
+  font-weight: var(--fw-extrabold);
+  justify-content: center;
+  letter-spacing: var(--ls-wide);
+  min-height: 2.25rem;
+  text-transform: uppercase;
+  transition: border-color 150ms ease, filter 150ms ease;
 }
 
-.status-action:not(:disabled):hover,
-.status-toggle:hover {
-  border-color: rgba(79, 195, 247, 0.5);
+.recording-action:not(:disabled):hover {
+  border-color: var(--accent-border);
 }
 
-.status-action:disabled {
+.recording-action:disabled {
   color: var(--text-muted);
   cursor: not-allowed;
   opacity: 0.55;
 }
 
-.status-toggle {
-  gap: 0.375rem;
-}
-
-.status-toggle input {
-  accent-color: var(--ecu-primary);
-  margin: 0;
-}
-
 .rpm-hero {
   align-items: center;
   background:
-    radial-gradient(circle at 50% 48%, rgba(0, 201, 167, 0.14), transparent 58%),
+    radial-gradient(circle at 50% 48%, var(--accent-soft), transparent 58%),
     var(--card);
-  border: 1px solid rgba(0, 201, 167, 0.28);
+  border: 1px solid var(--accent-glow);
   border-radius: 0.5rem;
   box-shadow: var(--shadow-lg);
   cursor: pointer;
@@ -121,7 +63,7 @@
 }
 
 .rpm-hero:hover {
-  border-color: rgba(0, 201, 167, 0.6);
+  border-color: var(--accent-border-strong);
   transform: translateY(-1px);
 }
 
@@ -160,25 +102,25 @@
   position: absolute;
   text-align: center;
   top: 50%;
-  transform: translate(-50%, -38%);
+  transform: translate(-50%, -42%);
   width: 78%;
 }
 
 .gauge-value {
   color: var(--text);
-  font-size: 2.6rem;
+  font-size: var(--fs-display);
   font-variant-numeric: tabular-nums;
-  font-weight: 900;
-  letter-spacing: 0;
-  line-height: 1;
+  font-weight: var(--fw-black);
+  letter-spacing: var(--ls-normal);
+  line-height: var(--lh-tight);
 }
 
 .gauge-unit,
 .rpm-subline {
   color: var(--text-muted);
-  font-size: 0.72rem;
-  font-weight: 800;
-  line-height: 1.35;
+  font-size: var(--fs-label);
+  font-weight: var(--fw-extrabold);
+  line-height: var(--lh-snug);
   text-transform: uppercase;
 }
 
@@ -218,7 +160,7 @@
 }
 
 .metric-card:hover {
-  border-color: rgba(0, 201, 167, 0.5);
+  border-color: var(--accent-border-strong);
   box-shadow: var(--shadow-lg);
   transform: translateY(-1px);
 }
@@ -228,11 +170,11 @@
 }
 
 .metric-card.fault-active {
-  border-color: rgba(239, 68, 68, 0.6);
+  border-color: var(--danger-border);
 }
 
 .metric-card.invalid {
-  border-color: rgba(255, 107, 53, 0.6);
+  border-color: var(--accent-warning-border);
 }
 
 .metric-header {
@@ -244,9 +186,9 @@
 
 .metric-title {
   color: var(--text-muted);
-  font-size: 0.72rem;
-  font-weight: 800;
-  line-height: 1.2;
+  font-size: var(--fs-label);
+  font-weight: var(--fw-extrabold);
+  line-height: var(--lh-snug);
   text-transform: uppercase;
 }
 
@@ -259,11 +201,11 @@
 
 .metric-value {
   color: var(--text);
-  font-size: 1.65rem;
+  font-size: var(--fs-value);
   font-variant-numeric: tabular-nums;
-  font-weight: 900;
-  letter-spacing: 0;
-  line-height: 1;
+  font-weight: var(--fw-black);
+  letter-spacing: var(--ls-normal);
+  line-height: var(--lh-tight);
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -271,15 +213,15 @@
 
 .metric-unit {
   color: var(--text-muted);
-  font-size: 0.82rem;
-  font-weight: 800;
+  font-size: var(--fs-body);
+  font-weight: var(--fw-extrabold);
 }
 
 .metric-footer {
   color: var(--text-muted);
-  font-size: 0.68rem;
-  font-weight: 700;
-  line-height: 1.25;
+  font-size: var(--fs-meta);
+  font-weight: var(--fw-bold);
+  line-height: var(--lh-snug);
   min-height: 1.7em;
 }
 
@@ -287,27 +229,28 @@
   border-radius: 999px;
   display: inline-flex;
   flex: 0 0 auto;
-  font-size: 0.58rem;
-  font-weight: 900;
-  line-height: 1;
+  font-size: var(--fs-badge);
+  font-weight: var(--fw-black);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--ls-wide);
   padding: 0.32rem 0.45rem;
   text-transform: uppercase;
   white-space: nowrap;
 }
 
 .telemetry-badge.ok {
-  background: rgba(0, 201, 167, 0.14);
+  background: var(--accent-soft);
   color: var(--ecu-primary);
 }
 
 .telemetry-badge.degraded {
-  background: rgba(255, 107, 53, 0.14);
+  background: var(--accent-warning-soft);
   color: var(--ecu-warning);
 }
 
 .telemetry-badge.invalid,
 .telemetry-badge.fault {
-  background: rgba(239, 68, 68, 0.16);
+  background: var(--danger-soft);
   color: var(--danger);
 }
 
@@ -327,8 +270,8 @@
   box-shadow: var(--shadow);
   color: #ffffff;
   cursor: pointer;
-  font-size: 0.88rem;
-  font-weight: 900;
+  font-size: var(--fs-title);
+  font-weight: var(--fw-black);
   min-height: 3rem;
   text-transform: uppercase;
   transition: filter 150ms ease, transform 150ms ease;

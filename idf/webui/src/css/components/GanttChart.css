@@ -57,7 +57,7 @@
 /* Current day highlight */
 .gantt-day-label.current-day {
   transform: scale(1.5);
-  color: #2ecfff;
+  color: var(--accent-info);
 }
 
 .gantt-time-axis {
@@ -136,11 +136,12 @@
 
 /* Active slot highlight (current time) */
 .gantt-bar.active {
-  background: #2ecfff;
+  background: var(--accent-info);
 }
 
 .gantt-bar.active:hover {
-  background: #1eb8e6;
+  background: var(--accent-info);
+  filter: brightness(0.93);
 }
 
 .bar-time {

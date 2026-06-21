@@ -6,7 +6,6 @@ import { RecentEventsRail } from "../components/RecentEventsRail/RecentEventsRai
 import { AppMode, TelemetryUiConfig } from "../utils/telemetryConfig.js";
 import { Paths } from "../utils/paths.js";
 import {
-  formatDurationMs,
   formatFaultBits,
   formatMetaAge,
   formatNumber,
@@ -27,19 +26,10 @@ export class DashboardPage extends Page {
       title: "ECU Dashboard",
       showBackButton: false,
       bindings: {
-        socketStatus: Paths.SOCKET.STATE,
-        schemaVersion: Paths.CONNECTION.SCHEMA_VERSION,
-        stateHz: Paths.CONNECTION.STATE_HZ,
-        eventsPerBatch: Paths.CONNECTION.EVENTS_PER_BATCH,
         device: Paths.CONNECTION.DEVICE,
         recordingConfig: Paths.RECORDING.CONFIG,
         digitalTwinEnabled: Paths.DIGITAL_TWIN.ENABLED,
-        digitalTwinStatus: Paths.DIGITAL_TWIN.STATUS,
-        digitalTwinError: Paths.DIGITAL_TWIN.ERROR,
         activeRunId: Paths.DIGITAL_TWIN.ACTIVE_RUN_ID,
-        queuedFrames: Paths.DIGITAL_TWIN.QUEUED_FRAMES,
-        lastAckTUs: Paths.DIGITAL_TWIN.LAST_ACK_T_US,
-        lastAckBatchSeq: Paths.DIGITAL_TWIN.LAST_ACK_BATCH_SEQ,
         frameTUs: Paths.TELEMETRY.TIMESTAMP,
         gen: Paths.TELEMETRY.GEN,
         rpm: Paths.TELEMETRY.RPM,
@@ -62,17 +52,13 @@ export class DashboardPage extends Page {
         qsMeta: Paths.TELEMETRY.QS_META,
         mapRequest: Paths.TELEMETRY.MAP_REQUEST,
         mapMeta: Paths.TELEMETRY.MAP_META,
-        knock: Paths.TELEMETRY.KNOCK,
-        transport: Paths.TELEMETRY.TRANSPORT,
-        overflow: Paths.TELEMETRY.OVERFLOW
+        knock: Paths.TELEMETRY.KNOCK
       },
       ...options
     });
 
     this.showDevActions = options.appMode === AppMode.DEVELOPMENT || Boolean(options.showDevActions);
     this.recentEventsRail = null;
-    this.lastFrameReceivedMs = null;
-    this.ageTimerId = null;
   }
 
   onMount() {
@@ -104,7 +90,6 @@ export class DashboardPage extends Page {
 
     const startButton = this.$("#dashboard-recording-start-btn");
     const stopButton = this.$("#dashboard-recording-stop-btn");
-    const autoToggle = this.$("#dashboard-recording-auto-toggle");
 
     if (startButton) {
       this.addEventListener(startButton, "click", () => {
@@ -116,28 +101,15 @@ export class DashboardPage extends Page {
         DigitalTwinClient.stopRecording();
       });
     }
-    if (autoToggle) {
-      this.addEventListener(autoToggle, "change", (event) => {
-        DigitalTwinClient.setAutoRecordEnabled(event.currentTarget.checked);
-      });
-    }
   }
 
   onActivate() {
     super.onActivate();
-    if (this.data.gen) this.lastFrameReceivedMs = Date.now();
     if (this.recentEventsRail) this.recentEventsRail.activate();
-
-    this.ageTimerId = setInterval(() => this._updateFrameAge(), 1000);
     this.update();
   }
 
   onDeactivate() {
-    if (this.ageTimerId) {
-      clearInterval(this.ageTimerId);
-      this.ageTimerId = null;
-    }
-
     if (this.recentEventsRail) this.recentEventsRail.deactivate();
     super.onDeactivate();
   }
@@ -150,33 +122,12 @@ export class DashboardPage extends Page {
     super.onDestroy();
   }
 
-  onDataChange(key) {
-    if (key === "gen") {
-      this.lastFrameReceivedMs = Date.now();
-    }
-  }
-
   renderContent() {
     return `
       <div class="dashboard-container ecu-cockpit">
-        <section class="telemetry-status-strip" aria-label="Telemetry status">
-          <span class="status-pill" id="status-socket">WS --</span>
-          <span class="status-pill">schema v<span id="status-schema">--</span></span>
-          <span class="status-pill"><span id="status-hz">--</span> Hz</span>
-          <span class="status-pill">gen <span id="status-gen">--</span></span>
-          <span class="status-pill">rx <span id="status-age">--</span></span>
-          <span class="status-pill" id="status-transport">transport --</span>
-          <span class="status-pill" id="status-digital-twin">dt --</span>
-          <span class="status-pill" id="status-hwid">hwid --</span>
-          <span class="status-pill">run <span id="status-run">--</span></span>
-          <span class="status-pill">queue <span id="status-queue">0</span></span>
-          <span class="status-pill">ack <span id="status-ack">--</span></span>
-          <button class="status-action" id="dashboard-recording-start-btn" type="button">Start</button>
-          <button class="status-action" id="dashboard-recording-stop-btn" type="button">Stop</button>
-          <label class="status-toggle">
-            <input id="dashboard-recording-auto-toggle" type="checkbox">
-            <span>Auto</span>
-          </label>
+        <section class="recording-bar" aria-label="Telemetry recording">
+          <button class="recording-action" id="dashboard-recording-start-btn" type="button">Start</button>
+          <button class="recording-action" id="dashboard-recording-stop-btn" type="button">Stop</button>
         </section>
 
         <section class="rpm-hero" data-signal="rpm" title="Open RPM history">
@@ -189,7 +140,6 @@ export class DashboardPage extends Page {
               <div class="gauge-value" id="rpm-gauge-value">--</div>
               <div class="gauge-unit">RPM</div>
               <div class="rpm-subline" id="rpm-sync">NOT SYNCHRONIZED</div>
-              <div class="rpm-subline muted" id="rpm-accel">accel -- rpm/s</div>
               <div class="telemetry-badge unknown" id="rpm-health">NO META</div>
             </div>
           </div>
@@ -221,7 +171,7 @@ export class DashboardPage extends Page {
   update() {
     if (!this.el) return;
 
-    this._updateStatusStrip();
+    this._updateRecordingControls();
     this._updateRpmHero();
     this._updateSensorCards();
   }
@@ -242,39 +192,6 @@ export class DashboardPage extends Page {
     `;
   }
 
-  _updateStatusStrip() {
-    setText(this.$("#status-socket"), `WS ${String(this.data.socketStatus || "--").toUpperCase()}`);
-    this.$("#status-socket")?.setAttribute("data-state", String(this.data.socketStatus || "unknown").toLowerCase());
-    setText(this.$("#status-schema"), this.data.schemaVersion || "--");
-    setText(this.$("#status-hz"), this.data.stateHz || "--");
-    setText(this.$("#status-gen"), this.data.gen || "--");
-    this._updateFrameAge();
-
-    const transport = this.data.transport || {};
-    const hasTransportIssue = Number(transport.dropped_frames) > 0 || Number(transport.send_errors) > 0;
-    const label = hasTransportIssue
-      ? `transport drop ${transport.dropped_frames || 0} err ${transport.send_errors || 0}`
-      : "transport OK";
-
-    const transportEl = this.$("#status-transport");
-    setText(transportEl, label);
-    transportEl?.classList.toggle("warning", hasTransportIssue);
-
-    const bridgeEl = this.$("#status-digital-twin");
-    const bridgeLabel = this.data.digitalTwinError
-      ? `dt ${this.data.digitalTwinStatus || "error"}`
-      : `dt ${this.data.digitalTwinStatus || "--"}`;
-    setText(bridgeEl, bridgeLabel);
-    bridgeEl?.classList.toggle("warning", Boolean(this.data.digitalTwinError));
-    bridgeEl?.setAttribute("data-state", String(this.data.digitalTwinStatus || "unknown").toLowerCase());
-
-    setText(this.$("#status-hwid"), `hwid ${this.data.device?.hwid || "--"}`);
-    setText(this.$("#status-run"), this.data.activeRunId || "--");
-    setText(this.$("#status-queue"), this.data.queuedFrames ?? 0);
-    setText(this.$("#status-ack"), this.data.lastAckTUs ?? this.data.lastAckBatchSeq ?? "--");
-    this._updateRecordingControls();
-  }
-
   _updateRecordingControls() {
     const enabled = !!this.data.digitalTwinEnabled;
     const active = !!this.data.activeRunId;
@@ -282,29 +199,12 @@ export class DashboardPage extends Page {
 
     setDisabled(this.$("#dashboard-recording-start-btn"), !enabled || active || !hasHwid);
     setDisabled(this.$("#dashboard-recording-stop-btn"), !enabled || !active);
-
-    const autoToggle = this.$("#dashboard-recording-auto-toggle");
-    if (autoToggle) {
-      autoToggle.checked = !!this.data.recordingConfig?.auto_enabled;
-      autoToggle.disabled = !enabled;
-    }
-  }
-
-  _updateFrameAge() {
-    const ageEl = this.$("#status-age");
-    if (!ageEl) return;
-    if (!this.lastFrameReceivedMs) {
-      ageEl.textContent = "--";
-      return;
-    }
-    ageEl.textContent = formatDurationMs(Date.now() - this.lastFrameReceivedMs);
   }
 
   _updateRpmHero() {
     const rpm = Number(this.data.rpm) || 0;
     setText(this.$("#rpm-gauge-value"), formatRpm(rpm));
     setText(this.$("#rpm-sync"), this.data.rpmSynchronized ? "SYNCHRONIZED" : "NOT SYNCHRONIZED");
-    setText(this.$("#rpm-accel"), `accel ${formatSigned(this.data.rpmAccel, 0)} rpm/s`);
     setBadge(this.$("#rpm-health"), this.data.rpmMeta);
 
     const fill = this.$("#rpm-gauge-fill");

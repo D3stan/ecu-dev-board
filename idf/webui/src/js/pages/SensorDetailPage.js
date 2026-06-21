@@ -4,9 +4,9 @@ import { PageTopBar } from "../components/PageTopBar/PageTopBar.js";
 import { TelemetryHistoryManager } from "../managers/TelemetryHistoryManager.js";
 import { Paths } from "../utils/paths.js";
 import {
-  formatDurationMs,
   formatFaultBits,
   formatMetaAge,
+  formatMicroseconds,
   formatNumber,
   formatPercent,
   formatRpm,
@@ -16,9 +16,9 @@ import {
 } from "../utils/telemetryFormat.js";
 
 const RANGES = {
+  "15s": 15,
   "30s": 30,
-  "2m": 120,
-  "10m": 600
+  "1m": 60
 };
 
 const SIGNALS = {
@@ -116,8 +116,9 @@ export class SensorDetailPage extends Page {
     });
 
     this.signal = "rpm";
-    this.rangeKey = "2m";
+    this.rangeKey = "30s";
     this.showEventMarkers = true;
+    this.showYAxisLabels = true;
     this.paused = false;
     this.pageTopBar = null;
   }
@@ -135,7 +136,7 @@ export class SensorDetailPage extends Page {
   onBindEvents() {
     this.$$("[data-range]").forEach((button) => {
       this.addEventListener(button, "click", () => {
-        this.rangeKey = button.getAttribute("data-range") || "2m";
+        this.rangeKey = button.getAttribute("data-range") || "30s";
         this.paused = false;
         this._refresh();
       });
@@ -145,6 +146,14 @@ export class SensorDetailPage extends Page {
     if (markerToggle) {
       this.addEventListener(markerToggle, "change", () => {
         this.showEventMarkers = markerToggle.checked;
+        this._drawChart();
+      });
+    }
+
+    const yAxisToggle = this.$("#y-axis-toggle");
+    if (yAxisToggle) {
+      this.addEventListener(yAxisToggle, "change", () => {
+        this.showYAxisLabels = yAxisToggle.checked;
         this._drawChart();
       });
     }
@@ -197,19 +206,25 @@ export class SensorDetailPage extends Page {
         <section class="history-chart-card">
           <div class="chart-toolbar">
             <div class="range-tabs">
-              <button type="button" data-range="30s">30s</button>
-              <button type="button" data-range="2m" class="active">2min</button>
-              <button type="button" data-range="10m">10min</button>
+              <button type="button" data-range="15s">15s</button>
+              <button type="button" data-range="30s" class="active">30s</button>
+              <button type="button" data-range="1m">1m</button>
             </div>
             <button type="button" class="chart-pause-btn" id="history-pause-btn">Pause</button>
           </div>
 
           <canvas class="history-chart" id="history-chart"></canvas>
 
-          <label class="chart-toggle">
-            <input type="checkbox" id="event-markers-toggle" checked>
-            <span>Event markers</span>
-          </label>
+          <div class="chart-toggles">
+            <label class="chart-toggle">
+              <input type="checkbox" id="event-markers-toggle" checked>
+              <span>Event markers</span>
+            </label>
+            <label class="chart-toggle">
+              <input type="checkbox" id="y-axis-toggle" checked>
+              <span>Y-axis labels</span>
+            </label>
+          </div>
         </section>
 
         <section class="telemetry-panel">
@@ -254,10 +269,10 @@ export class SensorDetailPage extends Page {
       ["health", meta?.health || "--"],
       ["quality", meta?.quality || "--"],
       ["seq", meta?.seq ?? "--"],
-      ["acquired_at_us", meta?.acquiredAtUs ?? "--"],
+      ["acquired_at_us", meta?.acquiredAtUs != null ? formatMicroseconds(meta.acquiredAtUs) : "--"],
       ["age", formatMetaAge(frameTUs, meta)],
       ["fault_bits", meta ? formatFaultBits(meta.faultBits) : "--"],
-      ["frame_t_us", frameTUs || "--"]
+      ["frame_t_us", frameTUs != null ? formatMicroseconds(frameTUs) : "--"]
     ];
 
     grid.innerHTML = rows.map(([label, value]) => `
@@ -273,7 +288,7 @@ export class SensorDetailPage extends Page {
     if (!canvas) return;
 
     const config = SIGNALS[this.signal];
-    const rangeSeconds = RANGES[this.rangeKey] || RANGES["2m"];
+    const rangeSeconds = RANGES[this.rangeKey] || RANGES["30s"];
     const samples = TelemetryHistoryManager.getSeries(config.history, rangeSeconds);
     const context = prepareCanvas(canvas);
 
@@ -304,6 +319,10 @@ export class SensorDetailPage extends Page {
 
     if (this.showEventMarkers) {
       drawEventMarkers(context, canvas, TelemetryHistoryManager.getEvents(rangeSeconds), minTime, maxTime);
+    }
+
+    if (this.showYAxisLabels) {
+      drawYAxisLabels(context, canvas, yMin, yMax, config.unit);
     }
   }
 }
@@ -354,7 +373,7 @@ function drawSeries(context, canvas, points, minTime, maxTime, yMin, yMax) {
   const height = canvas.clientHeight;
   const timeSpan = Math.max(1, maxTime - minTime);
 
-  context.strokeStyle = "#00c9a7";
+  context.strokeStyle = getCss("--accent", "#00c9a7");
   context.lineWidth = 2;
   context.beginPath();
 
@@ -373,7 +392,7 @@ function drawEventMarkers(context, canvas, events, minTime, maxTime) {
   const height = canvas.clientHeight;
   const timeSpan = Math.max(1, maxTime - minTime);
 
-  context.strokeStyle = "#ff6b35";
+  context.strokeStyle = getCss("--accent-warning", "#ff6b35");
   context.lineWidth = 1;
 
   events.forEach((event) => {
@@ -384,6 +403,27 @@ function drawEventMarkers(context, canvas, events, minTime, maxTime) {
     context.lineTo(x, height);
     context.stroke();
   });
+}
+
+// Minimal Y-axis labels overlaid at the inner gridlines (25/50/75% of the range).
+// The 0% / 100% bounds are implied by the chart edges. Unit is shown on the top label only.
+function drawYAxisLabels(context, canvas, yMin, yMax, unit) {
+  const width = canvas.clientWidth;
+  const height = canvas.clientHeight;
+  const span = yMax - yMin;
+  if (!Number.isFinite(span) || span <= 0) return;
+
+  context.fillStyle = getCss("--text-muted", "#8b949e");
+  context.font = `600 10px ${getCss("--font-sans", "sans-serif")}`;
+  context.textAlign = "left";
+  context.textBaseline = "alphabetic";
+
+  for (let i = 1; i < 4; i += 1) {
+    const y = (height / 4) * i;
+    const value = yMax - span * (i / 4);
+    const suffix = i === 1 && unit ? (unit === "%" ? unit : ` ${unit}`) : "";
+    context.fillText(`${formatNumber(value, 0)}${suffix}`, 4, y - 3);
+  }
 }
 
 function toPlotValue(value, signal) {

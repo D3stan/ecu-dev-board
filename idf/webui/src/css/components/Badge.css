@@ -49,23 +49,23 @@
 
 /* Connected / Success State */
 .badge.connected {
-  background: rgba(59, 130, 246, 0.2);
-  border-color: rgba(59, 130, 246, 0.3);
-  color: #2563eb;
+  background: var(--success-soft);
+  border-color: var(--success);
+  color: var(--success);
 }
 
 /* Connecting / Reconnecting / Warning State */
 .badge.connecting {
-  background: rgba(245, 158, 11, 0.2);
-  border-color: rgba(245, 158, 11, 0.3);
-  color: #d97706;
+  background: var(--warning-soft);
+  border-color: var(--warning);
+  color: var(--warning);
 }
 
 /* Error / Disconnected State */
 .badge.error {
-  background: rgba(239, 68, 68, 0.2);
-  border-color: rgba(239, 68, 68, 0.3);
-  color: #dc2626;
+  background: var(--danger-soft);
+  border-color: var(--danger);
+  color: var(--danger);
 }
 
 .badge.error .badge-icon {
@@ -74,9 +74,9 @@
 
 /* On State (Pump) */
 .badge.on {
-  background: rgba(16, 185, 129, 0.2);
-  border-color: rgba(16, 185, 129, 0.4);
-  color: #059669;
+  background: var(--success-soft);
+  border-color: var(--success);
+  color: var(--success);
 }
 .badge.on .badge-icon {
   filter: invert(46%) sepia(77%) saturate(502%) hue-rotate(103deg) brightness(93%) contrast(96%);
@@ -86,9 +86,9 @@
 
 /* Off State (Pump) */
 .badge.off {
-  background: rgba(100, 116, 139, 0.2);
-  border-color: rgba(100, 116, 139, 0.3);
-  color: #475569;
+  background: var(--neutral-soft);
+  border-color: var(--neutral-soft);
+  color: var(--text-muted);
 }
 
 .badge.off .badge-icon {
@@ -98,9 +98,9 @@
 
 /* Warning State (Low Pressure) */
 .badge.warning {
-  background: rgba(245, 158, 11, 0.2);
-  border-color: rgba(245, 158, 11, 0.3);
-  color: #d97706;
+  background: var(--warning-soft);
+  border-color: var(--warning);
+  color: var(--warning);
 }
 
 .badge.warning .badge-icon {
@@ -109,9 +109,9 @@
 
 /* Testing State (Pump) */
 .badge.testing {
-  background: rgba(59, 130, 246, 0.2);
-  border-color: rgba(59, 130, 246, 0.3);
-  color: #2563eb;
+  background: var(--accent-info-soft);
+  border-color: var(--accent-info);
+  color: var(--accent-info);
 }
 
 .badge.testing .badge-icon {
@@ -119,9 +119,9 @@
 }
 
 .pump-badge.testing { /* Testing (blue) */
-  background: rgba(59, 130, 246, 0.2);
-  border-color: rgba(59, 130, 246, 0.3);
-  color: #2563eb;
+  background: var(--accent-info-soft);
+  border-color: var(--accent-info);
+  color: var(--accent-info);
 }
 
 
@@ -159,30 +159,30 @@
   justify-content: center;
   padding: 0.35rem 0.75rem;
   border-radius: 10rem;
-  font-size: 0.7rem;
-  font-weight: 800;
-  letter-spacing: 0.05em;
+  font-size: var(--fs-meta);
+  font-weight: var(--fw-extrabold);
+  letter-spacing: var(--ls-wide);
   border: 1px solid transparent;
   transition: all 0.3s ease;
-  line-height: 1;
+  line-height: var(--lh-tight);
   user-select: none;
 }
 
 .connection-status-badge.connected {
-  background: rgba(16, 185, 129, 0.15);
-  border-color: rgba(16, 185, 129, 0.25);
-  color: #10b981;
+  background: var(--success-soft);
+  border-color: var(--success);
+  color: var(--success);
 }
 
 .connection-status-badge.disconnected {
-  background: rgba(239, 68, 68, 0.15);
-  border-color: rgba(239, 68, 68, 0.25);
-  color: #ef4444;
+  background: var(--danger-soft);
+  border-color: var(--danger);
+  color: var(--danger);
 }
 
 .connection-status-badge.connecting,
 .connection-status-badge.reconnecting {
-  background: rgba(245, 158, 11, 0.15);
-  border-color: rgba(245, 158, 11, 0.25);
-  color: #f59e0b;
+  background: var(--warning-soft);
+  border-color: var(--warning);
+  color: var(--warning);
 }
