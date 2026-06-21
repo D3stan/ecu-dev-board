@@ -4,7 +4,7 @@
 
 Il progetto consiste nello sviluppo di una Electronic Control Unit per motocicli monocilindrici a carburatore, basata sull'SoC **ESP32-S3**, particolarmente adatto alle applicazioni IoT grazie alla connettività Wi-Fi integrata. Il firmware è sviluppato in ambiente nativo **ESP-IDF** su **FreeRTOS** per garantire maggior determinismo real-time rispetto al framework Arduino. 
 
-L'obiettivo di questo prototipo è concentrato sull'acquisizione dei sensori e sulla telemetria, di conseguenza il sistema non implementa le logiche di controllo attivo del motore.  
+Questo prototipo si concentra sull'acquisizione dei sensori e sulla telemetria, di conseguenza il sistema non implementa le logiche di controllo attivo del motore.  
 Per simulare i segnali fisici senza un motore reale viene utilizzato un secondo microcontrollore **ESP32-S2**. La ECU legge i dati emulati generati da quest'ultimo e li comunica al client che li mostra tramite una WebApp, che a sua volta può condividerli inoltrandoli al server remoto per l'archiviazione e la gestione del Digital Twin.
 L'emulatore di segnali può essere controllato sia dalla propria WebApp che dalla lettura di segnali fisici come potenziometri o pulsanti. 
 
@@ -239,7 +239,7 @@ Il principio guida dell'ingestione è che nessun dato accettato vada perso. I ba
 
 ## Caching e memoria storica
 
-Una volta ingeriti, i dati seguono due destini complementari. Confluiscono in **TimescaleDB** che ne costituisce la memoria storica completa e interrogabile; parallelamente, l'ultimo stato di ciascuna centralina viene mantenuto in una cache **Redis**, che risponde immediatamente alla domanda "cosa sta facendo ora questa ECU?"" senza gravare sul database. La consultazione riflette la stessa dualità: un accesso a bassissima latenza allo stato corrente e uno, orientato all'analisi, ai dati storici di una sessione registrata.
+Una volta ingeriti, i dati seguono due destini complementari. Confluiscono in **TimescaleDB** che ne costituisce la memoria storica completa e interrogabile; parallelamente, l'ultimo stato di ciascuna centralina viene mantenuto in una cache **Redis**, che risponde immediatamente alla domanda "cosa sta facendo ora questa ECU?" senza gravare sul database. La consultazione riflette la stessa dualità: un accesso a bassissima latenza allo stato corrente e uno, orientato all'analisi, ai dati storici di una sessione registrata.
 
 ## Digital Twin
 
@@ -267,7 +267,7 @@ La scelta è deliberatamente *hardware-in-the-loop*: l'emulatore non simula i da
 
 ## Determinismo e controllo
 
-A differenza della centralina, costruita su FreeRTOS, il simulatore adotta un *superloop* con da interrupt hardware. Una WebApp dedicata ne completa il ruolo di strumento di test, permettendo di forzare manualmente i parametri e di simulare guasti, come un sovrariscaldamento dei gas di scarico, per verificare la reazione della ECU e i suoi stati di allarme.
+A differenza della centralina, costruita su FreeRTOS, il simulatore adotta un *superloop* con interrupt hardware. Una WebApp dedicata ne completa il ruolo di strumento di test, permettendo di forzare manualmente i parametri e di simulare guasti, come un surriscaldamento dei gas di scarico, per verificare la reazione della ECU e i suoi stati di allarme.
 
 
 # Testing e Risultati
@@ -276,7 +276,7 @@ A differenza della centralina, costruita su FreeRTOS, il simulatore adotta un *s
 
 Il firmware è organizzato in modo che la logica di acquisizione e telemetria sia indipendente dai driver hardware dell'ESP-IDF: questa separazione permette di verificarla su un normale computer, senza la centralina. Una suite di **unit test**, compilata ed eseguita con CMake/CTest, alimenta i servizi reali con sorgenti fittizie che iniettano campioni deterministici e ne controlla il comportamento. Allo stesso modo sono coperti le code di eventi a dimensione limitata con i relativi contatori di overflow, la composizione dello snapshot di telemetria e la serializzazione dei frame con cui la centralina dichiara il proprio contratto al client.
 
-La stessa logica viene poi esercitata sull'ESP32-S3 reale tramite una sorgente dati software: ogni ingresso può essere commutato da simulato a reale in fase di compilazione consentendo test dei sensori fisici mentre gli altri restano simulati.
+La stessa logica viene poi esercitata sull'ESP32-S3 reale tramite una sorgente dati software: ogni ingresso può essere commutato da simulato a reale in fase di compilazione consentendo il test dei sensori fisici mentre gli altri restano simulati.
 
 
 ## Test server
