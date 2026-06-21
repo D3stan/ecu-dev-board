@@ -8,6 +8,8 @@ L'obiettivo di questo prototipo è concentrato sull'acquisizione dei sensori e s
 Per simulare i segnali fisici senza un motore reale viene utilizzato un secondo microcontrollore **ESP32-S2**. La ECU legge i dati emulati generati da quest'ultimo e li comunica al client che li mostra tramite una WebApp, che a sua volta può condividerli inoltrandoli al server remoto per l'archiviazione e la gestione del Digital Twin.
 L'emulatore di segnali può essere controllato sia dalla propria WebApp che dalla lettura di segnali fisici come potenziometri o pulsanti. 
 
+<!--
+
 # Requisiti di Sistema
 
 ## Segnali acquisiti
@@ -25,79 +27,104 @@ L'emulatore di segnali può essere controllato sia dalla propria WebApp che dall
 - Protocollo di trasporto: **WebSocket** (frame JSON UTF-8), multiclient.
 - Connettività: Wi-Fi Station mode.
 
+-->
 
 # Architettura del Sistema
 
-Il sistema è composto da tre blocchi principali:
+Il sistema è composto da quattro blocchi principali:
 
-.mermaid caption:{Architettura del sistema}
-    flowchart TB
-        subgraph EMULATOR["Emulatore ESP32-S2"]
-            direction LR
-            SIM["Simulatore motore<br/>(superloop + interrupt)"]
-            WEBUI_SIM["Web UI simulatore<br/>Override parametri"]
-            SIM --> WEBUI_SIM
-        end
+.css
+    .architecture-diagram {
+        width: 100%;
+    }
 
-        subgraph ECU["ECU ESP32-S3"]
-            direction LR
-            S["Sensori fisici<br/>(TPS, Pick-Up, QS, Map Switch)"]
-            FW["Core 0: acquisizione segnali<br/>Core 1: telemetria, WebApp"]
-            WS_ECU["WebSocket server"]
-            S --> FW --> WS_ECU
-        end
+    .architecture-diagram figure,
+    .architecture-diagram .mermaid {
+        width: 100%;
+        max-width: none;
+    }
 
-        subgraph CLIENT["Client (Browser / App)"]
-            direction LR
-            UI["Web UI<br/>Dashboard live<br/>Gestione connessione"]
-            GW["Gateway Server<br/>Forwarding telemetria<br/>via WebSocket /ws/v1/telemetry"]
-            UI --> GW
-        end
+    .architecture-diagram svg {
+        display: block;
+        width: 100% !important;
+        height: auto !important;
+        max-width: none !important;
+    }
 
-        subgraph SERVER["Server (Docker)"]
-            direction LR
-            BE["Backend FastAPI<br/>(Python)"]
-            DB["TimescaleDB<br/>(PostgreSQL + estensione)"]
-            CACHE["Redis<br/>(stato ECU live)"]
-            BE --> DB
-            BE --> CACHE
-        end
 
-        EMULATOR -- "Segnali fisici (GPIO)" --> ECU
-        ECU -- "JSON telemetria (locale)" --> CLIENT
-        CLIENT -- "WebSocket /ws/v1/telemetry" --> SERVER
+.container fullwidth:{yes} classname:{architecture-diagram}
+    .mermaid caption:{Architettura del sistema}
+        flowchart TB
+            subgraph EMULATOR["Emulatore ESP32-S2"]
+                direction LR
+                SIM["Simulatore motore"]
+                WEBUI_SIM["WebApp<br/>Override parametri"]
+                SIM --> WEBUI_SIM
+            end
+
+            subgraph ECU["ECU ESP32-S3"]
+                direction LR
+                S["Sensori fisici<br/>(TPS, Pick-Up, QS, Map Switch)"]
+                FW["Core 0: acquisizione segnali<br/>Core 1: telemetria, WebApp"]
+                WS_ECU["WebSocket server"]
+                S --> FW --> WS_ECU
+            end
+
+            subgraph CLIENT["Client (Browser)"]
+                direction LR
+                UI["WebApp<br/>Dashboard live"]
+                GW["Forwarding telemetria al server"]
+                UI --> GW
+            end
+
+            subgraph SERVER["Server"]
+                direction LR
+                BE["Backend FastAPI"]
+                DB["TimescaleDB"]
+                CACHE["Redis"]
+                VUE["Frontend Vue"]
+                BE --> DB
+                BE --> CACHE
+                BE --> VUE
+            end
+
+            EMULATOR -- "Segnali fisici" --> ECU
+            ECU -- "WebSocket locale" --> CLIENT
+            CLIENT -- "WebSocket remoto" --> SERVER
+
 
 # Acquisizione Sensori
 
 ## Sensori
 
-- **Pick-Up:** Segnale quadro condizionato, cattura falling-edge via MCPWM su GPIO21. Genera interrupt su Core 0 per calcolo RPM, periodo e accelerazione angolare.
-- **TPS:** ADC1_CH6 con calibrazione ESP-IDF in millivolt, convertito in permille (0–1000). Supporta fallback con flag `fallback_used`.
-- **Quick-Shifter:** Ingresso digitale attivo-basso (GPIO9), con normalizzazione di dominio.
-- **Map Switch:** Ingresso digitale (GPIO14) con debounce, segnala richiesta fisica `Primary` / `Secondary` (non la mappa attiva effettiva).
+- **Pick-Up:** onda quadra a Frequenza variabile, catturata come fronte di discesa via MCPWM. Genera interrupt per il calcolo degli RPM, periodo e accelerazione angolare.
+- **TPS:** segnale analogico convertito in permille (0-1000).
+- **Quick-Shifter:** Ingresso digitale che segnala l'intenzione del cambio marcia.
+- **Map Switch:** Ingresso digitale che segnala la richiesta della seconda mappatura.
 
-## Sensori pendenti (hardware non ancora confermato)
+## Sensori predisposti
+I seguenti sensori non sono stati fisicamente testati in quanto verranno implementati su un hardware futuro, ma sono comunque stati predisposti per essere acquisiti dal sistema. La loro gestione avviene con un chip dedicato, ognuno dei quali comunica con la centralina via SPI.
 
-- **EGT:** termocoppia via MAX31856 (SPI), pin da confermare.
-- **Water Temperature:** NTC con partitore, ADC da confermare.
-- **Knock:** TPIC8101 via SPI, finestra di acquisizione sincrona al pick-up.
+- **EGT:** termocoppia per la temperatura dei gas di scarico.
+- **Water Temperature:** NTC posizionato nel circuito di raffreddamento del motore.
+- **Knock:** sensore di battiti piezoelettrico posizionato sul cilindro del motore.
 
 ## Elaborazione e qualità
 
-Ogni lettura è accompagnata da metadati di salute:
+Ogni lettura è accompagnata da metadati specifici per descriverne lo stato e le caratteristiche:
 
 | Campo | Significato |
 |---|---|
-| `acquired_at` | Timestamp monotono µs (ECU authoritative) |
+| `acquired_at` | Timestamp monotono in µs |
 | `sequence` | Sequenza per rilevare valori saltati |
 | `valid_for_control` | Usabilità per logica di controllo |
-| `health` | `Valid`, `Stale`, `Failed`, `Degraded`, … |
+| `health` | `Valid`, `Stale`, `Failed`, `Degraded`, ... |
 | `quality` | `Good`, `Suspect`, `Bad` |
-| `fault_bits` | Bitset di fault attivi |
+| `fault_bits` | Maschera binaria di fault attivi |
 
 # Telemetria e Comunicazione
 
-## Struttura del batch
+## Struttura
 
 Il collettore (`SensorTelemetryCollector`) produce a ogni chiamata un `TelemetryBatch`:
 
