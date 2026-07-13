@@ -5,6 +5,7 @@
 #include "driver/rmt_encoder.h"
 #include "driver/rmt_tx.h"
 #include "esp_err.h"
+#include "esp_timer.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "hal/rmt_types.h"
@@ -12,6 +13,7 @@
 #include "test-bench_config.h"
 
 #define US_PER_SECOND 1000000U
+#define US_PER_MILLISECOND 1000U
 #define FIRE_DURATION_TICKS \
     ((RMT_RESOLUTION_HZ / US_PER_SECOND) * FIRE_DURATION_US)
 #define RMT_DURATION_MAX 32767U
@@ -48,7 +50,6 @@ static void button_isr_handler(void *arg)
     (void)arg;
     BaseType_t higher_priority_task_woken = pdFALSE;
 
-    gpio_intr_disable(BUTTON_GPIO);
     vTaskNotifyGiveFromISR(s_fire_task_handle, &higher_priority_task_woken);
     if (higher_priority_task_woken == pdTRUE) {
         portYIELD_FROM_ISR();
@@ -70,17 +71,36 @@ static void transmit_fire_pulse(void)
 
 static void wait_for_stable_button_release(void)
 {
-    const TickType_t debounce_ticks = pdMS_TO_TICKS(BUTTON_DEBOUNCE_MS);
+    const int64_t debounce_us = BUTTON_DEBOUNCE_MS * US_PER_MILLISECOND;
 
-    vTaskDelay(debounce_ticks);
     for (;;) {
         while (gpio_get_level(BUTTON_GPIO) == 0) {
-            vTaskDelay(debounce_ticks);
+            ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
         }
 
-        vTaskDelay(debounce_ticks);
-        if (gpio_get_level(BUTTON_GPIO) != 0) {
-            return;
+        int64_t high_since_us = esp_timer_get_time();
+        while (gpio_get_level(BUTTON_GPIO) != 0) {
+            int64_t remaining_us = debounce_us -
+                                   (esp_timer_get_time() - high_since_us);
+            if (remaining_us <= 0) {
+                if (ulTaskNotifyTake(pdTRUE, 0) != 0) {
+                    high_since_us = esp_timer_get_time();
+                    continue;
+                }
+                return;
+            }
+
+            TickType_t wait_ticks = pdMS_TO_TICKS(
+                (remaining_us + US_PER_MILLISECOND - 1) /
+                US_PER_MILLISECOND);
+            if (wait_ticks == 0) {
+                wait_ticks = 1;
+            }
+
+            if (ulTaskNotifyTake(pdTRUE, wait_ticks) != 0 &&
+                gpio_get_level(BUTTON_GPIO) != 0) {
+                high_since_us = esp_timer_get_time();
+            }
         }
     }
 }
@@ -91,9 +111,12 @@ static void fire_task(void *arg)
 
     for (;;) {
         ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+        if (gpio_get_level(BUTTON_GPIO) != 0) {
+            continue;
+        }
+
         transmit_fire_pulse();
         wait_for_stable_button_release();
-        ESP_ERROR_CHECK(gpio_intr_enable(BUTTON_GPIO));
     }
 }
 
@@ -160,7 +183,7 @@ static void configure_button(void)
         .mode = GPIO_MODE_INPUT,
         .pull_up_en = GPIO_PULLUP_ENABLE,
         .pull_down_en = GPIO_PULLDOWN_DISABLE,
-        .intr_type = GPIO_INTR_NEGEDGE,
+        .intr_type = GPIO_INTR_ANYEDGE,
     };
 
     ESP_ERROR_CHECK(gpio_config(&button_config));
