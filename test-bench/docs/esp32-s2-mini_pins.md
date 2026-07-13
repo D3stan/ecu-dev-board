@@ -37,9 +37,14 @@ If a peripheral interface does not have priority 2 to 4 pins, such as USB Serial
 
 | GPIO | Assignment | Direction | Active/idle state | Notes |
 |---:|---|---|---|---|
-| GPIO0 | Push button | Input | Active low; internal pull-up | Any-edge interrupt with 20 ms stable-release debounce. GPIO0 is a strapping pin: holding it low during reset may enter ROM download mode. |
-| GPIO4 | Fire output | Output | Active high; idle low with pull-down | Produces one 100 microsecond hardware-timed pulse per debounced button press. |
-| GPIO15 | Fire LED | Output | Active high; idle low | Mirrors GPIO4 for the full 100 microsecond pulse. |
+| GPIO0 | Manual fire button | Input | Active low; internal pull-up | Any-edge interrupt with 20 ms stable-release debounce. Manual firing is allowed only after 500 ms without a pickup edge. GPIO0 is a strapping pin: holding it low during reset may enter ROM download mode. |
+| GPIO1 | TPS potentiometer | Input | ADC, nominally 0 V to 3.3 V | ADC1 input sampled at 30 Hz. The median of the latest five readings is used as TPS. |
+| GPIO2 | MAX9924 pickup | Input | Falling-edge timing event; external pull-up | One event per crankshaft revolution. The initial reference is 40 degrees BTDC and is configurable. Rising edges are ignored. |
+| GPIO4 | CDI fire output | Output | Active high; idle low | Produces the configured 500 microsecond GPTimer-controlled pulse. |
+| GPIO15 | Fire LED | Output | Active high; idle low | Mirrors GPIO4 for the full fire pulse through the same dedicated GPIO write. |
+| GPIO21 | RGB status red | Output | Active high | On for no pickup signal and during acquisition. |
+| GPIO33 | RGB status green | Output | Active high | On during acquisition and synchronized running. Available with the current DIO flash and no-PSRAM configuration. |
+| GPIO34 | RGB status blue | Output | Active high | Reserved and currently held low. Available with the current DIO flash and no-PSRAM configuration. |
 
 | Pin No. | Pin Name | Pin Type | Pin Providing Power | Pin Settings At Reset | Pin Settings After Reset | RTC IO MUX Function | Analog Function | IO MUX Function |
 |---:|---|---|---|---|---|---|---|---|

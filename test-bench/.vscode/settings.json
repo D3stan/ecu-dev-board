@@ -1,0 +1,5 @@
+{
+  "idf.customExtraVars": {},
+  "idf.port": "/dev/tty.usbmodem01",
+  "idf.flashType": "UART"
+}
