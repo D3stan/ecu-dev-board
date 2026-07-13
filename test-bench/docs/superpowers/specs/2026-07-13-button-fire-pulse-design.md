@@ -31,12 +31,13 @@ channel runs at 1 MHz, making one RMT tick equal to one microsecond, and sends a
 single symbol that holds the output high for 100 ticks before returning it low.
 Both channels use idle-low output configuration.
 
-A GPIO falling-edge ISR handles the button. It disables further GPIO0
-interrupts and sends a direct task notification to a dedicated high-priority
-FreeRTOS worker. The worker queues the two RMT transmissions, waits for both to
-complete, resets the synchronization manager, and performs button re-arming.
-This keeps the GPIO ISR short and moves non-ISR-safe RMT queue operations into
-task context.
+A GPIO any-edge ISR handles the button by sending a direct task notification to
+a dedicated high-priority FreeRTOS worker. The worker accepts a low level as a
+press, queues the two RMT transmissions, waits for both to complete, resets the
+synchronization manager, and then requires 20 milliseconds of continuous high
+time before accepting another press. A monotonic ESP timer measures this
+interval, and every bounce edge restarts it. This keeps the GPIO ISR short and
+moves non-ISR-safe RMT queue operations into task context.
 
 ## Components
 
@@ -78,21 +79,22 @@ pulse behavior, and the GPIO0 bootstrapping warning.
 
 ## Event Flow
 
-1. GPIO0 receives a falling edge when the button is pressed.
-2. The ISR disables the GPIO0 interrupt, notifies the worker task, and yields if
-   a higher-priority task was awakened.
+1. GPIO0 receives an edge and the ISR notifies the worker task, yielding if a
+   higher-priority task was awakened.
+2. The worker ignores high release levels and accepts a low level as a press.
 3. The worker queues the identical pulse symbol on GPIO4 and GPIO15. The RMT
    synchronization manager releases both channels together.
 4. Hardware holds both outputs high for 100 microseconds and then drives them
    low.
 5. The worker waits for both transmissions to finish and resets the RMT
    synchronization manager for the next press.
-6. The worker applies a 20 millisecond debounce delay. It waits for GPIO0 to be
-   released, then requires it to remain high for the debounce interval before
-   re-enabling the falling-edge interrupt.
+6. The worker waits for GPIO0 to be released, then uses `esp_timer_get_time()`
+   and any-edge notifications to require 20 milliseconds of continuous high
+   time. Every intervening edge restarts the interval.
 
-Button edges received while GPIO0's interrupt is disabled are intentionally
-ignored. This guarantees one pulse per completed press-and-release cycle.
+GPIO0 remains interruptible during debounce, so short release bounces cannot be
+missed between task samples. This guarantees one pulse per completed
+press-and-release cycle.
 
 ## Verification
 

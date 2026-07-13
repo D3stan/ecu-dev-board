@@ -33,6 +33,14 @@ If a peripheral interface does not have priority 2 to 4 pins, such as USB Serial
 
 **Board-specific note (ECU dev board):** GPIO18 has a 10K pullup resistor.
 
+#### Test-bench firmware assignments
+
+| GPIO | Assignment | Direction | Active/idle state | Notes |
+|---:|---|---|---|---|
+| GPIO0 | Push button | Input | Active low; internal pull-up | Any-edge interrupt with 20 ms stable-release debounce. GPIO0 is a strapping pin: holding it low during reset may enter ROM download mode. |
+| GPIO4 | Fire output | Output | Active high; idle low with pull-down | Produces one 100 microsecond hardware-timed pulse per debounced button press. |
+| GPIO15 | Fire LED | Output | Active high; idle low | Mirrors GPIO4 for the full 100 microsecond pulse. |
+
 | Pin No. | Pin Name | Pin Type | Pin Providing Power | Pin Settings At Reset | Pin Settings After Reset | RTC IO MUX Function | Analog Function | IO MUX Function |
 |---:|---|---|---|---|---|---|---|---|
 | 1 | VDDA | Power |  |  |  |  |  |  |

@@ -8,6 +8,8 @@
 
 **Tech Stack:** C11, ESP-IDF 5.5.4, ESP32-S2 GPIO driver, RMT TX driver, FreeRTOS task notifications, CMake.
 
+> **Execution note:** Code review replaced the planned interrupt-disable polling debounce with any-edge task notifications plus `esp_timer_get_time()`. This guarantees at least 20 milliseconds of continuously stable release, detects intervening bounce edges, and removes the interrupt re-arm race. The implementation in `main/test-bench.c` supersedes the original Task 2 debounce snippet below.
+
 ## Global Constraints
 
 - GPIO0 is an active-low button input with its internal pull-up enabled.
@@ -36,7 +38,7 @@
 - Modify: `main/test-bench.c`
 
 **Interfaces:**
-- Consumes: ESP-IDF `gpio_num_t` constants from `driver/gpio_types.h`.
+- Consumes: ESP-IDF `gpio_num_t` constants from `hal/gpio_types.h`.
 - Produces: `BUTTON_GPIO`, `FIRE_OUTPUT_GPIO`, `FIRE_LED_GPIO`, `FIRE_DURATION_US`, `BUTTON_DEBOUNCE_MS`, `RMT_RESOLUTION_HZ`, `RMT_MEM_BLOCK_SYMBOLS`, `RMT_QUEUE_DEPTH`, `FIRE_TASK_STACK_SIZE`, and `FIRE_TASK_PRIORITY`.
 
 - [ ] **Step 1: Add the compile-time contract before the header exists**
@@ -70,7 +72,7 @@ Create `main/test-bench_config.h`:
 ```c
 #pragma once
 
-#include "driver/gpio_types.h"
+#include "hal/gpio_types.h"
 
 #define BUTTON_GPIO             GPIO_NUM_0
 #define FIRE_OUTPUT_GPIO        GPIO_NUM_4
