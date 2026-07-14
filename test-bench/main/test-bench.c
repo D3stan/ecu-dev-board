@@ -18,9 +18,6 @@
 
 #define MICROSECONDS_PER_MILLISECOND 1000U
 
-_Static_assert(TELEMETRY_ENABLED == 0 || TELEMETRY_ENABLED == 1,
-               "telemetry enable must be zero or one");
-
 static const char *TAG = "test_bench";
 static DRAM_ATTR TaskHandle_t s_button_task_handle;
 
@@ -106,7 +103,7 @@ static void control_service_task(void *arg)
     }
 }
 
-#if TELEMETRY_ENABLED
+#if TELEMETRY_UART_LOG_ENABLED
 static const char *engine_state_name(engine_state_t state)
 {
     switch (state) {
@@ -139,7 +136,8 @@ static void telemetry_task(void *arg)
                  snapshot.advance_tenths % 10U, snapshot.period_us,
                  snapshot.delay_us, snapshot.rejected_edge_count,
                  snapshot.late_fire_count, snapshot.schedule_error_count);
-        vTaskDelayUntil(&last_wake, pdMS_TO_TICKS(TELEMETRY_PERIOD_MS));
+        vTaskDelayUntil(&last_wake,
+                        pdMS_TO_TICKS(TELEMETRY_UART_PERIOD_MS));
     }
 }
 #endif
@@ -173,10 +171,10 @@ static void create_application_tasks(void)
         NULL, CONTROL_TASK_PRIORITY, NULL);
     ESP_ERROR_CHECK(task_created == pdPASS ? ESP_OK : ESP_ERR_NO_MEM);
 
-#if TELEMETRY_ENABLED
+#if TELEMETRY_UART_LOG_ENABLED
     task_created = xTaskCreate(
-        telemetry_task, "telemetry", TELEMETRY_TASK_STACK_SIZE, NULL,
-        TELEMETRY_TASK_PRIORITY, NULL);
+        telemetry_task, "telemetry", TELEMETRY_UART_TASK_STACK_SIZE, NULL,
+        TELEMETRY_UART_TASK_PRIORITY, NULL);
     ESP_ERROR_CHECK(task_created == pdPASS ? ESP_OK : ESP_ERR_NO_MEM);
 #endif
 }
