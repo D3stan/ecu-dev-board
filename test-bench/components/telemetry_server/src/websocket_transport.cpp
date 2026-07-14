@@ -110,7 +110,31 @@ TelemetryTransportCounters EspWebSocketTransport::counters() const {
     return counters_;
 }
 
-void EspWebSocketTransport::accept(httpd_handle_t server, int socket) {
+bool EspWebSocketTransport::accept_and_send_initial(
+    httpd_handle_t server,
+    int socket,
+    std::string_view payload) {
+    if (max_payload_bytes_ == 0 || payload.size() > max_payload_bytes_) {
+        note_send_error();
+        return false;
+    }
+
+    auto *pending = new (std::nothrow) PendingSend{};
+    if (pending == nullptr) {
+        note_send_error();
+        return false;
+    }
+    pending->payload.reset(
+        new (std::nothrow) std::uint8_t[payload.size()]);
+    if (pending->payload == nullptr) {
+        note_send_error();
+        delete pending;
+        return false;
+    }
+    if (!payload.empty()) {
+        std::memcpy(pending->payload.get(), payload.data(), payload.size());
+    }
+
     httpd_handle_t replaced_server = nullptr;
     int replaced_socket = -1;
     {
@@ -118,26 +142,44 @@ void EspWebSocketTransport::accept(httpd_handle_t server, int socket) {
         if (active_ && server_ != nullptr && socket_ != socket) {
             replaced_server = server_;
             replaced_socket = socket_;
-            active_ = false;
-            send_in_flight_ = false;
-        } else {
-            server_ = server;
-            socket_ = socket;
-            ++session_id_;
-            active_ = true;
-            send_in_flight_ = false;
         }
-    }
-    if (replaced_server != nullptr) {
-        (void)httpd_sess_trigger_close(replaced_server, replaced_socket);
-        std::lock_guard<std::mutex> lock(mutex_);
         server_ = server;
         socket_ = socket;
         ++session_id_;
         active_ = true;
-        send_in_flight_ = false;
+        send_in_flight_ = true;
+        pending->owner = this;
+        pending->server = server_;
+        pending->socket = socket_;
+        pending->session_id = session_id_;
+        pending->byte_count = payload.size();
+    }
+    if (replaced_server != nullptr) {
+        (void)httpd_sess_trigger_close(replaced_server, replaced_socket);
     }
     ESP_LOGI(kTag, "WebSocket client connected fd=%d", socket);
+
+    httpd_ws_frame_t frame{};
+    frame.type = HTTPD_WS_TYPE_TEXT;
+    frame.payload = pending->payload.get();
+    frame.len = pending->byte_count;
+    const esp_err_t error =
+        httpd_ws_send_data_async(pending->server,
+                                 pending->socket,
+                                 &frame,
+                                 &EspWebSocketTransport::send_complete,
+                                 pending);
+    if (error != ESP_OK) {
+        ESP_LOGW(kTag,
+                 "initial WebSocket send queue failed fd=%d bytes=%u: %s",
+                 pending->socket,
+                 static_cast<unsigned>(pending->byte_count),
+                 esp_err_to_name(error));
+        finish_send(pending->socket, pending->session_id, error);
+        delete pending;
+        return false;
+    }
+    return true;
 }
 
 void EspWebSocketTransport::close(int socket) {

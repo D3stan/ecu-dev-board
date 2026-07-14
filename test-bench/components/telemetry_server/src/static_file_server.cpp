@@ -124,6 +124,28 @@ esp_err_t StaticFileHandler::serve(httpd_req_t &request) {
                                    "Static file open failed");
     }
 
+    while (true) {
+        const std::size_t bytes_read =
+            std::fread(scratch_.data(), 1, scratch_.size(), file);
+        if (bytes_read < scratch_.size()) {
+            if (std::ferror(file) != 0) {
+                std::fclose(file);
+                set_connection_close(request);
+                return httpd_resp_send_err(&request,
+                                           HTTPD_500_INTERNAL_SERVER_ERROR,
+                                           "Static file read failed");
+            }
+            break;
+        }
+    }
+    if (std::fseek(file, 0, SEEK_SET) != 0) {
+        std::fclose(file);
+        set_connection_close(request);
+        return httpd_resp_send_err(&request,
+                                   HTTPD_500_INTERNAL_SERVER_ERROR,
+                                   "Static file rewind failed");
+    }
+
     (void)httpd_resp_set_type(&request, resolved.content_type);
     if (resolved.gzip_encoded) {
         (void)httpd_resp_set_hdr(&request, "Content-Encoding", "gzip");
@@ -143,7 +165,6 @@ esp_err_t StaticFileHandler::serve(httpd_req_t &request) {
                 &request, scratch_.data(), bytes_read);
             if (send_error != ESP_OK) {
                 std::fclose(file);
-                (void)httpd_resp_send_chunk(&request, nullptr, 0);
                 return send_error;
             }
         }
@@ -151,9 +172,7 @@ esp_err_t StaticFileHandler::serve(httpd_req_t &request) {
         if (bytes_read < scratch_.size()) {
             if (std::ferror(file) != 0) {
                 std::fclose(file);
-                return httpd_resp_send_err(&request,
-                                           HTTPD_500_INTERNAL_SERVER_ERROR,
-                                           "Static file read failed");
+                return ESP_FAIL;
             }
             break;
         }

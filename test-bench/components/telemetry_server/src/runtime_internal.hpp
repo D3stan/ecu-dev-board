@@ -115,7 +115,9 @@ public:
     void note_dropped_frame() override;
     void note_send_error() override;
     TelemetryTransportCounters counters() const override;
-    void accept(httpd_handle_t server, int socket);
+    bool accept_and_send_initial(httpd_handle_t server,
+                                 int socket,
+                                 std::string_view payload);
     void close(int socket);
 
 private:

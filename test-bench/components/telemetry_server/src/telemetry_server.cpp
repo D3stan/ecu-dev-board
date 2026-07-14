@@ -1,5 +1,6 @@
 #include "runtime_internal.hpp"
 
+#include <atomic>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
@@ -14,6 +15,15 @@ namespace ecu::telemetry_server {
 namespace {
 
 constexpr char kTag[] = "telemetry_server";
+
+enum class ServerStartState : std::uint8_t {
+    NotStarted,
+    Starting,
+    Started,
+};
+
+std::atomic<ServerStartState> g_start_state{ServerStartState::NotStarted};
+TelemetryServerApplication *g_application = nullptr;
 
 template <std::size_t Capacity>
 void copy_config_string(std::array<char, Capacity> &destination,
@@ -313,14 +323,14 @@ esp_err_t TelemetryServerApplication::websocket_handler(
     self->diagnostics_.check_heap("before WebSocket request");
 
     if (request->method == HTTP_GET) {
-        self->transport_.accept(request->handle, socket);
         const SerializeResult result = self->serialize_capabilities();
         if (!result.ok) {
             self->transport_.note_send_error();
-            self->transport_.close(socket);
             return ESP_ERR_INVALID_SIZE;
         }
-        if (!self->transport_.send_text(
+        if (!self->transport_.accept_and_send_initial(
+                request->handle,
+                socket,
                 std::string_view(self->control_buffer_.get(), result.size))) {
             self->transport_.close(socket);
             return ESP_FAIL;
@@ -366,7 +376,11 @@ esp_err_t TelemetryServerApplication::websocket_handler(
         self->transport_.close(socket);
         frame.payload = nullptr;
         frame.len = 0;
-        return httpd_ws_send_frame(request, &frame);
+        error = httpd_ws_send_frame(request, &frame);
+        if (error != ESP_OK) {
+            self->transport_.note_send_error();
+        }
+        return error;
     }
     if (frame.type == HTTPD_WS_TYPE_TEXT) {
         const auto enabled =
@@ -455,11 +469,18 @@ extern "C" esp_err_t telemetry_server_start(
     const telemetry_source_t *source,
     const telemetry_server_config_t *config) {
     using ecu::telemetry_server::TelemetryServerApplication;
-    static TelemetryServerApplication *application = nullptr;
-    if (application != nullptr) {
+    using ecu::telemetry_server::ServerStartState;
+    ServerStartState expected = ServerStartState::NotStarted;
+    if (!ecu::telemetry_server::g_start_state.compare_exchange_strong(
+            expected,
+            ServerStartState::Starting,
+            std::memory_order_acq_rel,
+            std::memory_order_acquire)) {
         return ESP_ERR_INVALID_STATE;
     }
     if (!ecu::telemetry_server::valid_server_inputs(source, config)) {
+        ecu::telemetry_server::g_start_state.store(
+            ServerStartState::NotStarted, std::memory_order_release);
         return ESP_ERR_INVALID_ARG;
     }
 
@@ -467,14 +488,20 @@ extern "C" esp_err_t telemetry_server_start(
         TelemetryServerApplication(*source, *config);
     if (created == nullptr || !created->valid()) {
         delete created;
+        ecu::telemetry_server::g_start_state.store(
+            ServerStartState::NotStarted, std::memory_order_release);
         return ESP_ERR_NO_MEM;
     }
 
     const esp_err_t error = created->start();
     if (error != ESP_OK) {
         delete created;
+        ecu::telemetry_server::g_start_state.store(
+            ServerStartState::NotStarted, std::memory_order_release);
         return error;
     }
-    application = created;
+    ecu::telemetry_server::g_application = created;
+    ecu::telemetry_server::g_start_state.store(
+        ServerStartState::Started, std::memory_order_release);
     return ESP_OK;
 }
