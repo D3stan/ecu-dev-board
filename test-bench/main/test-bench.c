@@ -13,6 +13,7 @@
 
 #include "engine_control.h"
 #include "status_led.h"
+#include "telemetry_bridge.h"
 #include "test-bench_config.h"
 #include "tps.h"
 
@@ -189,4 +190,12 @@ void app_main(void)
 
     create_application_tasks();
     ESP_ERROR_CHECK(configure_button());
+
+#if TELEMETRY_SERVER_ENABLED
+    const esp_err_t telemetry_result = telemetry_bridge_start();
+    if (telemetry_result != ESP_OK) {
+        ESP_LOGE(TAG, "telemetry server disabled: %s",
+                 esp_err_to_name(telemetry_result));
+    }
+#endif
 }
