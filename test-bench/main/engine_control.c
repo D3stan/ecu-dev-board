@@ -6,6 +6,7 @@
 #include "driver/gptimer.h"
 #include "esp_attr.h"
 #include "esp_err.h"
+#include "esp_timer.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/portmacro.h"
 
@@ -55,6 +56,7 @@ typedef struct {
     alarm_phase_t alarm_phase;
     bool has_reference;
     uint64_t reference_count;
+    uint64_t revolution_id;
     uint64_t last_observed_edge_count;
     uint32_t rpm;
     uint16_t advance_tenths;
@@ -69,6 +71,7 @@ static portMUX_TYPE s_lock = portMUX_INITIALIZER_UNLOCKED;
 static DRAM_ATTR controller_context_t s_context;
 static DRAM_ATTR gptimer_alarm_config_t s_alarm_config;
 static DRAM_ATTR gptimer_handle_t s_timer;
+static uint64_t s_timer_epoch_us;
 static DRAM_ATTR dedic_gpio_bundle_handle_t s_fire_bundle;
 
 static void IRAM_ATTR set_fire_outputs(bool active)
@@ -211,6 +214,7 @@ static void IRAM_ATTR pickup_isr_handler(void *arg)
     s_context.period_us = period_us;
     s_context.advance_tenths = advance_tenths;
     s_context.delay_us = delay_us;
+    ++s_context.revolution_id;
     schedule_automatic_fire_locked(edge_count);
     portEXIT_CRITICAL_ISR(&s_lock);
 }
@@ -310,6 +314,15 @@ esp_err_t engine_control_init(void)
     if (result != ESP_OK) {
         return result;
     }
+    uint64_t initial_timer_count = 0U;
+    result = gptimer_get_raw_count(s_timer, &initial_timer_count);
+    if (result != ESP_OK) {
+        return result;
+    }
+    const uint64_t boot_now_us = (uint64_t)esp_timer_get_time();
+    s_timer_epoch_us = boot_now_us >= initial_timer_count
+                           ? boot_now_us - initial_timer_count
+                           : 0U;
 
     const gpio_config_t pickup_config = {
         .pin_bit_mask = 1ULL << PICKUP_GPIO,
@@ -385,6 +398,11 @@ void engine_control_get_snapshot(engine_snapshot_t *snapshot)
     }
 
     portENTER_CRITICAL(&s_lock);
+    snapshot->reference_at_us = s_context.has_reference
+                                    ? s_timer_epoch_us +
+                                          s_context.reference_count
+                                    : 0U;
+    snapshot->revolution_id = s_context.revolution_id;
     snapshot->state = s_context.state;
     snapshot->rpm = s_context.rpm;
     snapshot->advance_tenths = s_context.advance_tenths;

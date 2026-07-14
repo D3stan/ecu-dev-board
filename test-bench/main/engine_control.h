@@ -12,6 +12,8 @@ typedef enum {
 } engine_state_t;
 
 typedef struct {
+    uint64_t reference_at_us;
+    uint64_t revolution_id;
     engine_state_t state;
     uint32_t rpm;
     uint8_t tps_percent;

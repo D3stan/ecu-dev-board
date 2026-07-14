@@ -7,7 +7,9 @@
 #include "esp_adc/adc_oneshot.h"
 #include "esp_attr.h"
 #include "esp_err.h"
+#include "esp_timer.h"
 #include "freertos/FreeRTOS.h"
+#include "freertos/portmacro.h"
 #include "freertos/task.h"
 
 #include "test-bench_config.h"
@@ -25,6 +27,8 @@ static adc_cali_handle_t s_adc_calibration;
 static adc_channel_t s_adc_channel;
 static bool s_calibration_available;
 static DRAM_ATTR volatile uint8_t s_tps_percent;
+static portMUX_TYPE s_snapshot_lock = portMUX_INITIALIZER_UNLOCKED;
+static tps_snapshot_t s_snapshot;
 
 static uint8_t median_of_five(const uint8_t samples[TPS_FILTER_WINDOW_SIZE])
 {
@@ -103,7 +107,14 @@ static void tps_task(void *arg)
             }
 
             next_sample = (next_sample + 1U) % TPS_FILTER_WINDOW_SIZE;
-            s_tps_percent = median_of_five(samples);
+            const uint8_t filtered = median_of_five(samples);
+            s_tps_percent = filtered;
+            portENTER_CRITICAL(&s_snapshot_lock);
+            s_snapshot.percent = filtered;
+            s_snapshot.acquired_at_us = (uint64_t)esp_timer_get_time();
+            ++s_snapshot.sequence;
+            s_snapshot.valid = true;
+            portEXIT_CRITICAL(&s_snapshot_lock);
         }
 
         TickType_t delay_ticks = configTICK_RATE_HZ / TPS_SAMPLE_RATE_HZ;
@@ -194,7 +205,18 @@ esp_err_t tps_init(void)
     return task_created == pdPASS ? ESP_OK : ESP_ERR_NO_MEM;
 }
 
-uint8_t IRAM_ATTR tps_get_percent(void)
+uint8_t tps_get_percent(void)
 {
     return s_tps_percent;
+}
+
+void tps_get_snapshot(tps_snapshot_t *snapshot)
+{
+    if (snapshot == NULL) {
+        return;
+    }
+
+    portENTER_CRITICAL(&s_snapshot_lock);
+    *snapshot = s_snapshot;
+    portEXIT_CRITICAL(&s_snapshot_lock);
 }
