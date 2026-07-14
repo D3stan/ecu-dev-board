@@ -320,20 +320,23 @@ esp_err_t TelemetryServerApplication::websocket_handler(
     auto *self =
         static_cast<TelemetryServerApplication *>(request->user_ctx);
     const int socket = httpd_req_to_sockfd(request);
+    const auto close_with_error = [self, socket](esp_err_t error) {
+        self->transport_.close(socket);
+        return error;
+    };
     self->diagnostics_.check_heap("before WebSocket request");
 
     if (request->method == HTTP_GET) {
         const SerializeResult result = self->serialize_capabilities();
         if (!result.ok) {
             self->transport_.note_send_error();
-            return ESP_ERR_INVALID_SIZE;
+            return close_with_error(ESP_ERR_INVALID_SIZE);
         }
         if (!self->transport_.accept_and_send_initial(
                 request->handle,
                 socket,
                 std::string_view(self->control_buffer_.get(), result.size))) {
-            self->transport_.close(socket);
-            return ESP_FAIL;
+            return close_with_error(ESP_FAIL);
         }
         self->diagnostics_.check_heap("after WebSocket accept");
         return ESP_OK;
@@ -342,25 +345,22 @@ esp_err_t TelemetryServerApplication::websocket_handler(
     httpd_ws_frame_t frame{};
     esp_err_t error = httpd_ws_recv_frame(request, &frame, 0);
     if (error != ESP_OK) {
-        self->transport_.close(socket);
-        return error;
+        return close_with_error(error);
     }
     if (frame.len > self->config_.values.max_frame_bytes) {
-        self->transport_.close(socket);
-        return ESP_ERR_INVALID_SIZE;
+        return close_with_error(ESP_ERR_INVALID_SIZE);
     }
 
     std::unique_ptr<std::uint8_t[]> payload{};
     if (frame.len != 0) {
         payload.reset(new (std::nothrow) std::uint8_t[frame.len]);
         if (payload == nullptr) {
-            return ESP_ERR_NO_MEM;
+            return close_with_error(ESP_ERR_NO_MEM);
         }
         frame.payload = payload.get();
         error = httpd_ws_recv_frame(request, &frame, frame.len);
         if (error != ESP_OK) {
-            self->transport_.close(socket);
-            return error;
+            return close_with_error(error);
         }
     }
 
@@ -369,8 +369,9 @@ esp_err_t TelemetryServerApplication::websocket_handler(
         error = httpd_ws_send_frame(request, &frame);
         if (error != ESP_OK) {
             self->transport_.note_send_error();
+            return close_with_error(error);
         }
-        return error;
+        return ESP_OK;
     }
     if (frame.type == HTTPD_WS_TYPE_CLOSE) {
         self->transport_.close(socket);
@@ -386,7 +387,11 @@ esp_err_t TelemetryServerApplication::websocket_handler(
         const auto enabled =
             parse_recording_config_set(payload.get(), frame.len);
         if (enabled.has_value()) {
-            return self->handle_recording_config_set(*request, *enabled);
+            error = self->handle_recording_config_set(*request, *enabled);
+            if (error != ESP_OK) {
+                return close_with_error(error);
+            }
+            return ESP_OK;
         }
     }
 

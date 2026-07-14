@@ -36,6 +36,9 @@ bool EspWebSocketTransport::ready() const {
 
 bool EspWebSocketTransport::send_text(std::string_view payload) {
     PendingSend *pending = nullptr;
+    httpd_handle_t failed_server = nullptr;
+    int failed_socket = -1;
+    esp_err_t prepare_error = ESP_OK;
     {
         std::lock_guard<std::mutex> lock(mutex_);
         if (!active_ || send_in_flight_) {
@@ -43,32 +46,53 @@ bool EspWebSocketTransport::send_text(std::string_view payload) {
             return false;
         }
         if (max_payload_bytes_ == 0 || payload.size() > max_payload_bytes_) {
-            ++counters_.send_errors;
-            return false;
+            prepare_error = ESP_ERR_INVALID_SIZE;
+        } else {
+            pending = new (std::nothrow) PendingSend{};
+            if (pending == nullptr) {
+                prepare_error = ESP_ERR_NO_MEM;
+            } else {
+                pending->payload.reset(
+                    new (std::nothrow) std::uint8_t[payload.size()]);
+                if (pending->payload == nullptr) {
+                    prepare_error = ESP_ERR_NO_MEM;
+                    delete pending;
+                    pending = nullptr;
+                }
+            }
         }
 
-        pending = new (std::nothrow) PendingSend{};
-        if (pending == nullptr) {
+        if (prepare_error != ESP_OK) {
             ++counters_.send_errors;
-            return false;
+            failed_server = server_;
+            failed_socket = socket_;
+            active_ = false;
+            send_in_flight_ = false;
+        } else {
+            pending->owner = this;
+            pending->server = server_;
+            pending->socket = socket_;
+            pending->session_id = session_id_;
+            pending->byte_count = payload.size();
+            if (!payload.empty()) {
+                std::memcpy(pending->payload.get(),
+                            payload.data(),
+                            payload.size());
+            }
+            send_in_flight_ = true;
         }
-        pending->payload.reset(
-            new (std::nothrow) std::uint8_t[payload.size()]);
-        if (pending->payload == nullptr) {
-            ++counters_.send_errors;
-            delete pending;
-            return false;
-        }
+    }
 
-        pending->owner = this;
-        pending->server = server_;
-        pending->socket = socket_;
-        pending->session_id = session_id_;
-        pending->byte_count = payload.size();
-        if (!payload.empty()) {
-            std::memcpy(pending->payload.get(), payload.data(), payload.size());
+    if (prepare_error != ESP_OK) {
+        ESP_LOGW(kTag,
+                 "WebSocket send preparation failed fd=%d bytes=%u: %s",
+                 failed_socket,
+                 static_cast<unsigned>(payload.size()),
+                 esp_err_to_name(prepare_error));
+        if (failed_server != nullptr && failed_socket >= 0) {
+            (void)httpd_sess_trigger_close(failed_server, failed_socket);
         }
-        send_in_flight_ = true;
+        return false;
     }
 
     httpd_ws_frame_t frame{};
@@ -116,12 +140,18 @@ bool EspWebSocketTransport::accept_and_send_initial(
     std::string_view payload) {
     if (max_payload_bytes_ == 0 || payload.size() > max_payload_bytes_) {
         note_send_error();
+        if (server != nullptr && socket >= 0) {
+            (void)httpd_sess_trigger_close(server, socket);
+        }
         return false;
     }
 
     auto *pending = new (std::nothrow) PendingSend{};
     if (pending == nullptr) {
         note_send_error();
+        if (server != nullptr && socket >= 0) {
+            (void)httpd_sess_trigger_close(server, socket);
+        }
         return false;
     }
     pending->payload.reset(
@@ -129,6 +159,9 @@ bool EspWebSocketTransport::accept_and_send_initial(
     if (pending->payload == nullptr) {
         note_send_error();
         delete pending;
+        if (server != nullptr && socket >= 0) {
+            (void)httpd_sess_trigger_close(server, socket);
+        }
         return false;
     }
     if (!payload.empty()) {
@@ -202,22 +235,31 @@ void EspWebSocketTransport::send_complete(esp_err_t error,
 void EspWebSocketTransport::finish_send(int socket,
                                         std::uint64_t session_id,
                                         esp_err_t error) {
-    std::lock_guard<std::mutex> lock(mutex_);
-    if (error == ESP_OK) {
-        ++counters_.sent_frames;
-    } else {
-        ++counters_.send_errors;
-        ESP_LOGW(kTag,
-                 "WebSocket send failed fd=%d: %s",
-                 socket,
-                 esp_err_to_name(error));
-    }
-
-    if (active_ && socket_ == socket && session_id_ == session_id) {
-        send_in_flight_ = false;
-        if (error != ESP_OK) {
-            active_ = false;
+    httpd_handle_t failed_server = nullptr;
+    int failed_socket = -1;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (error == ESP_OK) {
+            ++counters_.sent_frames;
+        } else {
+            ++counters_.send_errors;
+            ESP_LOGW(kTag,
+                     "WebSocket send failed fd=%d: %s",
+                     socket,
+                     esp_err_to_name(error));
         }
+
+        if (active_ && socket_ == socket && session_id_ == session_id) {
+            send_in_flight_ = false;
+            if (error != ESP_OK) {
+                active_ = false;
+                failed_server = server_;
+                failed_socket = socket_;
+            }
+        }
+    }
+    if (failed_server != nullptr && failed_socket >= 0) {
+        (void)httpd_sess_trigger_close(failed_server, failed_socket);
     }
 }
 
