@@ -343,24 +343,29 @@ esp_err_t TelemetryServerApplication::websocket_handler(
     }
 
     httpd_ws_frame_t frame{};
+    const auto close_after_frame_error =
+        [self, socket, &frame](esp_err_t error) {
+            self->transport_.close(socket);
+            return frame.type == HTTPD_WS_TYPE_CLOSE ? ESP_OK : error;
+        };
     esp_err_t error = httpd_ws_recv_frame(request, &frame, 0);
     if (error != ESP_OK) {
-        return close_with_error(error);
+        return close_after_frame_error(error);
     }
     if (frame.len > self->config_.values.max_frame_bytes) {
-        return close_with_error(ESP_ERR_INVALID_SIZE);
+        return close_after_frame_error(ESP_ERR_INVALID_SIZE);
     }
 
     std::unique_ptr<std::uint8_t[]> payload{};
     if (frame.len != 0) {
         payload.reset(new (std::nothrow) std::uint8_t[frame.len]);
         if (payload == nullptr) {
-            return close_with_error(ESP_ERR_NO_MEM);
+            return close_after_frame_error(ESP_ERR_NO_MEM);
         }
         frame.payload = payload.get();
         error = httpd_ws_recv_frame(request, &frame, frame.len);
         if (error != ESP_OK) {
-            return close_with_error(error);
+            return close_after_frame_error(error);
         }
     }
 
