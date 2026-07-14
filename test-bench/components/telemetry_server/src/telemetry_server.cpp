@@ -381,7 +381,9 @@ esp_err_t TelemetryServerApplication::websocket_handler(
         if (error != ESP_OK) {
             self->transport_.note_send_error();
         }
-        return error;
+        // HTTPD owns CLOSE cleanup. A non-OK return would directly delete the
+        // session before HTTPD's queued CLOSE work runs.
+        return ESP_OK;
     }
     if (frame.type == HTTPD_WS_TYPE_TEXT) {
         const auto enabled =
@@ -406,6 +408,7 @@ void TelemetryServerApplication::pump_task(void *context) {
     TickType_t last_wake = xTaskGetTickCount();
     while (true) {
         vTaskDelayUntil(&last_wake, period);
+        self->transport_.service_pending_close();
         const auto now = static_cast<ecu::telemetry::TimestampUs>(
             esp_timer_get_time());
         self->diagnostics_.check_heap("before telemetry pump tick");

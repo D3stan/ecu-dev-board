@@ -1,7 +1,9 @@
 #include "runtime_internal.hpp"
 
+#include <cerrno>
 #include <cstring>
 #include <new>
+#include <sys/socket.h>
 
 #include "esp_log.h"
 
@@ -22,7 +24,9 @@ struct EspWebSocketTransport::PendingSend {
 };
 
 EspWebSocketTransport::EspWebSocketTransport(std::size_t max_payload_bytes)
-    : max_payload_bytes_(max_payload_bytes) {}
+    : max_payload_bytes_(max_payload_bytes) {
+    close_work_.owner = this;
+}
 
 bool EspWebSocketTransport::connected() const {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -36,8 +40,8 @@ bool EspWebSocketTransport::ready() const {
 
 bool EspWebSocketTransport::send_text(std::string_view payload) {
     PendingSend *pending = nullptr;
-    httpd_handle_t failed_server = nullptr;
     int failed_socket = -1;
+    bool close_required = false;
     esp_err_t prepare_error = ESP_OK;
     {
         std::lock_guard<std::mutex> lock(mutex_);
@@ -64,10 +68,11 @@ bool EspWebSocketTransport::send_text(std::string_view payload) {
 
         if (prepare_error != ESP_OK) {
             ++counters_.send_errors;
-            failed_server = server_;
             failed_socket = socket_;
             active_ = false;
             send_in_flight_ = false;
+            close_required =
+                require_close_locked(server_, socket_, session_id_);
         } else {
             pending->owner = this;
             pending->server = server_;
@@ -89,8 +94,8 @@ bool EspWebSocketTransport::send_text(std::string_view payload) {
                  failed_socket,
                  static_cast<unsigned>(payload.size()),
                  esp_err_to_name(prepare_error));
-        if (failed_server != nullptr && failed_socket >= 0) {
-            (void)httpd_sess_trigger_close(failed_server, failed_socket);
+        if (close_required) {
+            service_pending_close();
         }
         return false;
     }
@@ -112,7 +117,10 @@ bool EspWebSocketTransport::send_text(std::string_view payload) {
                  pending->socket,
                  static_cast<unsigned>(pending->byte_count),
                  esp_err_to_name(error));
-        finish_send(pending->socket, pending->session_id, error);
+        finish_send(pending->socket,
+                    pending->session_id,
+                    error,
+                    true);
         delete pending;
         return false;
     }
@@ -140,18 +148,12 @@ bool EspWebSocketTransport::accept_and_send_initial(
     std::string_view payload) {
     if (max_payload_bytes_ == 0 || payload.size() > max_payload_bytes_) {
         note_send_error();
-        if (server != nullptr && socket >= 0) {
-            (void)httpd_sess_trigger_close(server, socket);
-        }
         return false;
     }
 
     auto *pending = new (std::nothrow) PendingSend{};
     if (pending == nullptr) {
         note_send_error();
-        if (server != nullptr && socket >= 0) {
-            (void)httpd_sess_trigger_close(server, socket);
-        }
         return false;
     }
     pending->payload.reset(
@@ -159,37 +161,48 @@ bool EspWebSocketTransport::accept_and_send_initial(
     if (pending->payload == nullptr) {
         note_send_error();
         delete pending;
-        if (server != nullptr && socket >= 0) {
-            (void)httpd_sess_trigger_close(server, socket);
-        }
         return false;
     }
     if (!payload.empty()) {
         std::memcpy(pending->payload.get(), payload.data(), payload.size());
     }
 
-    httpd_handle_t replaced_server = nullptr;
-    int replaced_socket = -1;
+    bool reject = false;
     {
         std::lock_guard<std::mutex> lock(mutex_);
-        if (active_ && server_ != nullptr && socket_ != socket) {
-            replaced_server = server_;
-            replaced_socket = socket_;
+        if (close_required_) {
+            reject = true;
+        } else if (active_) {
+            active_ = false;
+            send_in_flight_ = false;
+            (void)require_close_locked(server_, socket_, session_id_);
+            reject = true;
+        } else {
+            server_ = server;
+            socket_ = socket;
+            ++session_id_;
+            session_marker_.session_id = session_id_;
+            active_ = true;
+            send_in_flight_ = true;
+            pending->owner = this;
+            pending->server = server_;
+            pending->socket = socket_;
+            pending->session_id = session_id_;
+            pending->byte_count = payload.size();
         }
-        server_ = server;
-        socket_ = socket;
-        ++session_id_;
-        active_ = true;
-        send_in_flight_ = true;
-        pending->owner = this;
-        pending->server = server_;
-        pending->socket = socket_;
-        pending->session_id = session_id_;
-        pending->byte_count = payload.size();
     }
-    if (replaced_server != nullptr) {
-        (void)httpd_sess_trigger_close(replaced_server, replaced_socket);
+    if (reject) {
+        delete pending;
+        ESP_LOGW(kTag,
+                 "WebSocket client rejected while prior session closes fd=%d",
+                 socket);
+        return false;
     }
+
+    httpd_sess_set_ctx(server,
+                       socket,
+                       &session_marker_,
+                       &EspWebSocketTransport::release_session_marker);
     ESP_LOGI(kTag, "WebSocket client connected fd=%d", socket);
 
     httpd_ws_frame_t frame{};
@@ -208,7 +221,10 @@ bool EspWebSocketTransport::accept_and_send_initial(
                  pending->socket,
                  static_cast<unsigned>(pending->byte_count),
                  esp_err_to_name(error));
-        finish_send(pending->socket, pending->session_id, error);
+        finish_send(pending->socket,
+                    pending->session_id,
+                    error,
+                    false);
         delete pending;
         return false;
     }
@@ -228,15 +244,129 @@ void EspWebSocketTransport::send_complete(esp_err_t error,
                                           int socket,
                                           void *context) {
     auto *pending = static_cast<PendingSend *>(context);
-    pending->owner->finish_send(socket, pending->session_id, error);
+    pending->owner->finish_send(socket,
+                                pending->session_id,
+                                error,
+                                true);
     delete pending;
+}
+
+void EspWebSocketTransport::close_session_work(void *context) {
+    auto *work = static_cast<CloseWork *>(context);
+    work->owner->run_close_session_work();
+}
+
+void EspWebSocketTransport::release_session_marker(void *) {
+    // The marker is embedded in this transport and must not be freed by HTTPD.
+}
+
+bool EspWebSocketTransport::require_close_locked(
+    httpd_handle_t server,
+    int socket,
+    std::uint64_t session_id) {
+    if (server == nullptr || socket < 0 || close_required_) {
+        return false;
+    }
+    close_work_.server = server;
+    close_work_.socket = socket;
+    close_work_.session_id = session_id;
+    close_required_ = true;
+    close_queued_ = false;
+    return true;
+}
+
+void EspWebSocketTransport::service_pending_close() {
+    httpd_handle_t server = nullptr;
+    int socket = -1;
+    std::uint64_t session_id = 0;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (!close_required_ || close_queued_) {
+            return;
+        }
+        close_queued_ = true;
+        server = close_work_.server;
+        socket = close_work_.socket;
+        session_id = close_work_.session_id;
+    }
+
+    const esp_err_t error =
+        httpd_queue_work(server,
+                         &EspWebSocketTransport::close_session_work,
+                         &close_work_);
+    if (error == ESP_OK) {
+        return;
+    }
+
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (close_required_ && close_work_.server == server &&
+            close_work_.socket == socket &&
+            close_work_.session_id == session_id) {
+            close_queued_ = false;
+        }
+    }
+    ESP_LOGW(kTag,
+             "WebSocket close work queue failed fd=%d: %s",
+             socket,
+             esp_err_to_name(error));
+}
+
+void EspWebSocketTransport::run_close_session_work() {
+    httpd_handle_t server = nullptr;
+    int socket = -1;
+    std::uint64_t session_id = 0;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (!close_required_ || !close_queued_) {
+            return;
+        }
+        server = close_work_.server;
+        socket = close_work_.socket;
+        session_id = close_work_.session_id;
+    }
+
+    // This runs in the HTTPD task, so the marker check and shutdown cannot be
+    // interleaved with HTTPD session-slot deletion or reuse.
+    bool matches =
+        httpd_sess_get_ctx(server, socket) == &session_marker_;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        matches = matches && close_required_ && close_queued_ &&
+                  close_work_.server == server &&
+                  close_work_.socket == socket &&
+                  close_work_.session_id == session_id &&
+                  session_marker_.session_id == session_id;
+    }
+
+    bool retry = false;
+    if (matches && shutdown(socket, SHUT_RDWR) != 0) {
+        retry = true;
+        ESP_LOGW(kTag,
+                 "WebSocket shutdown failed fd=%d errno=%d",
+                 socket,
+                 errno);
+    }
+
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (close_required_ && close_queued_ &&
+            close_work_.server == server &&
+            close_work_.socket == socket &&
+            close_work_.session_id == session_id) {
+            close_queued_ = false;
+            if (!retry) {
+                close_required_ = false;
+            }
+        }
+    }
 }
 
 void EspWebSocketTransport::finish_send(int socket,
                                         std::uint64_t session_id,
-                                        esp_err_t error) {
-    httpd_handle_t failed_server = nullptr;
-    int failed_socket = -1;
+                                        esp_err_t error,
+                                        bool require_physical_close) {
+    bool close_required = false;
     {
         std::lock_guard<std::mutex> lock(mutex_);
         if (error == ESP_OK) {
@@ -253,13 +383,15 @@ void EspWebSocketTransport::finish_send(int socket,
             send_in_flight_ = false;
             if (error != ESP_OK) {
                 active_ = false;
-                failed_server = server_;
-                failed_socket = socket_;
+                if (require_physical_close) {
+                    close_required = require_close_locked(
+                        server_, socket_, session_id_);
+                }
             }
         }
     }
-    if (failed_server != nullptr && failed_socket >= 0) {
-        (void)httpd_sess_trigger_close(failed_server, failed_socket);
+    if (close_required) {
+        service_pending_close();
     }
 }
 

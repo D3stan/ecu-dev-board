@@ -119,11 +119,30 @@ public:
                                  int socket,
                                  std::string_view payload);
     void close(int socket);
+    void service_pending_close();
 
 private:
     struct PendingSend;
+    struct SessionMarker {
+        std::uint64_t session_id{0};
+    };
+    struct CloseWork {
+        EspWebSocketTransport *owner{nullptr};
+        httpd_handle_t server{nullptr};
+        int socket{-1};
+        std::uint64_t session_id{0};
+    };
     static void send_complete(esp_err_t error, int socket, void *context);
-    void finish_send(int socket, std::uint64_t session_id, esp_err_t error);
+    static void close_session_work(void *context);
+    static void release_session_marker(void *context);
+    bool require_close_locked(httpd_handle_t server,
+                              int socket,
+                              std::uint64_t session_id);
+    void run_close_session_work();
+    void finish_send(int socket,
+                     std::uint64_t session_id,
+                     esp_err_t error,
+                     bool require_physical_close);
     std::size_t max_payload_bytes_{0};
     mutable std::mutex mutex_{};
     httpd_handle_t server_{nullptr};
@@ -131,6 +150,10 @@ private:
     std::uint64_t session_id_{0};
     bool active_{false};
     bool send_in_flight_{false};
+    bool close_required_{false};
+    bool close_queued_{false};
+    SessionMarker session_marker_{};
+    CloseWork close_work_{};
     TelemetryTransportCounters counters_{};
 };
 
