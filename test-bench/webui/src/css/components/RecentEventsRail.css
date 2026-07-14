@@ -1,0 +1,116 @@
+.recent-events-rail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  padding: 0.875rem;
+  box-shadow: var(--shadow);
+}
+
+.recent-events-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.recent-events-header h3 {
+  color: var(--text);
+  font-size: var(--fs-title);
+  font-weight: var(--fw-extrabold);
+  letter-spacing: var(--ls-wide);
+  line-height: var(--lh-tight);
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.recent-events-header span {
+  align-items: center;
+  background: var(--surface);
+  border-radius: 999px;
+  color: var(--text-muted);
+  display: inline-flex;
+  font-size: var(--fs-meta);
+  font-weight: var(--fw-extrabold);
+  height: 1.25rem;
+  justify-content: center;
+  min-width: 1.25rem;
+  padding: 0 0.4rem;
+}
+
+.recent-events-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.recent-event,
+.recent-event-empty {
+  align-items: center;
+  background: var(--bg);
+  border: 1px solid transparent;
+  border-radius: 0.5rem;
+  display: grid;
+  gap: 0.625rem;
+  grid-template-columns: auto 1fr auto;
+  min-height: 3rem;
+  padding: 0.625rem;
+}
+
+.recent-event-empty {
+  color: var(--text-muted);
+  display: flex;
+  font-size: var(--fs-body);
+  font-weight: var(--fw-bold);
+  justify-content: center;
+}
+
+.recent-event-dot {
+  background: var(--brand);
+  border-radius: 999px;
+  height: 0.625rem;
+  width: 0.625rem;
+}
+
+.recent-event.quick-shift .recent-event-dot {
+  background: var(--accent-warning);
+}
+
+.recent-event.map .recent-event-dot {
+  background: var(--accent-info);
+}
+
+.recent-event.fault {
+  border-color: var(--danger-border);
+}
+
+.recent-event.fault .recent-event-dot {
+  background: var(--danger);
+}
+
+.recent-event-main {
+  min-width: 0;
+}
+
+.recent-event-kind {
+  color: var(--text);
+  font-size: var(--fs-body);
+  font-weight: var(--fw-extrabold);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recent-event-summary,
+.recent-event-age {
+  color: var(--text-muted);
+  font-size: var(--fs-meta);
+  font-weight: var(--fw-bold);
+}
+
+.recent-event-age {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+

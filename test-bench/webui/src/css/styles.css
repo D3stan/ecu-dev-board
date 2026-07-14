@@ -1,0 +1,2216 @@
+/* ============= IMPORTS ============= */
+@import url('./components/Banner.css');
+@import url('./components/MachineIdPreviewItem.css');
+@import url('./components/WifiConnectionCard.css');
+@import url('./pages/PinPage.css');
+
+/* ============= THEME VARS ============= */
+:root {
+  /* ===== Typography ===== */
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+
+  /* Type scale (sizes) */
+  --fs-display: 2.6rem;   /* RPM gauge value */
+  --fs-value-xl: 2.1rem;  /* detail live value */
+  --fs-value: 1.65rem;    /* metric value */
+  --fs-page-title: 1.5rem; /* detail/page title */
+  --fs-heading-lg: 1.25rem;
+  --fs-value-sm: 1rem;
+  --fs-title: 0.875rem;   /* section/page headings, large units */
+  --fs-body: 0.8rem;      /* supporting text, mid units */
+  --fs-label: 0.72rem;    /* card labels, tabs, buttons */
+  --fs-meta: 0.68rem;     /* footers / pills */
+  --fs-caption: 0.65rem;  /* metadata field labels */
+  --fs-badge: 0.6rem;     /* badges */
+
+  /* Font weights */
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+  --fw-extrabold: 800;
+  --fw-black: 900;
+
+  /* Line heights */
+  --lh-tight: 1;
+  --lh-snug: 1.2;
+  --lh-normal: 1.4;
+  --lh-relaxed: 1.6;
+
+  /* Letter spacing */
+  --ls-tight: -0.01em;
+  --ls-normal: 0;
+  --ls-wide: 0.02em;
+
+  /* ===== Color ===== */
+  /* Brand - teal family (solid fills keep white-text contrast) */
+  --brand: #008f78;
+  --brand-light: #00a98d;
+  --brand-dark: #006b59;
+
+  /* Accent - ECU teal */
+  --accent: #00c9a7;
+  --accent-strong: #00a98d;
+  --accent-soft: rgba(0, 201, 167, 0.14);
+  --accent-border: rgba(0, 201, 167, 0.35);
+  --accent-border-strong: rgba(0, 201, 167, 0.6);
+  --accent-glow: rgba(0, 201, 167, 0.28);
+
+  /* Accent - ECU attention (orange) */
+  --accent-warning: #ff6b35;
+  --accent-warning-soft: rgba(255, 107, 53, 0.14);
+  --accent-warning-border: rgba(255, 107, 53, 0.45);
+
+  /* Accent - ECU info (light blue) */
+  --accent-info: #4fc3f7;
+  --accent-info-soft: rgba(79, 195, 247, 0.14);
+  --accent-info-border: rgba(79, 195, 247, 0.45);
+
+  /* Backgrounds - soft light-blue */
+  --bg: #F4F8FA;
+  --card: #FFFFFF;
+  --surface: #EAF0F4;
+
+  /* Text Colors */
+  --text: #1A1C1E;
+  --text-muted: #5C6E7E;
+
+  /* Borders & Icons */
+  --border: #D1DFE8;
+  --ring: #A9BFD0;
+  --icon-bg: #EAF0F4;
+
+  /* Status Colors (semantic states) */
+  --success: #10b981;
+  --success-soft: rgba(16, 185, 129, 0.15);
+  --warning: #f59e0b;
+  --warning-soft: rgba(245, 158, 11, 0.15);
+  --danger: #ef4444;
+  --danger-soft: rgba(239, 68, 68, 0.16);
+  --danger-border: rgba(239, 68, 68, 0.6);
+  --neutral-soft: rgba(100, 116, 139, 0.2);
+
+  /* Dragger Colors - Light Mode */
+  --drag-start: #3b82f6;
+  --drag-start-light: #60a5fa;
+  --drag-stop: #1e3a8a;
+  --drag-stop-light: #3b5998;
+
+  /* Utility */
+  --overlay: rgba(13, 43, 69, 0.5);
+  --gap: 1rem;
+  --radius: 1rem;
+  --shadow: 0 4px 6px -1px rgba(13, 43, 69, 0.05), 0 2px 4px -1px rgba(13, 43, 69, 0.03);
+  --shadow-lg: 0 10px 15px -3px rgba(13, 43, 69, 0.08), 0 4px 6px -4px rgba(13, 43, 69, 0.05);
+}
+
+[data-theme="dark"] {
+  /* Brand - teal (brighter for dark) */
+  --brand: #00c9a7;
+  --brand-light: #34d8bf;
+  --brand-dark: #00a98d;
+
+  /* Accent - teal lifts slightly on dark; warning/info + soft variants inherit from :root */
+  --accent: #34d8bf;
+  --accent-strong: #00c9a7;
+
+  /* Status colors lift to lighter shades for contrast on dark (soft variants inherit) */
+  --success: #34d399;
+  --warning: #fbbf24;
+  --danger: #f87171;
+
+  /* Backgrounds */
+  --bg: #0D1117;
+  --card: #161B22;
+  --surface: #21262D;
+
+  /* Text Colors */
+  --text: #C9D1D9;
+  --text-muted: #8B949E;
+
+  /* Borders & Icons */
+  --border: #30363D;
+  --ring: #484F58;
+  --icon-bg: #21262D;
+
+  /* Dragger Colors - Dark Mode */
+  --drag-start: #60a5fa;
+  --drag-start-light: #93c5fd;
+  --drag-stop: #1e40af;
+  --drag-stop-light: #3b82f6;
+
+  /* Utility */
+  --overlay: rgba(0, 0, 0, 0.75);
+}
+
+/* ============= DARK MODE - ICONE GRIGIO CHIARO ============= */
+[data-theme="dark"] .pump-card-icon img,
+[data-theme="dark"] .scheduler-icon img,
+[data-theme="dark"] .mode-btn img,
+[data-theme="dark"] .timer .pump-card-icon img,
+[data-theme="dark"] .pump-label-icon img,
+[data-theme="dark"] .icon-btn img,
+[data-theme="dark"] .theme-icon,
+[data-theme="dark"] .parameter-icon img,
+[data-theme="dark"] .modal-param-icon img,
+[data-theme="dark"] .power-icon {
+  filter: brightness(0) invert(1) opacity(0.85);
+}
+
+/* ============= RESET & BASE ============= */
+*,
+*::before,
+*::after {
+  box-sizing: border-box !important;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100vh; /* Fallback for older browsers */
+  height: 100dvh; /* Dynamic viewport height - adapts to browser UI */
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  overflow: hidden;
+}
+
+/* ============= APP CONTAINER ============= */
+.app-container {
+  position: relative;
+  width: 100%;
+  height: 100vh; /* Fallback for older browsers */
+  height: 100dvh; /* Dynamic viewport height - adapts to browser UI */
+  max-width: 26rem;
+  margin: 0 auto;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ============= PAGES CONTAINER ============= */
+.pages-container {
+  position: relative;
+  width: 100%;
+  flex: 1;
+  overflow: hidden;
+}
+
+.page {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  transition: left 300ms ease;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.page.active {
+  left: 0;
+}
+
+.page.left {
+  left: -120%;
+}
+
+.page.right {
+  left: 120%;
+}
+
+/* ============= TOP BAR ============= */
+.top-bar {
+  flex-shrink: 0;
+  padding: 0.5rem;
+}
+
+.top-bar-content {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 0.75rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.top-bar-left {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  flex: 1;
+}
+
+.product-logo {
+  width: 2.5rem;
+  height: 2.5rem;
+  flex-shrink: 0;
+}
+
+.product-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.product-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+}
+
+.product-name {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--text);
+}
+
+.current-time {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.brand-name {
+  flex-shrink: 0;
+  height: 2rem;
+}
+
+.brand-name img {
+  height: 100%;
+  width: auto;
+  object-fit: contain;
+}
+
+/* ============= IDROBASE LOGO (HTML/CSS) ============= */
+.logo-idrobase {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  height: 100%;
+  color: #113f67;
+  line-height: var(--lh-snug);
+  font-family: var(--font-sans);
+  gap: 0.1rem;
+  width: fit-content;
+}
+
+.logo-idrobase-title {
+  font-family: var(--font-sans);
+  font-size: 1.5rem;
+  font-weight: normal;
+  line-height: 1;
+  margin: 0;
+  letter-spacing: -0.5px;
+  position: relative;
+}
+
+.logo-idrobase-registered {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  vertical-align: super;
+  position: absolute;
+  top: 0px;
+  right: -12px;
+}
+
+.logo-idrobase-payoff {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  transform: scaleX(0.5);
+  transform-origin: left;
+}
+
+/* Dark theme: make logo more visible */
+[data-theme="dark"] .logo-idrobase {
+  color: #a8c9e0;
+}
+
+/* ============= MEDIA QUERIES - MOBILE ============= */
+/* Hide logo on small screens (≤480px) */
+@media (max-width: 400px) {
+  .brand-name {
+    display: none;
+  }
+}
+
+.top-bar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.icon-btn {
+  width: 2.5rem;
+  height: 2.5rem;
+  border: none;
+  background: var(--bg);
+  border-radius: 0.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 150ms;
+  padding: 0.5rem;
+}
+
+.icon-btn:hover {
+  background: var(--border);
+}
+
+.icon-btn img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.theme-icon {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* ============= ALERT BANNER ============= */
+.alert-banner {
+  background: var(--brand);
+  color: white;
+  padding: 0.875rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.alert-banner.hidden {
+  display: none;
+}
+
+.alert-content {
+  flex: 1;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.alert-close {
+  width: 1.5rem;
+  height: 1.5rem;
+  border: none;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  transition: all 150ms;
+}
+
+.alert-close:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* ============= CONTENT AREA ============= */
+.content-area {
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0.5rem 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* ============= PUMP SECTION ============= */
+.pump-section {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 1rem;
+  box-shadow: var(--shadow);
+}
+
+.pump-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: .75rem;
+}
+
+.pump-label-container {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.pump-label-icon {
+  width: 3rem;
+  height: 2.375rem;
+  border-radius: 0.75rem;
+  background: var(--icon-bg);
+  border: 1px solid var(--ring);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.pump-label-icon img {
+  width: 80%;
+  height: 80%;
+  object-fit: contain;
+}
+
+.pump-label {
+  font-weight: 700;
+  font-size: 1.5rem;
+  color: var(--text);
+  cursor: pointer;
+}
+
+/* Connection badge styles moved to Badge.css */
+
+.pump-carousel {
+  position: relative;
+  overflow: hidden;
+}
+
+.pump-carousel-inner {
+  display: flex;
+  transition: transform 300ms ease;
+}
+
+.pump-slide {
+  min-width: 100%;
+  flex-shrink: 0;
+}
+
+.pump-cards {
+  display: grid;
+  grid-template-columns: repeat(6, calc((100% - 5 * 0.75rem) / 6));
+  grid-auto-rows: auto; /* Row height determined by content */
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.timer-card {
+  grid-column: span 4;
+  background: var(--bg);
+  border-radius: 0.75rem;
+  padding: 1rem;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center;
+  justify-content: space-around;
+  gap: 1rem;
+}
+
+.timer-card .pump-card-icon {
+  flex-shrink: 0;
+}
+
+.timer-value-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.timer-label {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.timer-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1;
+}
+
+.pump-card {
+  background: var(--bg);
+  border-radius: 0.75rem;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.pump-card.sensor-card {
+  grid-column: span 3;
+}
+
+.pump-card.simple-card {
+  grid-column: span 2;
+  display: flex;
+  flex-direction: row; /* Horizontal layout: icon + label */
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: var(--bg); /* Same background as other cards */
+  min-width: 0;
+  overflow: hidden;
+}
+
+.pump-card.simple-card .pump-card-icon {
+  width: 2.375rem;
+  height: 2.375rem;
+  border-radius: 0.75rem;
+  background: var(--icon-bg);
+  border: 1px solid var(--ring);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.pump-card.simple-card .pump-card-icon img {
+  width: 60%;
+  height: 60%;
+  object-fit: contain;
+}
+
+.pump-card.simple-card .pump-card-label {
+  font-size: 1.125rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--text);
+  flex: 1;
+  overflow-wrap: break-word;
+}
+
+.status-text-wrapper {
+  display: block;
+  text-align: center;
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1.2;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: keep-all;
+}
+
+/* Simple card state colors - Applied to label text only */
+.pump-card.simple-card.on .pump-card-label {
+  color: var(--success);
+}
+
+.pump-card.simple-card.off .pump-card-label {
+  color: var(--text);
+}
+
+.pump-card.simple-card.warning .pump-card-label {
+  color: var(--warning);
+}
+
+.pump-card.simple-card.error .pump-card-label {
+  color: var(--danger);
+}
+
+.pump-card.simple-card.testing .pump-card-label {
+  color: var(--accent-info);
+}
+
+/* Relay mode label - shown only on small screens (≤340px) */
+.relay-mode-label {
+  display: none; /* Hidden by default */
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  text-align: center;
+}
+
+.sensor-card-top {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.pump-card-icon {
+  width: 2.375rem;
+  height: 2.375rem;
+  border-radius: 0.75rem;
+  background: var(--icon-bg);
+  border: 1px solid var(--ring);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.pump-card-icon img {
+  width: 60%;
+  height: 60%;
+  object-fit: contain;
+}
+
+.sensor-value-container {
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.pump-card-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1;
+}
+
+.sensor-bar-container {
+  position: relative;
+  width: 100%;
+}
+
+.sensor-bar-track {
+  width: 100%;
+  height: 0.5rem;
+  background: var(--border);
+  border-radius: 0.25rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.sensor-bar-fill {
+  height: 100%;
+  background-color: var(--brand);
+  border-radius: 0.25rem;
+  transition: width 0.3s ease, margin-left 0.3s ease;
+}
+
+/* Legacy classes kept for backwards compatibility */
+.sensor-bar-fill.temperature {
+  background: var(--brand);
+}
+
+.sensor-bar-fill.humidity {
+  background: var(--brand);
+}
+
+.sensor-setpoint-marker {
+  position: absolute;
+  top: -0.25rem;
+  width: 0.15rem;
+  height: 1rem;
+  background: #6b7280; /* Medium gray - contrasts well with both dark blue (#16486f) and light blue (#d1e3ed) */
+  border-radius: 0.125rem;
+  transform: translateX(-50%);
+  z-index: 1;
+}
+
+/* Dark mode: use lighter gray or white for better visibility */
+[data-theme="dark"] .sensor-setpoint-marker {
+  background: #d1d5db; /* Light gray for dark mode */
+}
+
+.sensor-bar-labels {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.25rem;
+}
+
+.sensor-bar-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.sensor-setpoint {
+  font-size: 0.825rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.pump-card-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.extend-timer-form {
+  grid-column: span 6;
+}
+
+
+/* ============= MODE SELECTOR ============= */
+.mode-section {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 1rem;
+  box-shadow: var(--shadow);
+}
+
+.mode-title {
+  font-weight: 700;
+  font-size: 1.25rem;
+  color: var(--text);
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.mode-grid {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.mode-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+/* base button */
+.mode-btn {
+  width: 3rem;
+  aspect-ratio: 1;
+  border-radius: 1rem;
+  border: 1px solid var(--ring);
+  background: var(--icon-bg);
+  display: grid;
+  place-items: center;
+  position: relative;
+  cursor: pointer;
+  transition: transform 0.05s linear;
+}
+
+.mode-btn:active {
+  transform: scale(0.98);
+}
+
+.mode-btn img {
+  width: 1.5rem;
+  height: 1.5rem;
+  object-fit: contain;
+}
+
+/* DISABLED state */
+.mode-item.disabled .mode-btn {
+  background: rgba(100, 116, 139, 0.2);
+  opacity: 0.8;
+}
+
+.mode-item.disabled .mode-btn img {
+  opacity: 0.3;
+}
+
+.mode-item.disabled .mode-btn::after {
+  content: "";
+  position: absolute;
+  width: 0.2rem;
+  height: 2.5rem;
+  background: var(--text-muted);
+  border-radius: 0.125rem;
+  transform: rotate(-45deg);
+}
+
+/* ENABLED but INACTIVE state */
+.mode-item.enabled-inactive .mode-btn {
+  background: var(--bg);
+  outline: 0.125rem solid var(--ring);
+}
+
+/* ACTIVE state */
+.mode-item.enabled-active .mode-btn {
+  background: var(--brand);
+  border-color: transparent;
+}
+
+.mode-item.enabled-active .mode-btn img {
+  filter: brightness(0) invert(1);
+}
+
+/* ============= SUB-HEADER (Time Slots Page) ============= */
+.sub-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  margin-bottom: 0.25rem;
+  padding-left: 0.5rem;
+}
+
+.back-btn {
+  position: absolute;
+  left: 0;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: none;
+  background: var(--card);
+  border-radius: 0.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text);
+  transition: all 150ms;
+  box-shadow: var(--shadow);
+}
+
+.back-btn:hover {
+  background: var(--border);
+}
+
+.sub-header-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+}
+
+/* ============= GANTT CHART ============= */
+.gantt-section {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 1rem;
+  padding-bottom: .5rem;
+  padding-left: .5rem;
+  box-shadow: var(--shadow);
+  overflow-x: hidden;
+}
+
+.gantt-carousel {
+  position: relative;
+  overflow: hidden;
+}
+
+.gantt-carousel-inner {
+  display: flex;
+  transition: transform 300ms ease;
+}
+
+.gantt-slide {
+  min-width: 100%;
+  flex-shrink: 0;
+}
+
+.gantt-container {
+  min-width: 100%;
+}
+
+.gantt-header {
+  display: grid;
+  grid-template-columns: 1.5rem 1fr;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.gantt-day-label {
+  width: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.75rem;
+  color: var(--text);
+}
+
+.gantt-time-axis {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  position: relative;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--border);
+}
+
+.time-marker {
+  font-size: 0.575rem;
+  color: var(--text-muted);
+  text-align: center;
+  font-weight: 600;
+  padding: 0.125rem 0;
+  position: relative;
+}
+
+.time-marker::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 100%;
+  width: 1px;
+  height: 0.25rem;
+  background: var(--border);
+}
+
+.gantt-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding-top: 0.5rem;
+}
+
+.gantt-row {
+  display: grid;
+  grid-template-columns: 1.5rem 1fr;
+  gap: 0.5rem;
+  min-height: 1.25rem;
+}
+
+.gantt-timeline {
+  position: relative;
+  background: var(--bg);
+  border-radius: 4rem;
+  min-height: 1.25rem;
+  display: flex;
+  align-items: center;
+}
+
+.gantt-bar {
+  position: absolute;
+  height: 1rem;
+  background: var(--brand);
+  border-radius: 4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0.75rem;
+  color: white;
+  font-size: 0.6rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 150ms;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.gantt-bar:hover {
+  background: var(--brand-light);
+  transform: scale(1.02);
+}
+
+.bar-time {
+  white-space: nowrap;
+}
+
+/* ============= TIME SLOTS LIST ============= */
+.timeslots-list-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  /* Removed max-height and overflow-y to allow natural page scroll */
+  /* The .page container will handle vertical scrolling */
+  padding-right: 0.25rem;
+  padding-bottom: 1rem; /* Add bottom padding for better spacing */
+}
+
+.section-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.timeslot-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 1rem .75rem;
+  box-shadow: var(--shadow);
+}
+
+.timeslot-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.timeslot-time-start,
+.timeslot-time-end {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text);
+  flex-shrink: 0;
+}
+
+.timeslot-days {
+  display: flex;
+  gap: 0.3rem;
+  flex: 1;
+  justify-content: center;
+}
+
+.day-badge {
+  font-size: 1rem;
+  font-weight: 400;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  transition: all 150ms;
+}
+
+.day-badge.active {
+  font-weight: 800;
+  color: var(--brand);
+}
+
+.timeslot-delete-btn {
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  background: var(--danger-soft);
+  border-radius: 0.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--danger);
+  transition: all 150ms;
+  flex-shrink: 0;
+}
+
+.timeslot-delete-btn:hover {
+  background: var(--danger-border);
+  color: var(--danger);
+  transform: scale(1.05);
+}
+
+.timeslot-delete-btn:active {
+  transform: scale(0.95);
+}
+
+.add-timeslot-btn {
+  width: 100%;
+  padding: 1rem;
+  background: var(--bg);
+  border: 2px dashed var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  font-size: 0.875rem;
+  transition: all 150ms;
+}
+
+.add-timeslot-btn:hover {
+  background: var(--border);
+  border-color: var(--brand);
+  color: var(--brand);
+}
+
+/* ============= SETTINGS TIME SLOT PAGE ============= */
+.timeslot-settings-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* --- Gauge Section --- */
+.gauge-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 0;
+}
+
+.gauge-container {
+  position: relative;
+  width: 320px;
+  height: 320px;
+}
+
+.gauge-svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.gauge-track {
+  fill: none;
+  stroke: var(--border);
+  stroke-width: 20;
+}
+
+.gauge-arc {
+  fill: none;
+  stroke: var(--brand);
+  stroke-width: 20;
+  stroke-linecap: round;
+}
+
+.gauge-handle {
+  cursor: grab;
+}
+
+.gauge-handle:active {
+  cursor: grabbing;
+}
+
+.gauge-label {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.gauge-time-block {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* gap: 0rem; */
+  left: 50%;
+  transform: translateX(-50%);
+  cursor: pointer;
+}
+
+.gauge-time-block.start {
+  top: 65px;
+}
+
+.gauge-time-block.stop {
+  bottom: 65px;
+}
+
+.gauge-time-value {
+  font-size: 2.5rem;
+  font-weight: 600;
+  color: var(--text);
+  position: relative
+}
+
+
+
+.gauge-time-text, .gauge-duration {
+  font-size: 1rem;
+  font-weight: 400;
+  color: var(--text-muted);
+  text-transform: capitalize;
+  letter-spacing: 0.5px;
+}
+
+.gauge-duration {
+  font-size: 1.5rem;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+.gauge-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  pointer-events: none;
+}
+
+.gauge-times {
+  display: none;
+}
+
+.gauge-time-input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* --- Days Section --- */
+.days-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.days-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.days-grid {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.day-block {
+  flex: 1;
+  aspect-ratio: 1;
+  min-width: 2.5rem;
+  max-width: 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  border: 2px solid var(--border);
+  border-radius: 0.5rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 150ms;
+  user-select: none;
+}
+
+.day-block:hover {
+  background: var(--surface);
+}
+
+.day-block.active {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: white;
+  font-weight: 700;
+}
+
+/* --- Create Button --- */
+.create-timeslot-btn {
+  width: 100%;
+  padding: 1rem;
+  background: var(--brand);
+  color: white;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 150ms;
+  box-shadow: var(--shadow);
+}
+
+.create-timeslot-btn:hover {
+  background: var(--brand-light);
+}
+
+.create-timeslot-btn:active {
+  transform: scale(0.98);
+}
+
+/* ============= TIMER SETTINGS PAGE ============= */
+.timer-settings-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* --- Timer Picker Section --- */
+.timer-picker-section {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 2rem 0;
+}
+
+/* Timer Block - Each unit (hours, minutes, seconds) */
+.timer-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  min-width: 4.5rem;
+}
+
+.timer-block.hidden {
+  display: none;
+}
+
+/* Timer Label */
+.timer-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-align: center;
+}
+
+/* Timer Arrow */
+.timer-arrow {
+  width: 1.5rem;
+  height: 1.5rem;
+  cursor: pointer;
+  transition: all 150ms;
+  color: var(--brand);
+  flex-shrink: 0;
+}
+
+.timer-arrow:hover {
+  color: var(--brand-light);
+  transform: scale(1.1);
+}
+
+.timer-arrow:active {
+  transform: scale(0.95);
+}
+
+/* Timer Value - For settings page */
+.timer-value-settings {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--text);
+  cursor: pointer;
+  user-select: none;
+  min-width: 4rem;
+  text-align: center;
+  transition: all 150ms;
+  border-radius: 0.5rem;
+  padding: 0.25rem 0.5rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.05em;
+}
+
+.timer-value-settings:hover {
+  background: var(--surface);
+}
+
+/* Timer Value Input */
+.timer-value-input {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--text);
+  text-align: center;
+  border: 2px solid var(--brand);
+  border-radius: 0.5rem;
+  background: var(--card);
+  padding: 0.25rem 0.5rem;
+  width: 4.5rem;
+  outline: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.timer-value-input::-webkit-inner-spin-button,
+.timer-value-input::-webkit-outer-spin-button {
+  opacity: 1;
+}
+
+/* Timer Separator Column */
+.timer-separator-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+  /* padding-top: calc(0.75rem + 1.5rem + 0.75rem); label height + arrow height + gap */
+  padding-top: 1.25rem;
+}
+
+.timer-separator-column.hidden {
+  display: none;
+}
+
+/* Timer Separator */
+.timer-separator {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 3.5rem; /* Same as timer-value-settings height */
+}
+
+/* --- Timer Action Bar --- */
+.timer-action-bar {
+  display: flex;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.timer-btn {
+  flex: 1;
+  padding: 1rem;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 150ms;
+  box-shadow: var(--shadow);
+}
+
+.timer-btn-default {
+  background: var(--bg);
+  color: var(--text);
+  border: 2px solid var(--brand);
+}
+
+.timer-btn-default:hover {
+  background: var(--surface);
+}
+
+.timer-btn-default:active {
+  transform: scale(0.98);
+}
+
+.timer-btn-confirm {
+  background: var(--brand);
+  color: white;
+}
+
+.timer-btn-confirm:hover {
+  background: var(--brand-light);
+}
+
+.timer-btn-confirm:active {
+  transform: scale(0.98);
+}
+
+/* ============= PARAMETER SETTINGS PAGE ============= */
+.parameter-settings-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* Container for Value + Slider (with smaller gap) */
+.parameter-value-slider-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+/* Parameter Value Display Section */
+.parameter-display-section {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 1.5rem;
+  padding: 1rem 0;
+}
+
+.parameter-arrow-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: all 150ms;
+  flex-shrink: 0;
+}
+
+.parameter-arrow-btn:hover {
+  transform: scale(1.1);
+}
+
+.parameter-arrow-btn:active {
+  transform: scale(0.95);
+}
+
+.parameter-arrow-btn svg {
+  width: 2rem;
+  height: 2rem;
+  color: var(--brand);
+}
+
+.parameter-value-display {
+  font-size: 3rem;
+  font-weight: 700;
+  color: var(--text);
+  cursor: pointer;
+  user-select: none;
+  padding: 0.5rem 1rem;
+  border-radius: 0.75rem;
+  transition: all 150ms;
+  min-width: 8rem;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.parameter-value-display:hover {
+  background: var(--surface);
+}
+
+.parameter-value-input {
+  font-size: 3rem;
+  font-weight: 700;
+  color: var(--text);
+  text-align: center;
+  border: 2px solid var(--brand);
+  border-radius: 0.75rem;
+  background: var(--card);
+  padding: 0.5rem 1rem;
+  min-width: 8rem;
+  outline: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.parameter-value-input::-webkit-inner-spin-button,
+.parameter-value-input::-webkit-outer-spin-button {
+  opacity: 1;
+}
+
+/* Parameter Slider Section */
+.parameter-slider-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.parameter-slider-container {
+  position: relative;
+  width: 100%;
+  padding: 0.5rem 0;
+}
+
+.parameter-slider {
+  width: 100%;
+  height: 0.75rem;
+  -webkit-appearance: none;
+  appearance: none;
+  background: var(--border);
+  border-radius: 0.5rem;
+  outline: none;
+  cursor: pointer;
+  position: relative;
+}
+
+/* Track progress (selected part) - WebKit */
+.parameter-slider::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 0.75rem;
+  background: transparent;
+  border-radius: 0.5rem;
+}
+
+.parameter-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 1.25rem;
+  height: 1.25rem;
+  background: white;
+  border: 3px solid var(--brand);
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  transition: all 150ms;
+  margin-top: -0.25rem;
+  position: relative;
+  z-index: 2;
+}
+
+.parameter-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+}
+
+.parameter-slider::-webkit-slider-thumb:active {
+  transform: scale(1.05);
+}
+
+/* Track progress (selected part) - Firefox */
+.parameter-slider::-moz-range-track {
+  width: 100%;
+  height: 0.75rem;
+  background: var(--border);
+  border-radius: 0.5rem;
+}
+
+.parameter-slider::-moz-range-progress {
+  height: 0.75rem;
+  background: var(--brand);
+  border-radius: 0.5rem;
+}
+
+.parameter-slider::-moz-range-thumb {
+  width: 1.25rem;
+  height: 1.25rem;
+  background: white;
+  border: 3px solid var(--brand);
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  transition: all 150ms;
+  position: relative;
+  z-index: 2;
+}
+
+.parameter-slider::-moz-range-thumb:hover {
+  transform: scale(1.15);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+}
+
+.parameter-slider::-moz-range-thumb:active {
+  transform: scale(1.05);
+}
+
+.parameter-slider::-moz-range-thumb:hover {
+  transform: scale(1.1);
+  background: var(--brand-light);
+}
+
+.parameter-slider-labels {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.parameter-slider-label {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+/* Parameter Action Bar */
+.parameter-action-bar {
+  display: flex;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.parameter-btn {
+  flex: 1;
+  padding: 1rem;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 150ms;
+  box-shadow: var(--shadow);
+}
+
+.parameter-btn-default {
+  background: var(--bg);
+  color: var(--text);
+  border: 2px solid var(--brand);
+}
+
+.parameter-btn-default:hover {
+  background: var(--surface);
+}
+
+.parameter-btn-default:active {
+  transform: scale(0.98);
+}
+
+.parameter-btn-confirm {
+  background: var(--brand);
+  color: white;
+}
+
+.parameter-btn-confirm:hover {
+  background: var(--brand-light);
+}
+
+.parameter-btn-confirm:active {
+  transform: scale(0.98);
+}
+
+/* ============= POWER BUTTON ============= */
+
+.power-btn {
+  width: 100%;
+  padding: 1rem;
+  background: var(--brand);
+  color: white;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 150ms;
+  box-shadow: var(--shadow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.power-btn:hover {
+  background: var(--brand-light);
+}
+
+.power-btn.off {
+  background: var(--text-muted);
+}
+
+.power-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+  background: white;
+  border-radius: 0.25rem;
+}
+
+/* ============= MODAL ============= */
+.modal-backdrop {
+  position: fixed;
+  top: -150%;
+  left: 0;
+  width: 100vw;
+  height: 100vh; /* Fallback */
+  height: 100dvh; /* Dynamic viewport */
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  transition: top 550ms ease;
+}
+
+.modal-backdrop.active {
+  top: 0;
+}
+
+.modal {
+  background: var(--card);
+  border-radius: var(--radius);
+  max-width: 24rem;
+  width: 100%;
+  max-height: 80vh; /* Fallback */
+  max-height: 80dvh; /* Dynamic viewport */
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header {
+  padding: 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.modal-param-icon {
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--icon-bg);
+  border-radius: 0.5rem;
+  flex-shrink: 0;
+}
+
+.modal-param-icon img {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.modal-title {
+  font-weight: 700;
+  font-size: 1.125rem;
+  color: var(--text);
+  flex: 1;
+  text-align: center;
+}
+
+.modal-close {
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  background: var(--bg);
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-size: 1.25rem;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 150ms;
+}
+
+.modal-close:hover {
+  background: var(--border);
+}
+
+.modal-body {
+  padding: 1.25rem;
+  overflow-y: auto;
+}
+
+.parameter-description {
+  color: var(--text);
+  font-size: 1rem;
+  line-height: 1.6;
+  white-space: pre-line;
+}
+
+.modal-footer {
+  padding: 1.25rem;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 0.75rem;
+}
+
+.modal-btn {
+  flex: 1;
+  padding: 0.75rem;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 150ms;
+}
+
+.modal-btn-secondary {
+  background: var(--bg);
+  color: var(--text);
+}
+
+.modal-btn-secondary:hover {
+  background: var(--border);
+}
+
+.modal-btn-primary {
+  background: var(--brand);
+  color: white;
+}
+
+.modal-btn-primary:hover {
+  background: var(--brand-light);
+}
+
+/* ============= SETTINGS PAGE ============= */
+.settings-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding-bottom: 1rem;
+}
+
+/* --- Parameter Cards --- */
+.parameter-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 1rem;
+  box-shadow: var(--shadow);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  position: relative;
+  transition: all 150ms;
+}
+
+.parameter-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.75rem;
+  background: var(--icon-bg);
+  border: 1px solid var(--ring);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.parameter-icon img {
+  width: 60%;
+  height: 60%;
+  object-fit: contain;
+}
+
+.parameter-label {
+  font-weight: 600;
+  font-size: 1.25rem;
+  color: var(--text);
+  flex: 1;
+}
+
+.parameter-value-container {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+  flex-shrink: 0;
+  margin-right: calc(1.5rem + 1rem); /* Spazio per il pulsante info (1.5rem) + distanza (1rem) */
+}
+
+.parameter-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.parameter-unit {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.parameter-info-btn::before,
+.parameter-info-btn::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--text-muted);
+  border-radius: 0.125rem;
+}
+
+/* pallino superiore */
+.parameter-info-btn::before {
+  top: 0.4rem;
+  width: 0.2rem;
+  height: 0.2rem;
+}
+
+/* stanghetta inferiore */
+.parameter-info-btn::after {
+  top: 0.7rem;
+  width: 0.15rem;
+  height: 0.5rem;
+}
+
+/* ============= PARAMETER SWITCH ============= */
+.parameter-switch-container {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+  margin-right: calc(1.5rem + 1rem);
+}
+
+.parameter-switch {
+  position: relative;
+  display: inline-block;
+  width: 3rem;
+  height: 1.75rem;
+}
+
+.parameter-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.parameter-switch-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--border);
+  transition: all 300ms;
+  border-radius: 1.75rem;
+}
+
+.parameter-switch-slider:before {
+  position: absolute;
+  content: "";
+  height: 1.25rem;
+  width: 1.25rem;
+  left: 0.25rem;
+  bottom: 0.25rem;
+  background-color: white;
+  transition: all 300ms;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.parameter-switch input:checked + .parameter-switch-slider {
+  background-color: var(--brand);
+}
+
+.parameter-switch input:checked + .parameter-switch-slider:before {
+  transform: translateX(1.25rem);
+}
+
+.parameter-switch input:disabled + .parameter-switch-slider {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.parameter-switch-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  user-select: none;
+}
+
+.parameter-switch input:checked ~ .parameter-switch-label {
+  color: var(--brand);
+}
+
+.settings-placeholder,
+.scheduler-placeholder {
+  padding: 2rem;
+  text-align: center;
+}
+
+.placeholder-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 0.5rem;
+}
+
+.placeholder-text {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+/* ============= TIME SLOTS PAGE LAYOUT ============= */
+/* Removed all overflow restrictions - let .content-area handle natural scrolling */
+/* Page-level scroll (.content-area with overflow-y: auto) handles everything */
+
+#timeSlotsPage #page-top-bar-container {
+  flex-shrink: 0;
+}
+
+#timeSlotsPage #gantt-chart-container {
+  flex-shrink: 0;
+}
+
+#timeSlotsPage #timeslot-render-container {
+  flex-shrink: 0; /* Allow natural height - content flows vertically */
+}
+
+/* ============= SCROLLBAR ============= */
+::-webkit-scrollbar {
+  width: 0.375rem;
+  height: 0.375rem;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 0.25rem;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+
+/* CSS per sistemare la sensor form per display minuscoli */
+
+/* ============= MEDIA QUERIES ============= */
+@media (max-width: 385px) {
+  .pump-section {
+    padding: 0.5rem;
+  }
+
+  .mode-section {
+    padding: 0.5rem;
+  }
+
+  .mode-grid {
+    gap: 0;
+  }
+}
+
+@media (max-width: 360px) {
+  .brand-name{
+    display: none;
+  }
+
+
+  .pump-cards {
+    grid-template-columns: repeat(6, calc((100% - 5 * 0.55rem) / 6));
+    gap: 0.5rem;
+  }
+
+  /* sistemo il gap delle immagini */
+  .pump-card.simple-card,
+  .pump-card .sensor-card-top,
+  .pump-card .timer-card
+  {
+    gap: 0.5rem;
+  }
+
+  /* ricduco il padding alle card */
+  .pump-card,
+  .pump-card.simple-card {
+    padding: 0.5rem;
+  }
+}
+
+@media (max-width: 340px) {
+  .parameter-icon {
+    display: none;
+  }
+
+  /* tolgo le icone */
+  .pump-section .pump-card-icon {
+    display: none !important;
+  }
+
+  .pump-card-icon {
+    display: none;
+  }
+
+  /* rimetto il padding */
+    /* ricduco il padding alle card */
+  .pump-card,
+  .pump-card.simple-card {
+    padding: 1rem;
+  }
+
+  /* centro la scritta del sensore */
+  .sensor-value-container{
+    justify-content: center;
+  }
+
+  /* mostro la label della modalità relay e dispongo in colonna */
+  .relay-mode-label {
+    display: block;
+  }
+
+  .relay-card {
+    flex-direction: column !important;
+  }
+}
+
+/* tolgo il max e il min del range del set point */
+@media (max-width: 320px) {
+  .sensor-bar-label{
+    display: none;
+  }
+
+  .sensor-setpoint{
+    padding-top: 1.25rem;
+  }
+  .pump-card.sensor-card{
+    padding-bottom: 1.5rem ;
+  }
+}
+
+/* Center the sensor value when the card is full width */
+.pump-card.sensor-card.full-width .sensor-value-container {
+  justify-content: center;
+  /* Compensate for the icon width to center truly in the card, or just center in the remaining space. 
+     If we want true center relative to card, we might need absolute positioning or grid. 
+     But centering in the flex container (remaining space) is usually good enough and safer. 
+     Let's try centering in the remaining space first. */
+}
+
+/* If we want the value to be centered relative to the whole card, we need to offset the icon width.
+   The icon is 2.375rem + 0.75rem gap.
+   To center perfectly in the card, we can use margin-right on the value container equal to the icon width + gap?
+   No, simpler is to just center in the available space. The user said "centrato nella form".
+   If the form is wide, centering in the remaining space (which is most of the width) will look centered.
+*/
+

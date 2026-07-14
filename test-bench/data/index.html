@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <!-- Mobile-first viewport: no zoom, portrait preferred -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  
+  <!-- 🔄 ANTI-CACHE: Forza il browser a NON cachare questa pagina -->
+  <!-- NOTE: These meta tags are belt-and-suspenders. Real enforcement is via HTTP headers on the server. -->
+  <meta http-equiv="Cache-Control" content="no-store, max-age=0, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  
+  <title>ECU WebUI</title>
+  
+  <!-- Applica tema salvato IMMEDIATAMENTE per evitare flash -->
+  <script>
+    // IMPORTANTE: Questo deve essere eseguito PRIMA del CSS!
+    try {
+      const theme = localStorage.getItem('theme');
+      if (theme === 'dark' || theme === 'light') {
+        document.documentElement.setAttribute('data-theme', theme);
+      } else {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    } catch (e) {
+      // Fallback in caso di errore localStorage
+      document.documentElement.setAttribute('data-theme', 'light');
+    }
+  </script>
+
+  <!-- APP VERSION — defined here so it is available before JS/CSS loads.
+       Bumped manually (or via package.json) on every firmware+asset release.
+       The Vite build plugin overwrites this value from package.json automatically. -->
+  <script>
+    window.APP_VERSION = "1.0.2";
+  </script>
+
+  
+  <!-- Component Styles -->
+  
+  <!-- Page Styles -->
+
+
+
+  <script type="module" crossorigin src="./app.js?v=1.0.2"></script>
+  <link rel="stylesheet" crossorigin href="./style.css?v=1.0.2">
+</head>
+
+<body>
+  <!-- ============================================
+       APP ROOT
+       ============================================ -->
+  <div id="app" class="app-container">
+    
+    <!-- TOP BAR - Container popolato dal componente TopBar -->
+    <div class="top-bar"></div>
+
+    <!-- PAGES CONTAINER -->
+    <!-- Le pagine vengono create dinamicamente dai Page components e appese qui -->
+    <div class="pages-container"></div>
+
+  </div>
+
+  <!-- ============================================
+       SIDEBAR CONTAINER (popolato da SidebarManager)
+       ============================================ -->
+  <div id="sidebar-container"></div>
+
+  <!-- ============================================
+       MODAL CONTAINER (popolato da ModalManager)
+       ============================================ -->
+  <div id="modal-manager-container"></div>
+
+  <!-- ============================================
+       TEMPLATES (da popolare incrementalmente)
+       ============================================ -->
+
+  <!-- ============================================
+       JAVASCRIPT BOOTSTRAP
+       ============================================ -->
+  
+  <!-- Runtime configuration -->
+  <script>
+    window.APP_CONFIG = {
+      socketUrl: window.location.host + "/ws"
+    };
+  </script>
+  
+  <!-- Main application bootstrap -->
+
+</body>
+</html>

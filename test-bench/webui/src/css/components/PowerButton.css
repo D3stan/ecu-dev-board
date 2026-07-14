@@ -1,0 +1,201 @@
+/**
+ * PowerButton.css
+ * ===============
+ * Compatibile con:
+ * <button class="power-button ...">
+ *   <img class="power-icon">
+ *   <span class="power-label">
+ *
+ * - PNG trasparente (nessuna inversione di sfondo)
+ * - Icona bianca su "on"
+ * - Icona scura attenuata su "off"
+ * - Stile identico in light e dark mode
+ */
+
+/* ============= CONTAINER ============= */
+.power-section {
+  width: 100%;
+}
+
+.power-button-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+/* ============= BASE BUTTON ============= */
+.power-button {
+  width: 100%;
+  padding: 0.5rem 1rem;
+  background: var(--card);
+  color: var(--text);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 1.125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 200ms ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  position: relative;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.power-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-color: rgba(var(--brand-rgb, 22,72,111), 0.5);
+}
+
+.power-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.power-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* ============= STATES ============= */
+.power-button.off {
+  background: var(--card);
+  color: var(--text-muted);
+  border-color: var(--border);
+}
+
+.power-button.on {
+  background: var(--brand);
+  color: white;
+  border-color: var(--brand);
+}
+
+/* ============= ICONA (IMG) ============= */
+.power-icon {
+  width: 3rem;
+  height: 3rem;
+  object-fit: contain;
+  transform: rotate(45deg);
+  transition: all 200ms ease;
+  background: transparent !important;
+  display: block;
+  filter: none !important; /* neutralizza i filtri globali */
+}
+
+/* OFF → icona scura attenuata */
+.power-button.off .power-icon {
+  opacity: 0.6;
+  filter: grayscale(0.3) brightness(0.3) !important;
+}
+
+/* ON → icona bianca */
+.power-button.on .power-icon {
+  opacity: 1;
+  filter: brightness(0) invert(1) !important;
+  transform: rotate(45deg) scale(1.05);
+}
+
+/* ============= DARK MODE ============= */
+/* Stesso comportamento della light mode */
+[data-theme="dark"] .power-icon {
+  filter: none !important;
+  background: transparent !important;
+}
+
+[data-theme="dark"] .power-button.off .power-icon {
+  opacity: 0.6;
+  filter: grayscale(0.3) brightness(0.3) !important;
+}
+
+[data-theme="dark"] .power-button.on .power-icon {
+  opacity: 1;
+  filter: brightness(0) invert(1) !important;
+  transform: rotate(45deg) scale(1.05);
+}
+
+/* ============= LABEL ============= */
+.power-label {
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  transition: all 200ms ease;
+  user-select: none;
+}
+
+/* Mantiene la coerenza anche in dark mode */
+[data-theme="dark"] .power-button.off .power-label {
+  opacity: 0.6;
+  color: var(--text-muted);
+}
+
+[data-theme="dark"] .power-button.on .power-label {
+  opacity: 1;
+  color: white;
+}
+
+/* ============= ACCESSIBILITY ============= */
+.power-button:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+
+/* ============= RESPONSIVE DESIGN ============= */
+@media (max-width: 480px) {
+  .power-button {
+    padding: 0.75rem;
+    font-size: 1rem;
+  }
+
+  .power-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .power-button {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.9rem;
+  }
+
+  .power-icon {
+    width: 2rem;
+    height: 2rem;
+  }
+}
+
+/* ============= REDUCED MOTION ============= */
+@media (prefers-reduced-motion: reduce) {
+  .power-button,
+  .power-icon,
+  .power-label {
+    transition: none;
+  }
+}
+
+/* ============= PRINT ============= */
+@media print {
+  .power-section {
+    display: none;
+  }
+}
+
+/* ===========================
+   POWER BUTTON – STATO OFF
+   Allinea il colore dell'icona al testo "Spento"
+   =========================== */
+
+/* Light mode */
+.power-button.off .power-icon {
+  opacity: 0.8;
+  filter: brightness(0) saturate(100%) invert(38%) sepia(9%) saturate(836%) hue-rotate(170deg) brightness(94%) contrast(89%) !important;
+}
+
+/* Dark mode */
+[data-theme="dark"] .power-button.off .power-icon {
+  opacity: 0.8;
+  filter: brightness(0) saturate(100%) invert(70%) sepia(6%) saturate(352%) hue-rotate(169deg) brightness(88%) contrast(89%) !important;
+}
+

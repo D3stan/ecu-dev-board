@@ -1,0 +1,311 @@
+.dashboard-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  padding: 0.5rem 0.625rem 1rem;
+  width: 100%;
+}
+
+.ecu-cockpit {
+  /* ECU accent aliases -> unified global tokens */
+  --ecu-primary: var(--accent);
+  --ecu-warning: var(--accent-warning);
+  --ecu-info: var(--accent-info);
+}
+
+.recording-bar {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.recording-action {
+  align-items: center;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  color: var(--text);
+  cursor: pointer;
+  display: inline-flex;
+  flex: 1;
+  font-size: var(--fs-label);
+  font-weight: var(--fw-extrabold);
+  justify-content: center;
+  letter-spacing: var(--ls-wide);
+  min-height: 2.25rem;
+  text-transform: uppercase;
+  transition: border-color 150ms ease, filter 150ms ease;
+}
+
+.recording-action:not(:disabled):hover {
+  border-color: var(--accent-border);
+}
+
+.recording-action:disabled {
+  color: var(--text-muted);
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.rpm-hero {
+  align-items: center;
+  background:
+    radial-gradient(circle at 50% 48%, var(--accent-soft), transparent 58%),
+    var(--card);
+  border: 1px solid var(--accent-glow);
+  border-radius: 0.5rem;
+  box-shadow: var(--shadow-lg);
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  min-height: 18rem;
+  padding: 1rem;
+  transition: border-color 150ms ease, transform 150ms ease;
+}
+
+.rpm-hero:hover {
+  border-color: var(--accent-border-strong);
+  transform: translateY(-1px);
+}
+
+.rpm-gauge-container {
+  align-items: center;
+  aspect-ratio: 1;
+  display: flex;
+  justify-content: center;
+  max-width: 18rem;
+  position: relative;
+  width: 100%;
+}
+
+.rpm-gauge-svg {
+  height: 100%;
+  width: 100%;
+}
+
+.gauge-track {
+  stroke: var(--surface);
+  stroke-width: 10;
+}
+
+.gauge-fill {
+  stroke: var(--ecu-primary);
+  stroke-width: 10;
+  transition: stroke-dashoffset 120ms linear;
+}
+
+.gauge-text-container {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  left: 50%;
+  position: absolute;
+  text-align: center;
+  top: 50%;
+  transform: translate(-50%, -42%);
+  width: 78%;
+}
+
+.gauge-value {
+  color: var(--text);
+  font-size: var(--fs-display);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--fw-black);
+  letter-spacing: var(--ls-normal);
+  line-height: var(--lh-tight);
+}
+
+.gauge-unit,
+.rpm-subline {
+  color: var(--text-muted);
+  font-size: var(--fs-label);
+  font-weight: var(--fw-extrabold);
+  line-height: var(--lh-snug);
+  text-transform: uppercase;
+}
+
+.rpm-subline {
+  color: var(--ecu-primary);
+  margin-top: 0.2rem;
+}
+
+.rpm-subline.muted {
+  color: var(--text-muted);
+  text-transform: none;
+}
+
+.metrics-grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.metric-card {
+  appearance: none;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  box-shadow: var(--shadow);
+  color: inherit;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  justify-content: space-between;
+  min-height: 7.25rem;
+  padding: 0.875rem;
+  text-align: left;
+  transition: border-color 150ms ease, transform 150ms ease, box-shadow 150ms ease;
+  width: 100%;
+}
+
+.metric-card:hover {
+  border-color: var(--accent-border-strong);
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-1px);
+}
+
+.metric-card.wide {
+  grid-column: 1 / -1;
+}
+
+.metric-card.fault-active {
+  border-color: var(--danger-border);
+}
+
+.metric-card.invalid {
+  border-color: var(--accent-warning-border);
+}
+
+.metric-header {
+  align-items: flex-start;
+  display: flex;
+  gap: 0.5rem;
+  justify-content: space-between;
+}
+
+.metric-title {
+  color: var(--text-muted);
+  font-size: var(--fs-label);
+  font-weight: var(--fw-extrabold);
+  line-height: var(--lh-snug);
+  text-transform: uppercase;
+}
+
+.metric-body {
+  align-items: baseline;
+  display: flex;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.metric-value {
+  color: var(--text);
+  font-size: var(--fs-value);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--fw-black);
+  letter-spacing: var(--ls-normal);
+  line-height: var(--lh-tight);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.metric-unit {
+  color: var(--text-muted);
+  font-size: var(--fs-body);
+  font-weight: var(--fw-extrabold);
+}
+
+.metric-footer {
+  color: var(--text-muted);
+  font-size: var(--fs-meta);
+  font-weight: var(--fw-bold);
+  line-height: var(--lh-snug);
+  min-height: 1.7em;
+}
+
+.telemetry-badge {
+  border-radius: 999px;
+  display: inline-flex;
+  flex: 0 0 auto;
+  font-size: var(--fs-badge);
+  font-weight: var(--fw-black);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--ls-wide);
+  padding: 0.32rem 0.45rem;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.telemetry-badge.ok {
+  background: var(--accent-soft);
+  color: var(--ecu-primary);
+}
+
+.telemetry-badge.degraded {
+  background: var(--accent-warning-soft);
+  color: var(--ecu-warning);
+}
+
+.telemetry-badge.invalid,
+.telemetry-badge.fault {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.telemetry-badge.unknown {
+  background: var(--surface);
+  color: var(--text-muted);
+}
+
+.dev-actions {
+  display: flex;
+}
+
+.qs-btn {
+  background: var(--ecu-warning);
+  border: 0;
+  border-radius: 0.5rem;
+  box-shadow: var(--shadow);
+  color: #ffffff;
+  cursor: pointer;
+  font-size: var(--fs-title);
+  font-weight: var(--fw-black);
+  min-height: 3rem;
+  text-transform: uppercase;
+  transition: filter 150ms ease, transform 150ms ease;
+  width: 100%;
+}
+
+.qs-btn:hover {
+  filter: brightness(1.05);
+}
+
+.qs-btn:active,
+.qs-btn.active {
+  transform: translateY(1px);
+}
+
+@media (max-width: 340px) {
+  .dashboard-container {
+    padding-left: 0.375rem;
+    padding-right: 0.375rem;
+  }
+
+  .rpm-hero {
+    min-height: 15.5rem;
+  }
+
+  .gauge-value {
+    font-size: 2.15rem;
+  }
+
+  .metric-card {
+    padding: 0.7rem;
+  }
+
+  .metric-value {
+    font-size: 1.35rem;
+  }
+}

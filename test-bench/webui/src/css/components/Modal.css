@@ -1,0 +1,410 @@
+/**
+ * Modal.css
+ * =========
+ * Complete styles for the parametric Modal component.
+ * 
+ * Features:
+ * - 4 visual types (success, error, warning, info)
+ * - Backdrop with fade-in animation
+ * - Container with scale-in animation
+ * - Type-specific icon colors and backgrounds
+ * - Action buttons with 3 variants (primary, secondary, danger)
+ * - Responsive design (mobile-first)
+ * - Accessibility (focus states, ARIA)
+ * 
+ * Structure:
+ * .modal-backdrop (root/overlay)
+ *   └─ .modal-container.modal-{type}
+ *       ├─ .modal-close-btn (optional)
+ *       ├─ .modal-header
+ *       │   ├─ .modal-icon (with inline SVG or <img>)
+ *       │   └─ .modal-title
+ *       ├─ .modal-body
+ *       │   └─ .modal-message
+ *       └─ .modal-footer (optional)
+ *           └─ .modal-action-btn.{variant}
+ * 
+ * @author FogExtra Team
+ * @version 2.0.0
+ */
+
+/* ============================================
+   BACKDROP (overlay)
+   ============================================ */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 9999;
+  
+  /* Initially hidden */
+  opacity: 0;
+  pointer-events: none;
+  
+  /* Fade-in animation */
+  transition: opacity 0.3s ease;
+}
+
+.modal-backdrop.active {
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* ============================================
+   CONTAINER (modal box)
+   ============================================ */
+
+.modal-container {
+  background: var(--card, #ffffff);
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  max-width: 480px;
+  width: 90vw;
+  max-height: 80vh;
+  overflow-y: auto;
+  padding: 32px 24px 24px;
+  position: relative;
+  
+  /* Initially scaled down */
+  transform: scale(0.92);
+  opacity: 0;
+  
+  /* Scale-in animation */
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.modal-backdrop.active .modal-container {
+  transform: scale(1);
+  opacity: 1;
+}
+
+/* ============================================
+   CLOSE BUTTON (X in top-right)
+   ============================================ */
+
+.modal-close-btn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--text-muted, #6b7280);
+  transition: background 0.2s ease, color 0.2s ease;
+  padding: 0;
+}
+
+.modal-close-btn:hover {
+  background: var(--surface, #f3f4f6);
+  color: var(--text, #111827);
+}
+
+.modal-close-btn:focus-visible {
+  outline: 2px solid var(--brand, #3b82f6);
+  outline-offset: 2px;
+}
+
+.modal-close-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* ============================================
+   HEADER (icon + title)
+   ============================================ */
+
+.modal-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+/* Icon circle container */
+.modal-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  
+  /* Default styles (for info type) */
+  background: var(--surface, #f3f4f6);
+  color: var(--text, #111827);
+}
+
+/* Icon SVGs and images */
+.modal-icon svg {
+  width: 40px;
+  height: 40px;
+}
+
+.modal-icon img {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+}
+
+/* Title */
+.modal-title {
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--text, #111827);
+  margin: 0;
+}
+
+/* ============================================
+   TYPE-SPECIFIC ICON COLORS
+   ============================================ */
+
+/* Success - green */
+.modal-success .modal-icon {
+  background: var(--success-soft);
+  color: var(--success);
+}
+
+/* Error - red */
+.modal-error .modal-icon {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+/* Warning - amber */
+.modal-warning .modal-icon {
+  background: var(--warning-soft);
+  color: var(--warning);
+}
+
+/* Info - uses default/theme colors */
+.modal-info .modal-icon {
+  background: var(--surface, #f3f4f6);
+  color: var(--text, #111827);
+}
+
+/* Dark mode adjustments for info icon */
+[data-theme="dark"] .modal-info .modal-icon {
+  background: var(--surface, #1f2937);
+}
+
+/* ============================================
+   BODY (message text)
+   ============================================ */
+
+.modal-body {
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.modal-message {
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text-muted, #6b7280);
+  margin: 0;
+  white-space: pre-wrap; /* Preserve line breaks */
+}
+
+/* ============================================
+   FOOTER (action buttons)
+   ============================================ */
+
+.modal-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+}
+
+/* Action button base styles */
+.modal-action-btn {
+  flex: 1 1 auto;
+  min-width: 120px;
+  padding: 12px 24px;
+  font-size: 15px;
+  font-weight: 600;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  
+  /* Default: primary variant */
+  background: var(--brand, #3b82f6);
+  color: #ffffff;
+}
+
+.modal-action-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.modal-action-btn:active {
+  transform: translateY(0);
+}
+
+.modal-action-btn:focus-visible {
+  outline: 2px solid var(--brand, #3b82f6);
+  outline-offset: 2px;
+}
+
+/* ============================================
+   BUTTON VARIANTS
+   ============================================ */
+
+/* Primary - brand color (default) */
+.modal-btn-primary {
+  background: var(--brand, #3b82f6);
+  color: #ffffff;
+}
+
+.modal-btn-primary:hover {
+  background: var(--brand-dark, #2563eb);
+}
+
+/* Secondary - gray/neutral */
+.modal-btn-secondary {
+  background: var(--surface, #f3f4f6);
+  color: var(--text, #111827);
+  border: 1px solid var(--border, #e5e7eb);
+}
+
+.modal-btn-secondary:hover {
+  background: var(--bg, #e5e7eb);
+}
+
+[data-theme="dark"] .modal-btn-secondary {
+  background: var(--surface, #374151);
+  color: var(--text, #f9fafb);
+  border-color: var(--border, #4b5563);
+}
+
+[data-theme="dark"] .modal-btn-secondary:hover {
+  background: var(--bg, #4b5563);
+}
+
+/* Danger - red/destructive */
+.modal-btn-danger {
+  background: var(--danger);
+  color: #ffffff;
+}
+
+.modal-btn-danger:hover {
+  background: var(--danger);
+  filter: brightness(0.92);
+}
+
+/* ============================================
+   RESPONSIVE (mobile)
+   ============================================ */
+
+@media (max-width: 600px) {
+  .modal-container {
+    max-width: 95vw;
+    padding: 24px 20px 20px;
+  }
+  
+  /* Slightly smaller icon */
+  .modal-icon {
+    width: 56px;
+    height: 56px;
+  }
+  
+  .modal-icon svg {
+    width: 34px;
+    height: 34px;
+  }
+  
+  .modal-icon img {
+    width: 30px;
+    height: 30px;
+  }
+  
+  /* Smaller title */
+  .modal-title {
+    font-size: 18px;
+  }
+  
+  /* Smaller message */
+  .modal-message {
+    font-size: 14px;
+  }
+  
+  /* Stack buttons vertically and expand to full width */
+  .modal-footer {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .modal-action-btn {
+    width: 100%;
+    min-width: unset;
+  }
+}
+
+/* ============================================
+   ACCESSIBILITY
+   ============================================ */
+
+/* High contrast focus states for accessibility */
+@media (prefers-contrast: high) {
+  .modal-close-btn:focus-visible,
+  .modal-action-btn:focus-visible {
+    outline-width: 3px;
+  }
+}
+
+/* Reduced motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  .modal-backdrop,
+  .modal-container,
+  .modal-close-btn,
+  .modal-action-btn {
+    transition: none;
+  }
+}
+
+/* ============================================
+   DARK MODE ADJUSTMENTS
+   ============================================ */
+
+[data-theme="dark"] .modal-container {
+  background: var(--card, #1f2937);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+}
+
+[data-theme="dark"] .modal-title {
+  color: var(--text, #f9fafb);
+}
+
+[data-theme="dark"] .modal-message {
+  color: var(--text-muted, #9ca3af);
+}
+
+[data-theme="dark"] .modal-close-btn {
+  color: var(--text-muted, #9ca3af);
+}
+
+[data-theme="dark"] .modal-close-btn:hover {
+  background: var(--surface, #374151);
+  color: var(--text, #f9fafb);
+}
+
+/* Dark mode icon filters for info type with custom images */
+[data-theme="dark"] .modal-info .modal-icon img {
+  filter: brightness(0) invert(1) opacity(0.85);
+}
+
