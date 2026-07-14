@@ -3,7 +3,33 @@ idf_component_register(
         "src/static_file_resolver.cpp"
         "src/telemetry_json_serializer.cpp"
         "src/telemetry_pump.cpp"
+        "src/wifi_station.cpp"
+        "src/static_file_server.cpp"
+        "src/websocket_transport.cpp"
+        "src/recording_settings.cpp"
+        "src/device_identity.cpp"
+        "src/telemetry_server.cpp"
     INCLUDE_DIRS "include"
-    REQUIRES telemetry esp_common
+    REQUIRES
+        telemetry
+        esp_app_format
+        esp_event
+        esp_http_server
+        esp_netif
+        esp_timer
+        esp_wifi
+        esp_hw_support
+        json
+        nvs_flash
+        spi_flash
+        spiffs
 )
 target_compile_features(${COMPONENT_LIB} PUBLIC cxx_std_17)
+
+set(WEB_ASSET_DIR "${CMAKE_SOURCE_DIR}/data")
+if(EXISTS "${WEB_ASSET_DIR}/index.html")
+    spiffs_create_partition_image(www "${WEB_ASSET_DIR}" FLASH_IN_PROJECT)
+else()
+    message(FATAL_ERROR
+        "Missing ${WEB_ASSET_DIR}/index.html. Run 'cd webui && npm ci && npm run build' first.")
+endif()
