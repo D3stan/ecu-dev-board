@@ -67,8 +67,9 @@ std::optional<TelemetryBatch> TelemetryCollector::collect(TimestampUs now) {
     batch.state = make_state(sample, now);
     detect_events(sample, batch.state, now);
 
-    batch.event_count =
-        std::min(config_.max_events_per_batch, pending_event_count_);
+    batch.event_count = std::min({config_.max_events_per_batch,
+                                  pending_event_count_,
+                                  batch.events.size()});
     for (std::size_t index = 0; index < batch.event_count; ++index) {
         batch.events[index] = pending_events_[index];
     }
